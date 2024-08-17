@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  client:
+    build:
+      context: .
+      target: client-dev
+    ports:
+      - "5000:3000"
+    volumes:
+      - ./client/src:/usr/local/app/src
+      - ./client/public:/usr/local/app/public
+      - /usr/local/app/node_modules
+    environment:
+      - NODE_ENV=development
+
+  server:
+    build:
+      context: .
+      target: server-dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./server/src:/usr/local/app/src
+    environment:
+      - NODE_ENV=development
+      - MONGO_URI=mongodb://mongo:27017/demo_docker
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:6.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:
