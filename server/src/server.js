@@ -5,7 +5,7 @@ const app = express();
 const mongoose = require("mongoose");
 
 mongoose
-  .connect("mongodb://mongo:27017/db_datn", {
+  .connect("mongodb+srv://taicutm:ductai123@ductaicluster.8mtmf.mongodb.net/", {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })

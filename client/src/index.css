@@ -1,13 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import "flowbite";
+
+:root {
+  --color-title-login: #427cac;
+}
+
+.text-title-login {
+  color: var(--color-title-login);
+}
+
+.btn-login {
+  background-color: var(--color-title-login);
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .img-logo {
+    display: none;
+  }
+  .form-login {
+    width: 100%;
+  }
+  .login-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
 }
