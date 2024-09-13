@@ -7,6 +7,18 @@
   --color-title-login: #427cac;
 }
 
+.h-92pt {
+  height: 89%;
+}
+
+.w-97pt {
+  width: 97%;
+}
+
+.h-95pt {
+  height: 95%;
+}
+
 .text-title-login {
   color: var(--color-title-login);
 }
@@ -39,4 +51,19 @@ body {
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-down {
+  animation: slideDown 0.3s ease-out;
 }
