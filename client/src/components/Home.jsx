@@ -37,7 +37,7 @@ export default function Home() {
     <div className="w-screen h-screen">
       <div className="h-full w-full flex flex-col lg:flex-row">
         {/* navbar */}
-        <div className="w-full lg:w-3/12 border-r-2">
+        <div className="w-full lg:w-2/12 border-r-2">
           <div className="border-b-2">
             <div className="h-full flex items-center justify-center text-lg">
               <div className="w-4/5 flex items-center justify-start gap-2">

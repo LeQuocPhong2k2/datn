@@ -26,4 +26,25 @@ async function getAllGiaoViens() {
   }
 }
 
-export { addGiaoVien, getAllGiaoViens };
+async function getGiaoVienChuaPhanCongChuNhiem(namHoc) {
+  try {
+    const response = await axios.post(
+      'http://localhost:3000/teachers/getGiaoVienChuaPhanCongChuNhiem',
+      { namHoc },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error(
+      'Get teachers without home room teacher error:',
+      error.response ? error.response.data : error.message
+    );
+    throw error;
+  }
+}
+
+export { addGiaoVien, getAllGiaoViens, getGiaoVienChuaPhanCongChuNhiem };

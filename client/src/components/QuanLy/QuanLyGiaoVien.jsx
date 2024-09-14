@@ -148,9 +148,9 @@ export default function QuanLyGiaoVien({ functionType }) {
                 className="w-full p-2 border border-gray-300 rounded"
               >
                 <option value="" selected></option>
-                <option value="CuNhan">Cử nhân</option>
-                <option value="ThacSi">Thạc sĩ</option>
-                <option value="TienSi">Tiến sĩ</option>
+                <option value="Cử nhân">Cử nhân</option>
+                <option value="Thạc sĩ">Thạc sĩ</option>
+                <option value="Tiến sĩ">Tiến sĩ</option>
               </select>
             </div>
 

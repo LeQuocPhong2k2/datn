@@ -1,36 +1,43 @@
 require("dotenv").config({ path: "../../../../.env" });
 const Teacher = require("../models/Teacher");
-const Class = require("../models/Class");
 
 const GiaoVienController = {
-  // get danh sách giáo viên chưa phân công chủ nhiệm trong năm học này
+  /**
+   * lấy danh sách giáo viên chưa phân công chủ nhiệm
+   * @param {namHoc} req
+   * @param {*} res
+   */
   getGiaoVienChuaPhanCongChuNhiem: async (req, res) => {
     const { namHoc } = req.body;
-    const result = await Class.aggregate([
-      {
-        $match: {
-          namHoc: namHoc,
+    try {
+      const result = await Teacher.aggregate([
+        {
+          $lookup: {
+            from: "Class",
+            localField: "_id",
+            foreignField: "homeRoomTeacher",
+            as: "class",
+          },
         },
-      },
-      {
-        $lookup: {
-          from: "Teacher",
-          localField: "giaoVienChuNhiem",
-          foreignField: "_id",
-          as: "giaoVienChuNhiem",
+        {
+          $match: {
+            $or: [{ "class.academicYear": { $ne: namHoc } }, { class: { $eq: [] } }],
+          },
         },
-      },
-      {
-        $unwind: "$giaoVienChuNhiem",
-      },
-      {
-        $project: {
-          giaoVienChuNhiem: 1,
-        },
-      },
-    ]);
+      ]);
+
+      res.status(200).json(result);
+    } catch (error) {
+      console.error("Lỗi khi truy vấn giáo viên chưa phân công chủ nhiệm:", error);
+      res.status(500).json({ error: error.message });
+    }
   },
 
+  /**
+   * lấy danh sách giáo viên
+   * @param {*} req
+   * @param {*} res
+   */
   getAllGiaoViens: async (req, res) => {
     try {
       console.log("Đang truy vấn tất cả giáo viên...");
@@ -43,23 +50,30 @@ const GiaoVienController = {
     }
   },
 
+  /**
+   *  thêm giáo viên
+   * @param {hoTen, namSinh, gioiTinh, trinhDo, sdt, diaChi, ngayBatDauCongTac} req
+   * @param {*} res
+   * @returns
+   */
   addGiaoVien: async (req, res) => {
     const { hoTen, namSinh, gioiTinh, trinhDo, sdt, diaChi, ngayBatDauCongTac } = req.body;
 
     try {
-      const newGiaoVien = new GiaoVien({
-        hoTen,
-        namSinh,
-        gioiTinh,
-        trinhDo,
-        sdt,
-        diaChi,
-        ngayBatDauCongTac,
+      const newGiaoVien = new Teacher({
+        userName: hoTen,
+        datOfBirth: namSinh,
+        gender: gioiTinh,
+        phoneNumber: sdt,
+        levelOfExpertise: trinhDo,
+        address: diaChi,
+        dateOfEnrollment: ngayBatDauCongTac,
+        role: "teacher",
       });
 
       // check sdt is unique
-      const existingGiaoVien = await GiaoVien.findOne({
-        sdt: sdt,
+      const existingGiaoVien = await Teacher.findOne({
+        phoneNumber: sdt,
       });
 
       if (existingGiaoVien) {

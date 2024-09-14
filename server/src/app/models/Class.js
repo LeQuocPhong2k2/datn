@@ -8,6 +8,7 @@ const ClassSchema = new Schema(
     className: String,
     classSession: String,
     startDate: Date,
+    maxStudents: Number,
     homeRoomTeacher: {
       type: Schema.Types.ObjectId,
       ref: "Teacher",
