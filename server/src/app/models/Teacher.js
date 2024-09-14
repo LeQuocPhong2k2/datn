@@ -3,13 +3,18 @@ const Schema = mongoose.Schema;
 
 const GiaoVienSchema = new Schema(
   {
-    hoTen: String,
-    namSinh: String,
-    gioiTinh: String,
-    trinhDo: String,
-    sdt: String,
-    diaChi: String,
-    ngayBatDauCongTac: Date,
+    account: {
+      type: Schema.Types.ObjectId,
+      ref: "Account",
+    },
+    userName: String,
+    datOfBirth: String,
+    gender: String,
+    phoneNumber: String,
+    levelOfExpertise: String,
+    address: String,
+    dateOfEnrollment: Date,
+    role: String,
   },
   { collection: "Teacher" }
 );
