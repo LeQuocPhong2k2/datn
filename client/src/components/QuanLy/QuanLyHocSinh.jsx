@@ -18,6 +18,12 @@ export default function QuanLyHocSinh({ functionType }) {
   const [lopHocs, setLopHocs] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  const toggleCollapse = () => {
+    setIsCollapsed(!isCollapsed);
+  };
+
   const [studentInfo, setStudentInfo] = useState({
     mssv: '',
     hoTen: '',
@@ -702,6 +708,278 @@ export default function QuanLyHocSinh({ functionType }) {
           </div>
         </div>
       </Modal>
+      {functionType === 'list-student' && (
+        <div
+          className="grid grid-flow-row gap-4 p-4 max-h-full overflow-auto w-full"
+          style={{ width: '100%' }}
+        >
+          <div>
+            <span className="font-medium text-1.5xl">Danh sách học sinh</span>
+          </div>
+
+          <div className="flex flex-col bg-gray-200 p-4 rounded w-full">
+            <h2 className="text-lg font-semibold bg-gray-200 mb-4">Tìm kiếm học sinh</h2>
+            <div className={`flex flex-wrap gap-4 ${isCollapsed ? 'hidden' : 'w-full'}`}>
+              <div className="flex-1">
+                <label htmlFor="grade">Khối</label>
+                <select id="grade" className="w-full p-2 border border-gray-300 rounded">
+                  <option value="">Tất cả</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                </select>
+              </div>
+              <div className="flex-1">
+                <label htmlFor="lopHoc">Lớp học</label>
+                <select id="lopHoc" className="w-full p-2 border border-gray-300 rounded">
+                  <option value="">Tất cả</option>
+                  {/* Thêm các tuỳ chọn lớp học từ 1A1 tới 1A5 tương tự với các khối 2,3,4,5 */}
+                  <option value="1A1">1A1</option>
+                  <option value="1A2">1A2</option>
+                  <option value="1A3">1A3</option>
+                  <option value="1A4">1A4</option>
+                  <option value="1A5">1A5</option>
+                  <option value="2A1">2A1</option>
+                  <option value="2A2">2A2</option>
+                  <option value="2A3">2A3</option>
+                  <option value="2A4">2A4</option>
+                  <option value="2A5">2A5</option>
+                  <option value="3A1">1A1</option>
+                  <option value="3A2">1A2</option>
+                  <option value="3A3">1A3</option>
+                  <option value="3A4">1A4</option>
+                  <option value="3A5">3A5</option>
+                  <option value="4A1">4A1</option>
+                  <option value="4A2">4A2</option>
+                  <option value="4A3">4A3</option>
+                  <option value="4A4">4A4</option>
+                  <option value="4A5">4A5</option>
+                  <option value="5A1">5A1</option>
+                  <option value="5A2">5A2</option>
+                  <option value="5A3">5A3</option>
+                  <option value="5A4">5A4</option>
+                  <option value="5A5">5A5</option>
+                </select>
+              </div>
+              <div className="flex-1">
+                <label htmlFor="year">Năm học</label>
+                <select id="year" className="w-full p-2 border border-gray-300 rounded">
+                  <option value="">Tất cả</option>
+                  {/* Các tùy chọn năm học */}
+                </select>
+              </div>
+              <div className="flex-1">
+                <label htmlFor="gioiTinh">Giới tính</label>
+                <select id="gioiTinh" className="w-full p-2 border border-gray-300 rounded">
+                  <option value="">Tất cả</option>
+                  <option value="Nam">Nam</option>
+                  <option value="Nu">Nữ</option>
+                </select>
+              </div>
+            </div>
+            <div className={`flex flex-wrap gap-4 ${isCollapsed ? 'hidden' : 'w-full'}`}>
+              <div className="flex-1">
+                <label htmlFor="hoTen">Họ tên</label>
+                <input
+                  type="text"
+                  id="hoTen"
+                  className="w-full p-2 border border-gray-300 rounded"
+                  placeholder="Nhập họ tên..."
+                />
+              </div>
+              <div className="flex-1">
+                <label htmlFor="mssv">Mã học sinh</label>
+                <input
+                  type="text"
+                  id="mssv"
+                  className="w-full p-2 border border-gray-300 rounded"
+                  placeholder="Nhập mã học sinh..."
+                />
+              </div>
+              <div className="flex-1">
+                <label htmlFor="trangThai">Trạng thái</label>
+                <select id="trangThai" className="w-full p-2 border border-gray-300 rounded">
+                  <option value="">Tất cả</option>
+                  <option value="dangHoc">Đang học</option>
+                  <option value="daTotNghiep">Đã tốt nghiệp</option>
+                  <option value="daNghiHoc">Đã nghĩ học</option>
+                </select>
+              </div>
+              <div className="flex-1">
+                <label htmlFor="danToc">Dân tộc</label>
+                <select id="danToc" className="w-full p-2 border border-gray-300 rounded">
+                  <option value="">Chọn dân tộc</option>
+                  <option value="Kinh">Kinh</option>
+                  <option value="Tày">Tày</option>
+                  <option value="Thái">Thái</option>
+                  <option value="Mường">Mường</option>
+                  <option value="Khmer">Khmer</option>
+                  <option value="Mông">Mông</option>
+                  <option value="Nùng">Nùng</option>
+                  <option value="Dao">Dao</option>
+                  <option value="H'Mông">H'Mông</option>
+                  <option value="Co Tu">Co Tu</option>
+                  <option value="Xơ Đăng">Xơ Đăng</option>
+                  <option value="Chăm">Chăm</option>
+                  <option value="Ba Na">Ba Na</option>
+                  <option value="Bru - Vân Kiều">Bru - Vân Kiều</option>
+                  <option value="Ê Đê">Ê Đê</option>
+                  <option value="Gia Rai">Gia Rai</option>
+                  <option value="Ra Glai">Ra Glai</option>
+                  <option value="Sê Đăng">Sê Đăng</option>
+                  <option value="Tà Ôi">Tà Ôi</option>
+                  <option value="Thổ">Thổ</option>
+                  <option value="Chứt">Chứt</option>
+                  <option value="Khơ Mú">Khơ Mú</option>
+                  <option value="La Hủ">La Hủ</option>
+                  <option value="Lào">Lào</option>
+                  <option value="Lự">Lự</option>
+                  <option value="Ngái">Ngái</option>
+                  <option value="Người Hoa">Người Hoa</option>
+                  <option value="Người Tàu">Người Tàu</option>
+                  <option value="Người Chăm">Người Chăm</option>
+                  <option value="Người Thái">Người Thái</option>
+                  <option value="Người Mường">Người Mường</option>
+                  <option value="Người Kinh">Người Kinh</option>
+                  <option value="Người Nùng">Người Nùng</option>
+                  <option value="Người Dao">Người Dao</option>
+                  <option value="Người Mông">Người Mông</option>
+                  <option value="Người Khơ Me">Người Khơ Me</option>
+                  <option value="Người Bru - Vân Kiều">Người Bru - Vân Kiều</option>
+                  <option value="Người Ê Đê">Người Ê Đê</option>
+                  <option value="Người Ba Na">Người Ba Na</option>
+                  <option value="Người Gia Rai">Người Gia Rai</option>
+                  <option value="Người Ra Glai">Người Ra Glai</option>
+                  <option value="Người Sê Đăng">Người Sê Đăng</option>
+                  <option value="Người Tà Ôi">Người Tà Ôi</option>
+                  <option value="Người Thổ">Người Thổ</option>
+                  <option value="Người Chứt">Người Chứt</option>
+                  <option value="Người Khơ Mú">Người Khơ Mú</option>
+                  <option value="Người La Hủ">Người La Hủ</option>
+                  <option value="Người Lào">Người Lào</option>
+                  <option value="Người Lự">Người Lự</option>
+                  <option value="Người Ngái">Người Ngái</option>
+                </select>
+              </div>
+            </div>
+            <div
+              className="flex flex-wrap gap-4 justify-center w-full item-ends"
+              style={{ marginTop: '15px' }}
+            >
+              <div className="flex">
+                <button
+                  type="button"
+                  // className="focus:outline-none text-white bg-green-500 hover:bg-green-600 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5"
+                  class="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
+                >
+                  Tìm kiếm
+                </button>
+              </div>
+              <div className="flex">
+                <button
+                  type="button"
+                  onClick={toggleCollapse}
+                  class="focus:outline-none text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                >
+                  {isCollapsed ? 'Mở rộng' : 'Thu gọn'}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    STT
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Họ tên
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Mã số học sinh
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Ngày sinh
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Giới Tính
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Dân tộc
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Tên lớp
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Trạng Thái
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Tuỳ chỉnh
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {/* Insert student data here */}
+                <tr>
+                  <td className="px-6 py-4 whitespace-nowrap">1</td>
+                  <td className="px-6 py-4 whitespace-nowrap">Nguyễn Văn A</td>
+                  <td className="px-6 py-4 whitespace-nowrap">HS001</td>
+                  <td className="px-6 py-4 whitespace-nowrap">01/01/2001</td>
+                  <td className="px-6 py-4 whitespace-nowrap">Nam</td>
+                  <td className="px-6 py-4 whitespace-nowrap">Kinh</td>
+                  <td className="px-6 py-4 whitespace-nowrap">1A1</td>
+                  <td className="px-6 py-4 whitespace-nowrap">Đang học</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <button
+                      type="button"
+                      className="focus:outline-none text-white bg-blue-500 hover:bg-blue-600 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5"
+                    >
+                      Sửa
+                    </button>
+                    <button
+                      type="button"
+                      className="focus:outline-none text-white bg-red-500 hover:bg-red-600 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5"
+                    >
+                      Xóa
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </>
   );
 }

@@ -76,18 +76,10 @@ export default function Home() {
                     </li>
                     <li
                       className={`py-1 hover:bg-gray-200 ${selectedFunction === 'edit-student' ? 'bg-gray-300' : ''}`}
-                      onClick={() => handleFunctionSelect('edit-student')}
+                      onClick={() => handleFunctionSelect('list-student')}
                     >
-                      <a href="#edit-student" className="text-gray-700">
-                        Chỉnh sửa học sinh
-                      </a>
-                    </li>
-                    <li
-                      className={`py-1 hover:bg-gray-200 ${selectedFunction === 'delete-student' ? 'bg-gray-300' : ''}`}
-                      onClick={() => handleFunctionSelect('delete-student')}
-                    >
-                      <a href="#delete-student" className="text-gray-700">
-                        Xóa học sinh
+                      <a href="#list-student" className="text-gray-700">
+                        Danh sách học sinh
                       </a>
                     </li>
                   </ul>
@@ -118,15 +110,7 @@ export default function Home() {
                       onClick={() => handleFunctionSelect('edit-teacher')}
                     >
                       <a href="#edit-teacher" className="text-gray-700">
-                        Chỉnh sửa giáo viên
-                      </a>
-                    </li>
-                    <li
-                      className={`py-1 hover:bg-gray-200 ${selectedFunction === 'delete-teacher' ? 'bg-gray-300' : ''}`}
-                      onClick={() => handleFunctionSelect('delete-teacher')}
-                    >
-                      <a href="#delete-teacher" className="text-gray-700">
-                        Xóa giáo viên
+                        Danh sách giáo viên
                       </a>
                     </li>
                   </ul>
@@ -188,6 +172,7 @@ export default function Home() {
               {selectedFunction === 'add-classRoom' && (
                 <QuanLyLopHoc functionType="add-classRoom" />
               )}
+              {selectedFunction === 'list-student' && <QuanLyHocSinh functionType="list-student" />}
             </>
           )}
         </div>
