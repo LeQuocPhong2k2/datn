@@ -71,7 +71,7 @@ export default function Home() {
                       onClick={() => handleFunctionSelect('add-student')}
                     >
                       <a href="#add-student" className="text-gray-700">
-                        Thêm học sinh
+                        Thêm mới hồ sơ học sinh
                       </a>
                     </li>
                     <li
