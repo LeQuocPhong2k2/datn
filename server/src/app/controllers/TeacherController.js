@@ -9,6 +9,7 @@ const GiaoVienController = {
    */
   getGiaoVienChuaPhanCongChuNhiem: async (req, res) => {
     const { namHoc } = req.body;
+    console.log("Đang truy vấn giáo viên chưa phân công chủ nhiệm...", namHoc);
     try {
       const result = await Teacher.aggregate([
         {

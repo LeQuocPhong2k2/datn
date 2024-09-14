@@ -35,19 +35,19 @@ export default function QuanLyGiaoVien({ functionType }) {
   const handleSubmit = async () => {
     if (validateInput()) {
       try {
-        const res = await addLopHoc(lopHocInfo);
+        addLopHoc(lopHocInfo);
 
-        toast.success('Thêm giáo viên thành công');
-
-        setLopHocInfo({
-          namHoc: '',
+        setLopHocInfo((prevInfo) => ({
+          ...prevInfo,
           khoiLop: '',
           tenLop: '',
           giaoVienChuNhiem: '',
           idGiaoVienChuNhiem: '',
           ngayBatDau: '',
           buoiHoc: '',
-        });
+        }));
+
+        toast.success('Thêm giáo viên thành công');
       } catch (error) {
         if (error.response.status === 400) {
           toast.error('Số điện thoại đã tồn tại');

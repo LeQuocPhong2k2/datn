@@ -10,6 +10,7 @@ const StudentSchema = new Schema(
     gender: String,
     dateOfEnrollment: Date,
     address: String,
+    relationshipOther: String,
     parents: [
       {
         type: Schema.Types.ObjectId,

@@ -15,4 +15,26 @@ async function addLopHoc(lopHoc) {
   }
 }
 
-export { addLopHoc };
+async function getLopHocByNamHocVaKhoi(namHoc, khoiLop) {
+  try {
+    const response = await axios.post(
+      'http://localhost:3000/class/getClassesByAcademicYearAndGrade',
+      { academicYear: namHoc, grade: khoiLop },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    console.log('Get class by academic year and grade response:', response);
+    return response.data;
+  } catch (error) {
+    console.error(
+      'Get class by academic year and grade error:',
+      error.response ? error.response.data : error.message
+    );
+    throw error;
+  }
+}
+
+export { addLopHoc, getLopHocByNamHocVaKhoi };

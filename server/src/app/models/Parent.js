@@ -4,16 +4,10 @@ const Schema = mongoose.Schema;
 const ParentSchema = new Schema(
   {
     userName: String,
-    birthDay: String,
+    dateOfBirth: String,
     phoneNumber: String,
-    address: String,
     job: String,
-    childs: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Student",
-      },
-    ],
+    relationship: String,
   },
   { collection: "Parent" }
 );

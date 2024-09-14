@@ -4,9 +4,19 @@ import { Toaster, toast } from 'react-hot-toast';
 import { useEffect, useState } from 'react';
 import 'flowbite';
 import { FiSearch } from 'react-icons/fi';
+import Modal from 'react-modal';
+
+import { addStudent } from '../../api/Student';
+import { getLopHocByNamHocVaKhoi } from '../../api/Class';
+
+Modal.setAppElement('#root');
 
 export default function QuanLyHocSinh({ functionType }) {
   const [showMoiQuanHeKhac, setShowMoiQuanHeKhac] = useState(false);
+  const [showMoiQuanHeCha, setShowMoiQuanHeCha] = useState(false);
+  const [showMoiQuanHeMe, setShowMoiQuanHeMe] = useState(false);
+  const [lopHocs, setLopHocs] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [studentInfo, setStudentInfo] = useState({
     mssv: '',
@@ -16,7 +26,9 @@ export default function QuanLyHocSinh({ functionType }) {
     ngayVaoTruong: '',
     sdt: '',
     diaChi: '',
-    moiQuanHeKhac: showMoiQuanHeKhac,
+    moiQuanHeKhac: false,
+    moiQuanHeCha: false,
+    moiQuanHeMe: false,
     hoTenCha: '',
     namSinhCha: '',
     ngheNghiepCha: '',
@@ -30,10 +42,77 @@ export default function QuanLyHocSinh({ functionType }) {
     namSinhNguoiGiamHo: '',
     ngheNghiepNguoiGiamHo: '',
     sdtNguoiGiamHo: '',
-    namHoc: '2024 - 2025',
+    namHoc: '',
     khoiLop: '',
     lopHoc: '',
+    giaoVienChuNhiem: '',
+    siSo: '',
   });
+
+  // lấy năm học hiện tại
+  useEffect(() => {
+    const date = new Date();
+    const year = date.getFullYear();
+    setStudentInfo((prevInfo) => ({
+      ...prevInfo,
+      namHoc: `${year}-${year + 1}`,
+    }));
+  }, []);
+
+  const handleSearchLopHoc = async () => {
+    const res = await getLopHocByNamHocVaKhoi(studentInfo.namHoc, studentInfo.khoiLop);
+    setLopHocs(res);
+    openModal();
+  };
+
+  const handleSelectLopHoc = (lopHoc) => {
+    setStudentInfo((prevInfo) => ({
+      ...prevInfo,
+      lopHoc: lopHoc.className,
+      giaoVienChuNhiem: lopHoc.teacherInfo.userName,
+      siSo: lopHoc.totalStudents,
+    }));
+    closeModal();
+  };
+
+  const openModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
+  useEffect(() => {
+    if (showMoiQuanHeKhac) {
+      setShowMoiQuanHeCha(true);
+      setShowMoiQuanHeMe(true);
+    } else {
+      setShowMoiQuanHeCha(false);
+      setShowMoiQuanHeMe(false);
+    }
+  }, [showMoiQuanHeKhac]);
+
+  useEffect(() => {
+    setStudentInfo((prevInfo) => ({
+      ...prevInfo,
+      moiQuanHeKhac: showMoiQuanHeKhac,
+    }));
+  }, [showMoiQuanHeKhac]);
+
+  useEffect(() => {
+    setStudentInfo((prevInfo) => ({
+      ...prevInfo,
+      moiQuanHeCha: showMoiQuanHeCha,
+    }));
+  }, [showMoiQuanHeCha]);
+
+  useEffect(() => {
+    setStudentInfo((prevInfo) => ({
+      ...prevInfo,
+      moiQuanHeMe: showMoiQuanHeMe,
+    }));
+  }, [showMoiQuanHeMe]);
 
   const handleChange = (e) => {
     const { id, value } = e.target;
@@ -43,13 +122,61 @@ export default function QuanLyHocSinh({ functionType }) {
     }));
   };
 
-  const handleSubmit = () => {
-    validateInput();
-    console.log(studentInfo);
-
+  const handleSubmit = async () => {
     if (validateInput()) {
-      // call api here
-      toast.success('Thêm học sinh thành công');
+      try {
+        await addStudent(studentInfo);
+
+        // clear form trừ năm học
+        setStudentInfo((prevInfo) => ({
+          ...prevInfo,
+          mssv: '',
+          hoTen: '',
+          namSinh: '',
+          gioiTinh: '',
+          ngayVaoTruong: '',
+          sdt: '',
+          diaChi: '',
+          moiQuanHeKhac: false,
+          moiQuanHeCha: false,
+          moiQuanHeMe: false,
+          hoTenCha: '',
+          namSinhCha: '',
+          ngheNghiepCha: '',
+          sdtCha: '',
+          hoTenMe: '',
+          namSinhMe: '',
+          ngheNghiepMe: '',
+          sdtMe: '',
+          moiQuanHe: '',
+          hoTenNguoiGiamHo: '',
+          namSinhNguoiGiamHo: '',
+          ngheNghiepNguoiGiamHo: '',
+          sdtNguoiGiamHo: '',
+          khoiLop: '',
+          lopHoc: '',
+          giaoVienChuNhiem: '',
+          siSo: '',
+        }));
+
+        toast.success('Thêm học sinh thành công');
+      } catch (error) {
+        if (error.response.status === 401) {
+          toast.error('Mã số sinh viên đã tồn tại');
+        }
+        if (error.response.status === 402) {
+          toast.error(`Số điện thoại đã được đăng ký cho tên ${studentInfo.hoTen}`);
+        }
+        if (error.response.status === 403) {
+          toast.error('Không tìm thấy lớp học');
+        }
+        if (error.response.status === 404) {
+          toast.error('Sỉ số lớp đã đầy');
+        }
+        if (error.response.status === 500) {
+          toast.error('Thêm học sinh thất bại');
+        }
+      }
     }
   };
 
@@ -78,38 +205,66 @@ export default function QuanLyHocSinh({ functionType }) {
       toast.error('Vui lòng nhập địa chỉ');
       return false;
     }
-    if (studentInfo.hoTenCha === '') {
-      toast.error('Vui lòng nhập họ tên cha');
-      return false;
+    if (showMoiQuanHeKhac) {
+      if (studentInfo.moiQuanHe === '') {
+        toast.error('Vui lòng chọn mối quan hệ');
+        return false;
+      }
+      if (studentInfo.hoTenNguoiGiamHo === '') {
+        toast.error('Vui lòng nhập họ tên người giám hộ');
+        return false;
+      }
+      if (studentInfo.namSinhNguoiGiamHo === '') {
+        toast.error('Vui lòng nhập năm sinh người giám hộ');
+        return false;
+      }
+      if (studentInfo.ngheNghiepNguoiGiamHo === '') {
+        toast.error('Vui lòng nhập nghề nghiệp người giám hộ');
+        return false;
+      }
+      if (studentInfo.sdtNguoiGiamHo === '') {
+        toast.error('Vui lòng nhập số điện thoại người giám hộ');
+        return false;
+      }
+    } else {
+      if (showMoiQuanHeCha === false) {
+        if (studentInfo.hoTenCha === '') {
+          toast.error('Vui lòng nhập họ tên cha');
+          return false;
+        }
+        if (studentInfo.namSinhCha === '') {
+          toast.error('Vui lòng nhập năm sinh cha');
+          return false;
+        }
+        if (studentInfo.ngheNghiepCha === '') {
+          toast.error('Vui lòng nhập nghề nghiệp cha');
+          return false;
+        }
+        if (studentInfo.sdtCha === '') {
+          toast.error('Vui lòng nhập số điện thoại cha');
+          return false;
+        }
+      }
+      if (showMoiQuanHeMe === false) {
+        if (studentInfo.hoTenMe === '') {
+          toast.error('Vui lòng nhập họ tên mẹ');
+          return false;
+        }
+        if (studentInfo.namSinhMe === '') {
+          toast.error('Vui lòng nhập năm sinh mẹ');
+          return false;
+        }
+        if (studentInfo.ngheNghiepMe === '') {
+          toast.error('Vui lòng nhập nghề nghiệp mẹ');
+          return false;
+        }
+        if (studentInfo.sdtMe === '') {
+          toast.error('Vui lòng nhập số điện thoại mẹ');
+          return false;
+        }
+      }
     }
-    if (studentInfo.namSinhCha === '') {
-      toast.error('Vui lòng nhập năm sinh cha');
-      return false;
-    }
-    if (studentInfo.ngheNghiepCha === '') {
-      toast.error('Vui lòng nhập nghề nghiệp cha');
-      return false;
-    }
-    if (studentInfo.sdtCha === '') {
-      toast.error('Vui lòng nhập số điện thoại cha');
-      return false;
-    }
-    if (studentInfo.hoTenMe === '') {
-      toast.error('Vui lòng nhập họ tên mẹ');
-      return false;
-    }
-    if (studentInfo.namSinhMe === '') {
-      toast.error('Vui lòng nhập năm sinh mẹ');
-      return false;
-    }
-    if (studentInfo.ngheNghiepMe === '') {
-      toast.error('Vui lòng nhập nghề nghiệp mẹ');
-      return false;
-    }
-    if (studentInfo.sdtMe === '') {
-      toast.error('Vui lòng nhập số điện thoại mẹ');
-      return false;
-    }
+
     if (studentInfo.khoiLop === '') {
       toast.error('Vui lòng chọn khối lớp');
       return false;
@@ -209,95 +364,121 @@ export default function QuanLyHocSinh({ functionType }) {
             </div>
           </div>
 
-          {!showMoiQuanHeKhac && (
+          {showMoiQuanHeKhac === false && (
             <div>
               <div>
                 <span className="font-medium">2. Thông tin gia đình</span>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-                <div>
-                  <label htmlFor="name1">Họ tên cha*</label>
-                  <input
-                    type="text"
-                    id="hoTenCha"
-                    onChange={handleChange}
-                    value={studentInfo.hoTenCha}
-                    className="w-full p-2 border-gray-300 rounded"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="name1">Năm sinh cha*</label>
-                  <input
-                    type="date"
-                    id="namSinhCha"
-                    onChange={handleChange}
-                    value={studentInfo.namSinhCha}
-                    className="w-full p-2 border border-gray-300 rounded"
-                  />
-                </div>
-                <div className="relative">
-                  <label htmlFor="name1">Nghề nghiệp cha*</label>
-                  <input
-                    type="text"
-                    id="ngheNghiepCha"
-                    onChange={handleChange}
-                    value={studentInfo.ngheNghiepCha}
-                    className="w-full p-2 border border-gray-300 rounded"
-                  />
-                </div>
-                <div className="relative">
-                  <label htmlFor="name1">Số điện thoại cha*</label>
-                  <input
-                    type="number"
-                    id="sdtCha"
-                    onChange={handleChange}
-                    value={studentInfo.sdtCha}
-                    className="w-full p-2 border border-gray-300 rounded"
-                  />
-                </div>
+              <div className="pt-2">
+                <input
+                  type="checkbox"
+                  value={showMoiQuanHeCha}
+                  onChange={() => setShowMoiQuanHeCha(!showMoiQuanHeCha)}
+                />
+                <label htmlFor="moiQuanHeKhac" className="p-2">
+                  Vắng cha <i>(Nếu học sinh vắng cha chọn tính năng này)</i>
+                </label>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-                <div>
-                  <label htmlFor="name1">Họ tên mẹ*</label>
-                  <input
-                    type="text"
-                    id="hoTenMe"
-                    onChange={handleChange}
-                    value={studentInfo.hoTenMe}
-                    className="w-full p-2  border-gray-300 rounded"
-                  />
+              {showMoiQuanHeCha === false && (
+                <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                  <div>
+                    <label htmlFor="name1">Họ tên cha*</label>
+                    <input
+                      type="text"
+                      id="hoTenCha"
+                      onChange={handleChange}
+                      value={studentInfo.hoTenCha}
+                      className="w-full p-2 border-gray-300 rounded"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="name1">Năm sinh cha*</label>
+                    <input
+                      type="date"
+                      id="namSinhCha"
+                      onChange={handleChange}
+                      value={studentInfo.namSinhCha}
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
+                  </div>
+                  <div className="relative">
+                    <label htmlFor="name1">Nghề nghiệp cha*</label>
+                    <input
+                      type="text"
+                      id="ngheNghiepCha"
+                      onChange={handleChange}
+                      value={studentInfo.ngheNghiepCha}
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
+                  </div>
+                  <div className="relative">
+                    <label htmlFor="name1">Số điện thoại cha*</label>
+                    <input
+                      type="number"
+                      id="sdtCha"
+                      onChange={handleChange}
+                      value={studentInfo.sdtCha}
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label htmlFor="name1">Năm sinh mẹ*</label>
-                  <input
-                    type="date"
-                    id="namSinhMe"
-                    onChange={handleChange}
-                    value={studentInfo.namSinhMe}
-                    className="w-full p-2 border border-gray-300 rounded"
-                  />
-                </div>
-                <div className="relative">
-                  <label htmlFor="name1">Nghề nghiệp mẹ*</label>
-                  <input
-                    type="text"
-                    id="ngheNghiepMe"
-                    onChange={handleChange}
-                    value={studentInfo.ngheNghiepMe}
-                    className="w-full p-2 border border-gray-300 rounded"
-                  />
-                </div>
-                <div className="relative">
-                  <label htmlFor="name1">Số điện thoại mẹ*</label>
-                  <input
-                    type="number"
-                    id="sdtMe"
-                    onChange={handleChange}
-                    value={studentInfo.sdtMe}
-                    className="w-full p-2 border border-gray-300 rounded"
-                  />
-                </div>
+              )}
+
+              <div className="pt-2">
+                <input
+                  type="checkbox"
+                  id="moiQuanHeMe"
+                  value={showMoiQuanHeMe}
+                  onChange={() => setShowMoiQuanHeMe(!showMoiQuanHeMe)}
+                />
+                <label htmlFor="moiQuanHeKhac" className="p-2">
+                  Vắng mẹ <i>(Nếu học sinh vắng mẹ chọn tính năng này)</i>
+                </label>
               </div>
+              {showMoiQuanHeMe === false && (
+                <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                  <div>
+                    <label htmlFor="name1">Họ tên mẹ*</label>
+                    <input
+                      type="text"
+                      id="hoTenMe"
+                      onChange={handleChange}
+                      value={studentInfo.hoTenMe}
+                      className="w-full p-2  border-gray-300 rounded"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="name1">Năm sinh mẹ*</label>
+                    <input
+                      type="date"
+                      id="namSinhMe"
+                      onChange={handleChange}
+                      value={studentInfo.namSinhMe}
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
+                  </div>
+                  <div className="relative">
+                    <label htmlFor="name1">Nghề nghiệp mẹ*</label>
+                    <input
+                      type="text"
+                      id="ngheNghiepMe"
+                      onChange={handleChange}
+                      value={studentInfo.ngheNghiepMe}
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
+                  </div>
+                  <div className="relative">
+                    <label htmlFor="name1">Số điện thoại mẹ*</label>
+                    <input
+                      type="number"
+                      id="sdtMe"
+                      onChange={handleChange}
+                      value={studentInfo.sdtMe}
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -417,15 +598,18 @@ export default function QuanLyHocSinh({ functionType }) {
                 value={studentInfo.lopHoc}
                 className="w-full p-2 border border-gray-300 rounded"
               />
-              <FiSearch className="absolute right-2 top-9 cursor-pointer" />
+              <FiSearch
+                onClick={handleSearchLopHoc}
+                className="absolute right-2 top-9 cursor-pointer"
+              />
             </div>
             <div className="relative">
               <label htmlFor="name1">Giáo viên chủ nhiệm</label>
               <input
                 disabled
                 type="text"
-                id="name1"
-                value=""
+                id="giaoVienChuNhiem"
+                value={studentInfo.giaoVienChuNhiem}
                 className="w-full p-2 bg-gray-50 border border-gray-300 rounded"
               />
             </div>
@@ -435,8 +619,8 @@ export default function QuanLyHocSinh({ functionType }) {
               <input
                 disabled
                 type="text"
-                id="name1"
-                value=""
+                id="siSo"
+                value={studentInfo.siSo}
                 className="w-full p-2 bg-gray-50 border border-gray-300 rounded"
               />
             </div>
@@ -453,6 +637,71 @@ export default function QuanLyHocSinh({ functionType }) {
           </div>
         </div>
       )}
+      <Modal
+        isOpen={isModalOpen}
+        onRequestClose={closeModal}
+        contentLabel="Search Teacher"
+        style={{
+          overlay: {
+            backgroundColor: 'rgba(0, 0, 0, 0.5)', // Change overlay background color here
+          },
+          content: {
+            top: '50%',
+            left: '50%',
+            right: 'auto',
+            bottom: 'auto',
+            marginRight: '-50%',
+            transform: 'translate(-50%, -50%)',
+            width: '90%',
+            maxWidth: '600px',
+            background: 'white',
+          },
+        }}
+      >
+        <div class="relative p-4 w-full h-full">
+          <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+              <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+                Danh sách giáo viên chủ nhiệm
+              </h3>
+            </div>
+            <div class="p-4 md:p-5 max-h-20 xl:max-h-96 lg:max-h-56 md:max-h-40 sm:max-h-20 overflow-auto">
+              <ul className="space-y-2">
+                {lopHocs.map((lopHoc) => (
+                  <li
+                    key={lopHoc._id}
+                    className="flex justify-between items-center p-2 border border-gray-300 rounded"
+                  >
+                    <div>
+                      <p className="font-semibold">{lopHoc.className}</p>
+                      <p className="text-sm text-gray-600">
+                        Sỉ số hiện tại: {lopHoc.totalStudents}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        Giáo viên chủ nhiệm: {lopHoc.teacherInfo.userName}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleSelectLopHoc(lopHoc)}
+                      className="p-2 bg-green-500 text-white rounded"
+                    >
+                      Chọn
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+              <button
+                onClick={closeModal}
+                class="text-white inline-flex w-full justify-center bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      </Modal>
     </>
   );
 }

@@ -28,6 +28,7 @@ async function getAllGiaoViens() {
 
 async function getGiaoVienChuaPhanCongChuNhiem(namHoc) {
   try {
+    console.log('Getting teachers without home room teacher...', namHoc);
     const response = await axios.post(
       'http://localhost:3000/teachers/getGiaoVienChuaPhanCongChuNhiem',
       { namHoc },
