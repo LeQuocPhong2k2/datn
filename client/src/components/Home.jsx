@@ -10,7 +10,8 @@ import { SiGoogleclassroom } from 'react-icons/si';
 
 import QuanLyHocSinh from './QuanLy/QuanLyHocSinh';
 import QuanLyGiaoVien from './QuanLy/QuanLyGiaoVien';
-import QuanLyLopHoc from './QuanLy/QuanLyLopHoc';
+import ThemLopHoc from './QuanLy/ThemLopHoc';
+import DanhSachLopHoc from './QuanLy/DanhSachLopHoc';
 
 export default function Home() {
   useEffect(() => {
@@ -37,8 +38,8 @@ export default function Home() {
     <div className="w-screen h-screen">
       <div className="h-full w-full flex flex-col lg:flex-row">
         {/* navbar */}
-        <div className="w-full lg:w-2/12 border-r-2">
-          <div className="border-b-2">
+        <div className="w-full 2xl:w-2/12 lg:w-3/12 border-r">
+          <div className="border-b">
             <div className="h-full flex items-center justify-center text-lg">
               <div className="w-4/5 flex items-center justify-start gap-2">
                 <div className="flex items-center gap-4">
@@ -137,11 +138,11 @@ export default function Home() {
                       </a>
                     </li>
                     <li
-                      className={`py-1 hover:bg-gray-200 ${selectedFunction === 'edit-classRoom' ? 'bg-gray-300' : ''}`}
-                      onClick={() => handleFunctionSelect('edit-classRoom')}
+                      className={`py-1 hover:bg-gray-200 ${selectedFunction === 'list-classRoom' ? 'bg-gray-300' : ''}`}
+                      onClick={() => handleFunctionSelect('list-classRoom')}
                     >
-                      <a href="#edit-classRoom" className="text-gray-700">
-                        Chỉnh sửa lớp học
+                      <a href="#list-classRoom" className="text-gray-700">
+                        Danh sách lớp học
                       </a>
                     </li>
                     <li
@@ -160,7 +161,7 @@ export default function Home() {
         </div>
 
         {/* body */}
-        <div className="w-full lg:w-9/12 flex items-start justify-start">
+        <div className="w-full 2xl:w-10/12 lg:w-10/12 sm:w-full flex md:items-start md:justify-start sm:items-center sm:justify-center">
           {selectedFunction === null ? (
             <div className="flex items-center justify-center h-full w-full">
               <img className="scale-150" src={imgBanner} alt="Rounded avatar" />
@@ -169,8 +170,9 @@ export default function Home() {
             <>
               {selectedFunction === 'add-student' && <QuanLyHocSinh functionType="add-student" />}
               {selectedFunction === 'add-teacher' && <QuanLyGiaoVien functionType="add-teacher" />}
-              {selectedFunction === 'add-classRoom' && (
-                <QuanLyLopHoc functionType="add-classRoom" />
+              {selectedFunction === 'add-classRoom' && <ThemLopHoc functionType="add-classRoom" />}
+              {selectedFunction === 'list-classRoom' && (
+                <DanhSachLopHoc functionType="list-classRoom" />
               )}
               {selectedFunction === 'list-student' && <QuanLyHocSinh functionType="list-student" />}
             </>
