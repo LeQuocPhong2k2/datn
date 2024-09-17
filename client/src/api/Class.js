@@ -7,7 +7,6 @@ async function addLopHoc(lopHoc) {
         'Content-Type': 'application/json',
       },
     });
-    console.log('Add class response:', response);
     return response.data;
   } catch (error) {
     console.error('Add class error:', error.response ? error.response.data : error.message);
@@ -26,7 +25,6 @@ async function getLopHocByNamHocVaKhoi(namHoc, khoiLop) {
         },
       }
     );
-    console.log('Get class by academic year and grade response:', response);
     return response.data;
   } catch (error) {
     console.error(
@@ -37,4 +35,35 @@ async function getLopHocByNamHocVaKhoi(namHoc, khoiLop) {
   }
 }
 
-export { addLopHoc, getLopHocByNamHocVaKhoi };
+async function getLopHocByNamHocOrKhoiOrTenLopOrBuoiHoc(namHoc, khoiLop, tenLop, buoiHoc) {
+  const response = await axios.post(
+    'http://localhost:3000/class/getClassesByAcademicYearOrGradeOrClassNameOrClassSession',
+    { academicYear: namHoc, grade: khoiLop, className: tenLop, classSession: buoiHoc },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+  return response;
+}
+
+async function getDsHocSinhByLopHoc(idLopHoc) {
+  const response = await axios.post(
+    'http://localhost:3000/class/getDsStudentByClass',
+    { idClass: idLopHoc },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+  return response.data;
+}
+
+export {
+  addLopHoc,
+  getLopHocByNamHocVaKhoi,
+  getLopHocByNamHocOrKhoiOrTenLopOrBuoiHoc,
+  getDsHocSinhByLopHoc,
+};

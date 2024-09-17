@@ -1,5 +1,5 @@
 import React from 'react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import 'flowbite';
 import 'react-toastify/dist/ReactToastify.css';
 import { Toaster, toast } from 'react-hot-toast';
@@ -28,7 +28,7 @@ export default function QuanLyGiaoVien({ functionType }) {
   const handleSubmit = async () => {
     if (validateInput()) {
       try {
-        const res = await addGiaoVien(teacherInfo);
+        addGiaoVien(teacherInfo);
 
         toast.success('Thêm giáo viên thành công');
 
