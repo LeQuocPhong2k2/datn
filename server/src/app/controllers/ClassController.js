@@ -206,7 +206,7 @@ const ClassController = {
         className: tenLop,
         classSession: buoiHoc,
         startDate: ngayBatDau,
-        maxStudents: 0,
+        maxStudents: 40,
         homeRoomTeacher: idGiaoVienChuNhiem,
         studentList: [],
       });

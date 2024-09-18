@@ -19,4 +19,17 @@ async function getAllStudents() {
   }
 }
 
-export { addStudent, getAllStudents };
+async function getStudentByCode(code) {
+  const response = await axios.post(
+    'http://localhost:3000/students/getStudentByCode',
+    { studentCode: code },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+  return response.data;
+}
+
+export { addStudent, getAllStudents, getStudentByCode };

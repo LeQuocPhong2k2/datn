@@ -5,6 +5,33 @@ const Class = require("../models/Class");
 
 const StudentController = {
   /**
+   * find student by student code
+   * @param {*} req
+   * @param {*} res
+   */
+  getStudentByCode: async (req, res) => {
+    const { studentCode } = req.body;
+    console.log("Mã số sinh viên:", studentCode);
+    try {
+      if (!studentCode) {
+        return res.status(200).json([]);
+      }
+
+      const student = await Student.find(
+        { studentCode: { $regex: `^${studentCode}`, $options: "i" } },
+        // Chỉ lấy các trường cần thiết, ví dụ: studentCode và name
+        { studentCode: 1, userName: 1 }
+      );
+
+      console.log("Thông tin học sinh:", student);
+      res.status(200).json(student);
+    } catch (error) {
+      console.error("Lỗi khi lấy thông tin học sinh:", error);
+      res.status(500).json({ error: error.message });
+    }
+  },
+
+  /**
    * lấy danh sách học sinh
    * @param {*} req
    * @param {*} res
@@ -56,6 +83,8 @@ const StudentController = {
       khoiLop,
       lopHoc,
     } = req.body;
+
+    console.log("Thông tin học sinh:", req.body);
 
     let studentCodeGen = "";
     try {
@@ -203,7 +232,7 @@ const StudentController = {
  * @returns
  */
 function generateStudentID(yearOfEnrollment) {
-  const randomSixDigits = Math.floor(100000 + Math.random() * 900000);
+  const randomSixDigits = Math.floor(1000 + Math.random() * 9000);
 
   const studentID = yearOfEnrollment.toString() + randomSixDigits.toString();
 
