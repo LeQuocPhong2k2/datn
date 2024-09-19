@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
-const Schema = mongoose.Schema;
+const mongoose = require('mongoose')
+const Schema = mongoose.Schema
 
 const StudentSchema = new Schema(
   {
@@ -14,18 +14,22 @@ const StudentSchema = new Schema(
     parents: [
       {
         type: Schema.Types.ObjectId,
-        ref: "Parent",
+        ref: 'Parent',
       },
     ],
     role: String,
     account: {
       type: Schema.Types.ObjectId,
-      ref: "Account",
+      ref: 'Account',
     },
+    ethnicGroups: String,
+    status: String,
   },
-  { collection: "Student" }
-);
+  { collection: 'Student' }
+)
 
-const Student = mongoose.model("Student", StudentSchema);
+const Student = mongoose.model('Student', StudentSchema)
+// tắt chế dộ strictPopulate để populate các trường ref
+// StudentSchema.set('strictPopulate', false)
 
-module.exports = Student;
+module.exports = Student
