@@ -8,7 +8,8 @@ import Modal from 'react-modal';
 
 import { addStudent } from '../../api/Student';
 import { getLopHocByNamHocVaKhoi } from '../../api/Class';
-
+import { searchStudents } from '../../api/Student';
+import { BsEthernet } from 'react-icons/bs';
 Modal.setAppElement('#root');
 
 export default function QuanLyHocSinh({ functionType }) {
@@ -281,6 +282,68 @@ export default function QuanLyHocSinh({ functionType }) {
     }
 
     return true;
+  };
+
+  const [searchStudent, setSearchStudent] = useState({
+    grade: '',
+    className: '',
+    academicYear: '',
+    gender: '',
+    userName: '',
+    studentCode: '',
+    status: '',
+    ethnicGroups: '',
+  });
+  const [studentbyResearch, setStudentbyResearch] = useState([]);
+
+  const handleSearchStudent = async (e) => {
+    if (
+      searchStudent.grade === '' &&
+      searchStudent.className === '' &&
+      searchStudent.academicYear === '' &&
+      searchStudent.gender === '' &&
+      searchStudent.userName === '' &&
+      searchStudent.studentCode === '' &&
+      searchStudent.status === '' &&
+      searchStudent.ethnicGroups === ''
+    ) {
+      toast.dismiss();
+      toast.error('Vui lòng nhập ít nhất một trường để tìm kiếm');
+
+      return;
+    }
+
+    try {
+      const res = await searchStudents(searchStudent); // Truyền searchStudent
+      console.log(res);
+      toast.success('Tìm kiếm học sinh thành công');
+      setStudentbyResearch(res);
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        toast.error('Không tìm thấy học sinh');
+        // reset lại bảng
+        setStudentbyResearch([]);
+      } else {
+        console.error('Lỗi tìm kiếm học sinh:', error);
+      }
+    }
+  };
+
+  // tạo resetSearch
+  const resetSearch = () => {
+    setSearchStudent((prev) => ({
+      ...prev,
+      grade: '',
+      className: '',
+      academicYear: '',
+      gender: '',
+      userName: '',
+      studentCode: '',
+      status: '',
+      ethnicGroups: '',
+    }));
+    setStudentbyResearch([]);
+    // xoá toàn bộ thông tin bảng
   };
 
   return (
@@ -722,7 +785,12 @@ export default function QuanLyHocSinh({ functionType }) {
             <div className={`flex flex-wrap gap-4 ${isCollapsed ? 'hidden' : 'w-full'}`}>
               <div className="flex-1">
                 <label htmlFor="grade">Khối</label>
-                <select id="grade" className="w-full p-2 border border-gray-300 rounded">
+                <select
+                  id="grade"
+                  className="w-full p-2 border border-gray-300 rounded"
+                  value={searchStudent.grade}
+                  onChange={(e) => setSearchStudent({ ...searchStudent, grade: e.target.value })}
+                >
                   <option value="">Tất cả</option>
                   <option value="1">1</option>
                   <option value="2">2</option>
@@ -733,7 +801,14 @@ export default function QuanLyHocSinh({ functionType }) {
               </div>
               <div className="flex-1">
                 <label htmlFor="lopHoc">Lớp học</label>
-                <select id="lopHoc" className="w-full p-2 border border-gray-300 rounded">
+                <select
+                  id="lopHoc"
+                  className="w-full p-2 border border-gray-300 rounded"
+                  onChange={(e) =>
+                    setSearchStudent({ ...searchStudent, className: e.target.value })
+                  }
+                  value={searchStudent.className}
+                >
                   <option value="">Tất cả</option>
                   {/* Thêm các tuỳ chọn lớp học từ 1A1 tới 1A5 tương tự với các khối 2,3,4,5 */}
                   <option value="1A1">1A1</option>
@@ -765,17 +840,35 @@ export default function QuanLyHocSinh({ functionType }) {
               </div>
               <div className="flex-1">
                 <label htmlFor="year">Năm học</label>
-                <select id="year" className="w-full p-2 border border-gray-300 rounded">
+
+                <select
+                  id="year"
+                  className="w-full p-2 border border-gray-300 rounded"
+                  onChange={(e) =>
+                    setSearchStudent({ ...searchStudent, academicYear: e.target.value })
+                  }
+                  value={searchStudent.academicYear}
+                >
                   <option value="">Tất cả</option>
                   {/* Các tùy chọn năm học */}
+                  <option value="2020-2021">2020-2021</option>
+                  <option value="2021-2022">2021-2022</option>
+                  <option value="2022-2023">2022-2023</option>
+                  <option value="2023-2024">2023-2024</option>
+                  <option value="2024-2025">2024-2025</option>
                 </select>
               </div>
               <div className="flex-1">
                 <label htmlFor="gioiTinh">Giới tính</label>
-                <select id="gioiTinh" className="w-full p-2 border border-gray-300 rounded">
+                <select
+                  id="gioiTinh"
+                  className="w-full p-2 border border-gray-300 rounded"
+                  value={searchStudent.gender}
+                  onChange={(e) => setSearchStudent({ ...searchStudent, gender: e.target.value })}
+                >
                   <option value="">Tất cả</option>
                   <option value="Nam">Nam</option>
-                  <option value="Nu">Nữ</option>
+                  <option value="Nữ">Nữ</option>
                 </select>
               </div>
             </div>
@@ -785,8 +878,10 @@ export default function QuanLyHocSinh({ functionType }) {
                 <input
                   type="text"
                   id="hoTen"
+                  value={searchStudent.userName}
                   className="w-full p-2 border border-gray-300 rounded"
                   placeholder="Nhập họ tên..."
+                  onChange={(e) => setSearchStudent({ ...searchStudent, userName: e.target.value })}
                 />
               </div>
               <div className="flex-1">
@@ -794,22 +889,38 @@ export default function QuanLyHocSinh({ functionType }) {
                 <input
                   type="text"
                   id="mssv"
+                  value={searchStudent.studentCode}
                   className="w-full p-2 border border-gray-300 rounded"
                   placeholder="Nhập mã học sinh..."
+                  onChange={(e) =>
+                    setSearchStudent({ ...searchStudent, studentCode: e.target.value })
+                  }
                 />
               </div>
               <div className="flex-1">
                 <label htmlFor="trangThai">Trạng thái</label>
-                <select id="trangThai" className="w-full p-2 border border-gray-300 rounded">
+                <select
+                  id="trangThai"
+                  className="w-full p-2 border border-gray-300 rounded"
+                  value={searchStudent.status}
+                  onChange={(e) => setSearchStudent({ ...searchStudent, status: e.target.value })}
+                >
                   <option value="">Tất cả</option>
-                  <option value="dangHoc">Đang học</option>
-                  <option value="daTotNghiep">Đã tốt nghiệp</option>
-                  <option value="daNghiHoc">Đã nghĩ học</option>
+                  <option value="Đang học">Đang học</option>
+                  <option value="Đã tốt nghiệp">Đã tốt nghiệp</option>
+                  <option value="Đã nghĩ học">Đã nghĩ học</option>
                 </select>
               </div>
               <div className="flex-1">
                 <label htmlFor="danToc">Dân tộc</label>
-                <select id="danToc" className="w-full p-2 border border-gray-300 rounded">
+                <select
+                  id="danToc"
+                  value={searchStudent.ethnicGroups}
+                  className="w-full p-2 border border-gray-300 rounded"
+                  onChange={(e) =>
+                    setSearchStudent({ ...searchStudent, ethnicGroups: e.target.value })
+                  }
+                >
                   <option value="">Chọn dân tộc</option>
                   <option value="Kinh">Kinh</option>
                   <option value="Tày">Tày</option>
@@ -873,8 +984,18 @@ export default function QuanLyHocSinh({ functionType }) {
                   type="button"
                   // className="focus:outline-none text-white bg-green-500 hover:bg-green-600 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5"
                   class="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
+                  onClick={handleSearchStudent}
                 >
                   Tìm kiếm
+                </button>
+              </div>
+              <div className="flex">
+                <button
+                  type="button"
+                  onClick={resetSearch}
+                  class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800"
+                >
+                  Reset
                 </button>
               </div>
               <div className="flex">
@@ -949,32 +1070,42 @@ export default function QuanLyHocSinh({ functionType }) {
                   </th>
                 </tr>
               </thead>
+              {/* // chỗ body hiện thông tin  */}
               <tbody className="bg-white divide-y divide-gray-200">
-                {/* Insert student data here */}
-                <tr>
-                  <td className="px-6 py-4 whitespace-nowrap">1</td>
-                  <td className="px-6 py-4 whitespace-nowrap">Nguyễn Văn A</td>
-                  <td className="px-6 py-4 whitespace-nowrap">HS001</td>
-                  <td className="px-6 py-4 whitespace-nowrap">01/01/2001</td>
-                  <td className="px-6 py-4 whitespace-nowrap">Nam</td>
-                  <td className="px-6 py-4 whitespace-nowrap">Kinh</td>
-                  <td className="px-6 py-4 whitespace-nowrap">1A1</td>
-                  <td className="px-6 py-4 whitespace-nowrap">Đang học</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <button
-                      type="button"
-                      className="focus:outline-none text-white bg-blue-500 hover:bg-blue-600 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5"
-                    >
-                      Sửa
-                    </button>
-                    <button
-                      type="button"
-                      className="focus:outline-none text-white bg-red-500 hover:bg-red-600 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5"
-                    >
-                      Xóa
-                    </button>
-                  </td>
-                </tr>
+                {studentbyResearch.length === 0 ? ( // Check if there are no students to display
+                  <tr>
+                    <td colSpan="9" className="text-center py-4">
+                      Không có dữ liệu
+                    </td>{' '}
+                  </tr>
+                ) : (
+                  studentbyResearch.map((student, index) => (
+                    <tr key={student._id}>
+                      <td className="px-6 py-4 whitespace-nowrap">{index + 1}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{student.userName}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{student.studentCode}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{student.dateOfBirth}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{student.gender}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{student.ethnicGroups}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{student.className}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{student.status}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <button
+                          type="button"
+                          className="focus:outline-none text-white bg-blue-500 hover:bg-blue-600 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5"
+                        >
+                          Sửa
+                        </button>
+                        <button
+                          type="button"
+                          className="focus:outline-none text-white bg-red-500 hover:bg-red-600 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5"
+                        >
+                          Xóa
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

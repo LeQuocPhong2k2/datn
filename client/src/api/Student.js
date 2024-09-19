@@ -30,6 +30,28 @@ async function getStudentByCode(code) {
     }
   );
   return response.data;
+  // search students
+}
+async function searchStudents(studentCode) {
+  const response = await axios.post(
+    'http://localhost:3000/students/searchStudents',
+    {
+      grade: studentCode.grade,
+      className: studentCode.className,
+      academicYear: studentCode.academicYear,
+      gender: studentCode.gender,
+      userName: studentCode.userName,
+      studentCode: studentCode.studentCode,
+      status: studentCode.status,
+      ethnicGroups: studentCode.ethnicGroups,
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+  return response.data;
 }
 
-export { addStudent, getAllStudents, getStudentByCode };
+export { addStudent, getAllStudents, getStudentByCode, searchStudents };
