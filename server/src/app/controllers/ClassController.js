@@ -31,7 +31,14 @@ const ClassController = {
     const { idClass } = req.body;
     console.log("ID lớp học:", idClass);
     try {
-      const students = await Class.findById(idClass).populate("studentList");
+      const students = await Class.findById(idClass).populate({
+        path: "studentList",
+        populate: {
+          path: "parents",
+          model: "Parent",
+        },
+      });
+      console.log(JSON.stringify(students, null, 2));
       console.log("Danh sách học sinh trong lớp:", students);
       res.status(200).json(students.studentList);
     } catch (error) {
