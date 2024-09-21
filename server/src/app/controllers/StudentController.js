@@ -87,9 +87,11 @@ const StudentController = {
     } = req.body;
 
     console.log("Thông tin học sinh:", req.body);
-
     let studentCodeGen = "";
     try {
+      /**
+       * tạo mã học sinh
+       */
       const yearOfEnrollment = new Date(ngayVaoTruong).getFullYear();
       studentCodeGen = generateStudentID(yearOfEnrollment);
 
@@ -100,7 +102,7 @@ const StudentController = {
         studentCode: studentCodeGen,
       });
       if (checkStudentCode) {
-        return res.status(401).json({ message: "Mã số sinh viên đã tồn tại" });
+        return res.status(401).json({ message: "Mã số sinh viên đã tồn tại", student: req.body });
       }
 
       /**
@@ -112,7 +114,7 @@ const StudentController = {
       });
 
       if (checkStudentByPhoneNumberAndName) {
-        return res.status(402).json({ message: "Số điện thoại đã được đăng ký cho tên này" });
+        return res.status(402).json({ message: "Số điện thoại đã được đăng ký cho tên này", student: req.body });
       }
 
       /**
@@ -141,7 +143,7 @@ const StudentController = {
           parents.push(newParent._id);
         }
       } else {
-        if (!moiQuanHeCha) {
+        if (moiQuanHeCha) {
           const checkParentByPhoneNumberAndNameFather = await Parent.findOne({
             userName: hoTenCha,
             phoneNumber: sdtCha,
@@ -164,7 +166,7 @@ const StudentController = {
           }
         }
 
-        if (!moiQuanHeMe) {
+        if (moiQuanHeMe) {
           const checkParentByPhoneNumberAndNameMother = await Parent.findOne({
             userName: hoTenMe,
             phoneNumber: sdtMe,
@@ -215,11 +217,11 @@ const StudentController = {
       });
 
       if (!classInfo) {
-        return res.status(403).json({ message: "Không tìm thấy lớp" });
+        return res.status(403).json({ message: "Không tìm thấy lớp", student: req.body });
       } else {
         // check sỉ số lớp > sỉ số tối đa
         if (classInfo.studentList.length >= classInfo.maxStudents) {
-          return res.status(404).json({ message: "Sỉ số lớp đã đầy" });
+          return res.status(404).json({ message: "Sỉ số lớp đã đầy", student: req.body });
         }
         classInfo.studentList.push(newStudent._id);
         await classInfo.save();
@@ -227,7 +229,7 @@ const StudentController = {
 
       console.log("Đang lưu học sinh...");
       await newStudent.save();
-      res.status(201).json(newStudent);
+      res.status(201).json({ message: "Thêm học sinh thành công" });
     } catch (error) {
       console.error("Lỗi khi thêm học sinh:", error);
       res.status(500).json({ error: error.message });

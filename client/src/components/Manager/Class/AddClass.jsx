@@ -1,19 +1,18 @@
+import 'flowbite';
 import React from 'react';
 import Modal from 'react-modal';
-import 'flowbite';
+import { FiSearch } from 'react-icons/fi';
+import { useEffect, useState } from 'react';
 import 'react-toastify/dist/ReactToastify.css';
 import { Toaster, toast } from 'react-hot-toast';
-import { useEffect, useState } from 'react';
-import { FiSearch } from 'react-icons/fi';
 
-import { getGiaoVienChuaPhanCongChuNhiem } from '../../api/Teacher';
-import { addLopHoc } from '../../api/Class';
+import { addLopHoc } from '../../../api/Class';
+import { getGiaoVienChuaPhanCongChuNhiem } from '../../../api/Teacher';
 
 Modal.setAppElement('#root');
 
 export default function QuanLyGiaoVien({ functionType }) {
   const [teachers, setTeachers] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [lopHocInfo, setLopHocInfo] = useState({
     namHoc: '',
     khoiLop: '',
@@ -23,7 +22,12 @@ export default function QuanLyGiaoVien({ functionType }) {
     ngayBatDau: '',
     buoiHoc: '',
   });
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
+  /**
+   * handle change input
+   * @param {*} e
+   */
   const handleChange = (e) => {
     const { id, value } = e.target;
     setLopHocInfo((prevInfo) => ({
@@ -32,6 +36,9 @@ export default function QuanLyGiaoVien({ functionType }) {
     }));
   };
 
+  /**
+   * handle submit
+   */
   const handleSubmit = async () => {
     if (validateInput()) {
       try {
@@ -58,6 +65,9 @@ export default function QuanLyGiaoVien({ functionType }) {
     }
   };
 
+  /**
+   * handle search teacher
+   */
   const handleSearchTeacher = async () => {
     const res = await getGiaoVienChuaPhanCongChuNhiem(lopHocInfo.namHoc);
     console.log(res);
@@ -65,6 +75,10 @@ export default function QuanLyGiaoVien({ functionType }) {
     openModal();
   };
 
+  /**
+   * handle select teacher
+   * @param {*} teacher
+   */
   const handleSelectTeacher = (teacher) => {
     setLopHocInfo((prevInfo) => ({
       ...prevInfo,
@@ -74,6 +88,10 @@ export default function QuanLyGiaoVien({ functionType }) {
     closeModal();
   };
 
+  /**
+   * validate input
+   * @returns
+   */
   const validateInput = () => {
     if (lopHocInfo.khoiLop === '') {
       toast.error('Vui lòng chọn khối lớp');
@@ -103,7 +121,9 @@ export default function QuanLyGiaoVien({ functionType }) {
     return true;
   };
 
-  // lấy năm học hiện tại
+  /**
+   * get current year
+   */
   useEffect(() => {
     const date = new Date();
     const year = date.getFullYear();
@@ -113,10 +133,16 @@ export default function QuanLyGiaoVien({ functionType }) {
     }));
   }, []);
 
+  /**
+   * open modal
+   */
   const openModal = () => {
     setIsModalOpen(true);
   };
 
+  /**
+   * close modal
+   */
   const closeModal = () => {
     setIsModalOpen(false);
   };
@@ -177,10 +203,7 @@ export default function QuanLyGiaoVien({ functionType }) {
                 onChange={handleChange}
                 className="w-full p-2 border border-gray-300 rounded"
               />
-              <FiSearch
-                onClick={handleSearchTeacher}
-                className="absolute right-2 top-9 cursor-pointer"
-              />
+              <FiSearch onClick={handleSearchTeacher} className="absolute right-2 top-9 cursor-pointer" />
             </div>
             <div>
               <label htmlFor="name1">Ngày bắt đầu lớp học*</label>
@@ -206,22 +229,6 @@ export default function QuanLyGiaoVien({ functionType }) {
                 <option value="Sáng">Sáng</option>
                 <option value="Chiều">Chiều</option>
               </select>
-            </div>
-          </div>
-
-          <div>
-            <span className="font-medium">2. Import danh sách học sinh</span>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-4">
-            <div>
-              <input type="file" id="name1" className="w-full p-2 border border-gray-300 rounded" />
-              <a
-                className="underline cursor-pointer hover:text-blue-500 text-blue-500"
-                href="http://localhost:3000/download-template"
-                download
-              >
-                Tải file mẫu ở đây.
-              </a>
             </div>
           </div>
 
@@ -260,9 +267,7 @@ export default function QuanLyGiaoVien({ functionType }) {
         <div class="relative p-4 w-full h-full">
           <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
             <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
-              <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
-                Danh sách giáo viên chủ nhiệm
-              </h3>
+              <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Danh sách giáo viên chủ nhiệm</h3>
             </div>
             <div class="p-4 md:p-5 max-h-20 xl:max-h-96 lg:max-h-56 md:max-h-40 sm:max-h-20 overflow-auto">
               <ul className="space-y-2">

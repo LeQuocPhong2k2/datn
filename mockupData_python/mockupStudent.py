@@ -45,6 +45,13 @@ def generate_formatted_dob_parent(minimum_age=30, maximum_age=70):
     dob = fake.date_of_birth(minimum_age=minimum_age, maximum_age=maximum_age)
     return dob.strftime("%m/%d/%Y")
 
+ho_viet_nam = [ 'Lê' , 'Nguyễn', 'Trần', 'Phạm', 'Hoàng', 'Huỳnh', 'Phan', 'Vũ', 'Võ', 'Đặng', 'Bùi', 'Đỗ', 'Hồ', 'Ngô', 'Dương', 'Lý', 'Đinh', 'Trịnh', 'Lưu', 'Bạch', 'Lương', 'Mai', 'Tô', 'Tăng', 'Thái', 'Trương', 'Đoàn', 'Đào', 'Hà', 'Trịnh', 'Chu', 'Vương', 'Uông', 'Tạ', 'Thạch', 'Sơn', 'Nghiêm', 'Phùng', 'Quách', 'Tôn', 'Khương', 'Tiêu', 'Hứa', 'Thi', 'Từ', 'Phí', 'Đinh', 'Trịnh', 'Đoàn', 'Đào', 'Hà', 'Trịnh', 'Chu', 'Vương', 'Uông', 'Tạ', 'Thạch', 'Sơn', 'Nghiêm', 'Phùng', 'Quách', 'Tôn', 'Khương', 'Tiêu', 'Hứa', 'Thi', 'Từ', 'Phí', 'Đinh', 'Trịnh', 'Đoàn', 'Đào', 'Hà', 'Trịnh', 'Chu', 'Vương', 'Uông', 'Tạ', 'Thạch', 'Sơn', 'Nghiêm', 'Phùng', 'Quách', 'Tôn', 'Khương', 'Tiêu', 'Hứa', 'Thi', 'Từ', 'Phí', 'Đinh', 'Trịnh', 'Đoàn', 'Đào', 'Hà', 'Trịnh', 'Chu', 'Vương', 'Uông', 'Tạ', 'Thạch', 'Sơn', 'Nghiêm', 'Phùng', 'Quách', 'Tôn', 'Khương', 'Tiêu', 'Hứa', 'Thi', 'Từ', 'Phí', 'Đinh', 'Trịnh'];
+ten_dem_viet_nam=['Văn', 'Thị', 'Thành', 'Hữu', 'Đình', 'Đức', 'Minh', 'Hồng', 'Quốc', 'Văn', 'Thị', 'Thành', 'Hữu', 'Đình', 'Đức', 'Minh', 'Hồng', 'Quốc', 'Văn', 'Thị', 'Thành', 'Hữu', 'Đình', 'Đức', 'Minh', 'Hồng', 'Quốc', 'Văn', 'Thị', 'Thành', 'Hữu', 'Đình', 'Đức', 'Minh', 'Hồng', 'Quốc', 'Văn', 'Thị', 'Thành', 'Hữu', 'Đình', 'Đức', 'Minh', 'Hồng', 'Quốc', 'Văn', 'Thị', 'Thành', 'Hữu', 'Đình', 'Đức', 'Minh', 'Hồng', 'Quốc', 'Văn', 'Thị', 'Thành', 'Hữu', 'Đình', 'Đức', 'Minh', 'Hồng', 'Quốc', 'Văn', 'Thị', 'Thành', 'Hữu', 'Đình', 'Đức', 'Minh', 'Hồng', 'Quốc', 'Văn', 'Thị', 'Thành', 'Hữu', 'Đình', 'Đức', 'Minh', 'Hồng', 'Quốc', 'Văn', 'Thị', 'Thành', 'Hữu', 'Đình', 'Đức', 'Minh', 'Hồng', 'Quốc', 'Văn', 'Thị', 'Thành', 'Hữu', 'Đình', 'Đức', 'Minh', 'Hồng', 'Quốc', 'Văn', 'Thị', 'Thành', 'Hữu', 'Đình', 'Đức', 'Minh', 'Hồng', 'Quốc', 'Văn', 'Thị', 'Thành', 'Hữu', 'Đình', 'Đức']
+
+def generate_vietnamese_name():
+    first_name = random.choice(ho_viet_nam) + " " + random.choice(ten_dem_viet_nam)
+    last_name = fake.last_name()
+    return f"{last_name} {first_name}"
 
 def create_fake_student():
     cha = fake.random_element(elements=("Có", "Không"))
@@ -56,7 +63,7 @@ def create_fake_student():
     else:
         quan_he_khac = "Không"
     return {
-            "Họ và tên": fake.name(),
+            "Họ và tên": generate_vietnamese_name(),
             "Năm sinh": generate_formatted_dob(),
             "Giới tính": fake.random_element(elements=("Nam", "Nữ")),
             "Dân tộc": fake.random_element(
@@ -153,7 +160,7 @@ def create_fake_student():
             "Mẹ": me,
             "Quan hệ khác": quan_he_khac,
             "Họ tên cha": (
-                fake.name()
+                generate_vietnamese_name()
                 if cha == "Có"
                 else None
             ),
@@ -173,7 +180,7 @@ def create_fake_student():
                 else None
             ),
             "Họ tên mẹ": (
-                fake.name()
+                generate_vietnamese_name()
                 if me == "Có"
                 else None
             ),
@@ -193,7 +200,7 @@ def create_fake_student():
                 else None
             ),
             "Họ tên quan hệ khác": (
-                fake.name()
+                generate_vietnamese_name()
                 if quan_he_khac != "Không"
                 else None
             ),
@@ -216,16 +223,16 @@ def create_fake_student():
             "Khối": "1",
             "Lớp": "1A2",
         }
+if __name__ == "__main__":
+    fake_students = [create_fake_student() for _ in range(40)]
 
-fake_students = [create_fake_student() for _ in range(40)]
+    df_fake = pd.DataFrame(fake_students)
 
-df_fake = pd.DataFrame(fake_students)
+    df_combined = pd.concat([df, df_fake], ignore_index=True)
 
-df_combined = pd.concat([df, df_fake], ignore_index=True)
+    if 'student_info_with_mockup.xlsx' in os.listdir():
+        os.remove('student_info_with_mockup.xlsx')
 
-if 'student_info_with_mockup.xlsx' in os.listdir():
-    os.remove('student_info_with_mockup.xlsx')
+    df_combined.to_excel('student_info_with_mockup.xlsx', index=False)
 
-df_combined.to_excel('student_info_with_mockup.xlsx', index=False)
-
-print("Đã thêm sinh viên giả thành công!")
+    print("Đã thêm sinh viên giả thành công!")

@@ -7,23 +7,19 @@ import { FiSearch } from 'react-icons/fi';
 import Modal from 'react-modal';
 import * as XLSX from 'xlsx';
 
-import { addStudent } from '../../api/Student';
-import { getLopHocByNamHocVaKhoi } from '../../api/Class';
-import { searchStudents } from '../../api/Student';
+import ImportStudent from './ImportStudent';
+import { addStudent } from '../../../api/Student';
+import { getLopHocByNamHocVaKhoi } from '../../../api/Class';
+import { searchStudents } from '../../../api/Student';
 import { BsEthernet } from 'react-icons/bs';
 Modal.setAppElement('#root');
 
 export default function QuanLyHocSinh({ functionType }) {
-  const [studentsImport, setStudentsImport] = useState([]);
   const [showMoiQuanHeKhac, setShowMoiQuanHeKhac] = useState(false);
-  const [showMoiQuanHeCha, setShowMoiQuanHeCha] = useState(false);
-  const [showMoiQuanHeMe, setShowMoiQuanHeMe] = useState(false);
+  const [showMoiQuanHeCha, setShowMoiQuanHeCha] = useState(true);
+  const [showMoiQuanHeMe, setShowMoiQuanHeMe] = useState(true);
   const [lopHocs, setLopHocs] = useState([]);
-  const [importProgress, setImportProgress] = useState(0);
-  const [progressStatus, setProgressStatus] = useState({
-    success: 0,
-    failed: 0,
-  });
+
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -100,11 +96,11 @@ export default function QuanLyHocSinh({ functionType }) {
 
   useEffect(() => {
     if (showMoiQuanHeKhac) {
-      setShowMoiQuanHeCha(true);
-      setShowMoiQuanHeMe(true);
-    } else {
       setShowMoiQuanHeCha(false);
       setShowMoiQuanHeMe(false);
+    } else {
+      setShowMoiQuanHeCha(true);
+      setShowMoiQuanHeMe(true);
     }
   }, [showMoiQuanHeKhac]);
 
@@ -247,7 +243,7 @@ export default function QuanLyHocSinh({ functionType }) {
         return false;
       }
     } else {
-      if (showMoiQuanHeCha === false) {
+      if (showMoiQuanHeCha) {
         if (studentInfo.hoTenCha === '') {
           toast.error('Vui lòng nhập họ tên cha');
           return false;
@@ -265,7 +261,7 @@ export default function QuanLyHocSinh({ functionType }) {
           return false;
         }
       }
-      if (showMoiQuanHeMe === false) {
+      if (showMoiQuanHeMe) {
         if (studentInfo.hoTenMe === '') {
           toast.error('Vui lòng nhập họ tên mẹ');
           return false;
@@ -359,97 +355,6 @@ export default function QuanLyHocSinh({ functionType }) {
     // xoá toàn bộ thông tin bảng
   };
 
-  /**
-   * handleFileUpload
-   * @param {*} event
-   */
-  const handleFileUpload = (event) => {
-    const file = event.target.files[0];
-    const reader = new FileReader();
-
-    reader.onload = (e) => {
-      const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, { type: 'array' });
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-      setStudentsImport(worksheet);
-    };
-
-    reader.readAsArrayBuffer(file);
-  };
-
-  /**
-   * handleImport
-   */
-  const handleImport = async () => {
-    let totalStudents = studentsImport.length;
-    let success = 0;
-    let failed = 0;
-    console.log('totalStudents', totalStudents);
-    studentsImport.forEach(async (student, index) => {
-      studentInfo.mssv = student['Mã số sinh viên'];
-      studentInfo.hoTen = student['Họ và tên'];
-      studentInfo.namSinh = student['Năm sinh'];
-      studentInfo.gioiTinh = student['Giới tính'];
-      studentInfo.danToc = student['Dân tộc'];
-      studentInfo.ngayVaoTruong = student['Ngày vào trường'];
-      studentInfo.sdt = student['Số điện thoại'];
-      studentInfo.diaChi = student['Địa chỉ'];
-      studentInfo.moiQuanHeKhac = student['Mối hệ khác'] === 'Không' ? false : true;
-      studentInfo.moiQuanHe = student['Mối hệ khác'];
-      studentInfo.moiQuanHeCha = student['Cha'] === 'Không' ? true : false;
-      studentInfo.moiQuanHeMe = student['Mẹ'] === 'Không' ? true : false;
-      studentInfo.hoTenCha = student['Họ tên cha'];
-      studentInfo.namSinhCha = student['Năm sinh cha'];
-      studentInfo.ngheNghiepCha = student['Nghề nghiệp cha'];
-      studentInfo.sdtCha = student['Số điện thoại cha'];
-      studentInfo.hoTenMe = student['Họ tên mẹ'];
-      studentInfo.namSinhMe = student['Năm sinh mẹ'];
-      studentInfo.ngheNghiepMe = student['Nghề nghiệp mẹ'];
-      studentInfo.sdtMe = student['Số điện thoại mẹ'];
-      studentInfo.hoTenNguoiGiamHo = student['Họ tên người giám hộ'];
-      studentInfo.namSinhNguoiGiamHo = student['Năm sinh người giám hộ'];
-      studentInfo.ngheNghiepNguoiGiamHo = student['Nghề nghiệp người giám hộ'];
-      studentInfo.sdtNguoiGiamHo = student['Số điện thoại người giám hộ'];
-      studentInfo.namHoc = student['Năm học'];
-      studentInfo.khoiLop = student['Khối'];
-      studentInfo.lopHoc = student['Lớp'];
-
-      console.log('studentInfo', studentInfo);
-
-      try {
-        const response = await addStudent(studentInfo);
-
-        if (response.ok) {
-          success++;
-        } else {
-          failed++;
-        }
-        setImportProgress(Math.round(((index + 1) / totalStudents) * 100));
-      } catch (error) {
-        failed++;
-        if (error.response.status === 401) {
-          console.log('Mã số sinh viên đã tồn tại');
-        }
-        if (error.response.status === 402) {
-          console.log(`Số điện thoại đã được đăng ký cho tên ${studentInfo.hoTen}`);
-        }
-        if (error.response.status === 403) {
-          console.log('Không tìm thấy lớp học');
-        }
-        if (error.response.status === 404) {
-          console.log('Sỉ số lớp đã đầy');
-        }
-        if (error.response.status === 500) {
-          console.log('Thêm học sinh thất bại');
-        }
-        setImportProgress(Math.round(((index + 1) / totalStudents) * 100));
-      }
-
-      setProgressStatus({ success, failed });
-    });
-  };
-
   return (
     <>
       <Toaster toastOptions={{ duration: 2200 }} />
@@ -473,7 +378,13 @@ export default function QuanLyHocSinh({ functionType }) {
             </div>
             <div>
               <label htmlFor="name1">Họ và tên*</label>
-              <input type="text" id="hoTen" onChange={handleChange} value={studentInfo.hoTen} className="w-full p-2 border border-gray-300 rounded" />
+              <input
+                type="text"
+                id="hoTen"
+                onChange={handleChange}
+                value={studentInfo.hoTen}
+                className="w-full p-2 border border-gray-300 rounded"
+              />
             </div>
             <div>
               <label htmlFor="name2">Năm sinh*</label>
@@ -487,7 +398,12 @@ export default function QuanLyHocSinh({ functionType }) {
             </div>
             <div>
               <label htmlFor="gioi-tinh">Giới tính*</label>
-              <select className="w-full p-2 border border-gray-300 rounded" id="gioiTinh" onChange={handleChange} value={studentInfo.gioiTinh}>
+              <select
+                className="w-full p-2 border border-gray-300 rounded"
+                id="gioiTinh"
+                onChange={handleChange}
+                value={studentInfo.gioiTinh}
+              >
                 <option value="" selected></option>
                 <option value="Nu">Nữ</option>
                 <option value="Nam">Nam</option>
@@ -495,7 +411,12 @@ export default function QuanLyHocSinh({ functionType }) {
             </div>
             <div>
               <label htmlFor="gioi-tinh">Dân tộc*</label>
-              <select id="danToc" onChange={handleChange} value={studentInfo.danToc} className="w-full p-2 border border-gray-300 rounded">
+              <select
+                id="danToc"
+                onChange={handleChange}
+                value={studentInfo.danToc}
+                className="w-full p-2 border border-gray-300 rounded"
+              >
                 <option value=""></option>
                 <option value="Kinh">Kinh</option>
                 <option value="Tày">Tày</option>
@@ -561,7 +482,13 @@ export default function QuanLyHocSinh({ functionType }) {
             </div>
             <div>
               <label htmlFor="name5">SĐT liên lạc*</label>
-              <input type="number" id="sdt" onChange={handleChange} value={studentInfo.sdt} className="w-full p-2 border border-gray-300 rounded" />
+              <input
+                type="number"
+                id="sdt"
+                onChange={handleChange}
+                value={studentInfo.sdt}
+                className="w-full p-2 border border-gray-300 rounded"
+              />
             </div>
             <div>
               <label htmlFor="name5">Địa chỉ thường trú*</label>
@@ -581,12 +508,16 @@ export default function QuanLyHocSinh({ functionType }) {
                 <span className="font-medium">2. Thông tin gia đình</span>
               </div>
               <div className="pt-2">
-                <input type="checkbox" value={showMoiQuanHeCha} onChange={() => setShowMoiQuanHeCha(!showMoiQuanHeCha)} />
+                <input
+                  type="checkbox"
+                  value={showMoiQuanHeCha}
+                  onChange={() => setShowMoiQuanHeCha(!showMoiQuanHeCha)}
+                />
                 <label htmlFor="moiQuanHeKhac" className="p-2">
                   Vắng cha <i>(Nếu học sinh vắng cha chọn tính năng này)</i>
                 </label>
               </div>
-              {showMoiQuanHeCha === false && (
+              {showMoiQuanHeCha && (
                 <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
                   <div>
                     <label htmlFor="name1">Họ tên cha*</label>
@@ -632,12 +563,17 @@ export default function QuanLyHocSinh({ functionType }) {
               )}
 
               <div className="pt-2">
-                <input type="checkbox" id="moiQuanHeMe" value={showMoiQuanHeMe} onChange={() => setShowMoiQuanHeMe(!showMoiQuanHeMe)} />
+                <input
+                  type="checkbox"
+                  id="moiQuanHeMe"
+                  value={showMoiQuanHeMe}
+                  onChange={() => setShowMoiQuanHeMe(!showMoiQuanHeMe)}
+                />
                 <label htmlFor="moiQuanHeKhac" className="p-2">
                   Vắng mẹ <i>(Nếu học sinh vắng mẹ chọn tính năng này)</i>
                 </label>
               </div>
-              {showMoiQuanHeMe === false && (
+              {showMoiQuanHeMe && (
                 <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
                   <div>
                     <label htmlFor="name1">Họ tên mẹ*</label>
@@ -685,7 +621,12 @@ export default function QuanLyHocSinh({ functionType }) {
           )}
 
           <div>
-            <input type="checkbox" id="moiQuanHeKhac" value={showMoiQuanHeKhac} onChange={() => setShowMoiQuanHeKhac(!showMoiQuanHeKhac)} />
+            <input
+              type="checkbox"
+              id="moiQuanHeKhac"
+              value={showMoiQuanHeKhac}
+              onChange={() => setShowMoiQuanHeKhac(!showMoiQuanHeKhac)}
+            />
             <label htmlFor="moiQuanHeKhac" className="p-2">
               Mối quan hệ khác <i>(Nếu học sinh vắng cả cha và mẹ thì chọn tính năng này)</i>
             </label>
@@ -699,7 +640,12 @@ export default function QuanLyHocSinh({ functionType }) {
               <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
                 <div>
                   <label htmlFor="name1">Mối quan hệ</label>
-                  <select className="w-full p-2 border border-gray-300 rounded" id="moiQuanHe" onChange={handleChange} value={studentInfo.moiQuanHe}>
+                  <select
+                    className="w-full p-2 border border-gray-300 rounded"
+                    id="moiQuanHe"
+                    onChange={handleChange}
+                    value={studentInfo.moiQuanHe}
+                  >
                     <option value="" selected></option>
                     <option value="OngBa">Ông bà</option>
                     <option value="AnhChi">Anh chị</option>
@@ -767,7 +713,12 @@ export default function QuanLyHocSinh({ functionType }) {
             </div>
             <div>
               <label htmlFor="name1">Khối lớp*</label>
-              <select className="w-full p-2 border border-gray-300 rounded" id="khoiLop" onChange={handleChange} value={studentInfo.khoiLop}>
+              <select
+                className="w-full p-2 border border-gray-300 rounded"
+                id="khoiLop"
+                onChange={handleChange}
+                value={studentInfo.khoiLop}
+              >
                 <option value="" selected></option>
                 <option value="1">1</option>
                 <option value="2">2</option>
@@ -800,7 +751,13 @@ export default function QuanLyHocSinh({ functionType }) {
 
             <div className="relative">
               <label htmlFor="name1">Sỉ số lớp hiện tại</label>
-              <input disabled type="text" id="siSo" value={studentInfo.siSo} className="w-full p-2 bg-gray-50 border border-gray-300 rounded" />
+              <input
+                disabled
+                type="text"
+                id="siSo"
+                value={studentInfo.siSo}
+                className="w-full p-2 bg-gray-50 border border-gray-300 rounded"
+              />
             </div>
           </div>
 
@@ -1097,31 +1054,58 @@ export default function QuanLyHocSinh({ functionType }) {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     STT
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Họ tên
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Mã số học sinh
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Ngày sinh
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Giới Tính
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Dân tộc
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Tên lớp
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Trạng Thái
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Tuỳ chỉnh
                   </th>
                 </tr>
@@ -1168,28 +1152,7 @@ export default function QuanLyHocSinh({ functionType }) {
         </div>
       )}
 
-      {functionType === 'add-student-import' && (
-        <div className="w-full p-20 grid grid-rows-4">
-          <div>
-            <input type="file" onChange={handleFileUpload} />
-            <button
-              onClick={handleImport}
-              class="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
-            >
-              Import
-            </button>
-          </div>
-          <div>
-            <span>Process: {importProgress}%</span>
-          </div>
-          <div>
-            <span>Thành công: {progressStatus.success}</span>
-          </div>
-          <div>
-            <span>Thất bại: {progressStatus.failed}</span>
-          </div>
-        </div>
-      )}
+      {functionType === 'add-student-import' && <ImportStudent />}
     </>
   );
 }

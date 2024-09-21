@@ -8,10 +8,10 @@ import { FaAngleDown, FaAngleUp } from 'react-icons/fa';
 import { BsPersonVideo3 } from 'react-icons/bs';
 import { SiGoogleclassroom } from 'react-icons/si';
 
-import QuanLyHocSinh from './QuanLy/QuanLyHocSinh';
-import QuanLyGiaoVien from './QuanLy/QuanLyGiaoVien';
-import ThemLopHoc from './QuanLy/ThemLopHoc';
-import DanhSachLopHoc from './QuanLy/DanhSachLopHoc';
+import QuanLyHocSinh from './Manager/Student/QuanLyHocSinh';
+import QuanLyGiaoVien from './Manager/Teacher/QuanLyGiaoVien';
+import AddClass from './Manager/Class/AddClass';
+import ListClass from './Manager/Class/ListClass';
 
 export default function Home() {
   useEffect(() => {
@@ -55,7 +55,10 @@ export default function Home() {
           <div className="max-h-full flex items-start justify-center text-base md:text-lg pt-4">
             <ul className="w-4/5">
               <li className="py-2">
-                <div className="flex justify-start items-center gap-2 cursor-pointer" onClick={() => toggleSubMenu('hocSinh')}>
+                <div
+                  className="flex justify-start items-center gap-2 cursor-pointer"
+                  onClick={() => toggleSubMenu('hocSinh')}
+                >
                   <AiOutlineTeam className="text-2xl text-gray-500" />
                   <span className="font-medium">Quản lý học sinh</span>
                   {showSubMenus.hocSinh ? <FaAngleUp /> : <FaAngleDown />}
@@ -91,7 +94,10 @@ export default function Home() {
               </li>
 
               <li className="py-2">
-                <div className="flex justify-start items-center gap-2 cursor-pointer" onClick={() => toggleSubMenu('giaoVien')}>
+                <div
+                  className="flex justify-start items-center gap-2 cursor-pointer"
+                  onClick={() => toggleSubMenu('giaoVien')}
+                >
                   <BsPersonVideo3 className="text-2xl text-gray-500" />
                   <span className="font-medium">Quản lý giáo viên</span>
                   {showSubMenus.giaoVien ? <FaAngleUp /> : <FaAngleDown />}
@@ -119,7 +125,10 @@ export default function Home() {
               </li>
 
               <li className="py-2">
-                <div className="flex justify-start items-center gap-2 cursor-pointer" onClick={() => toggleSubMenu('lopHoc')}>
+                <div
+                  className="flex justify-start items-center gap-2 cursor-pointer"
+                  onClick={() => toggleSubMenu('lopHoc')}
+                >
                   <SiGoogleclassroom className="text-2xl text-gray-500" />
                   <span className="font-medium">Quản lý lớp học</span>
                   {showSubMenus.lopHoc ? <FaAngleUp /> : <FaAngleDown />}
@@ -168,8 +177,8 @@ export default function Home() {
               {selectedFunction === 'add-student' && <QuanLyHocSinh functionType="add-student" />}
               {selectedFunction === 'add-student-import' && <QuanLyHocSinh functionType="add-student-import" />}
               {selectedFunction === 'add-teacher' && <QuanLyGiaoVien functionType="add-teacher" />}
-              {selectedFunction === 'add-classRoom' && <ThemLopHoc functionType="add-classRoom" />}
-              {selectedFunction === 'list-classRoom' && <DanhSachLopHoc functionType="list-classRoom" />}
+              {selectedFunction === 'add-classRoom' && <AddClass functionType="add-classRoom" />}
+              {selectedFunction === 'list-classRoom' && <ListClass functionType="list-classRoom" />}
               {selectedFunction === 'list-student' && <QuanLyHocSinh functionType="list-student" />}
             </>
           )}

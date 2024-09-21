@@ -4,7 +4,7 @@ import 'flowbite';
 import 'react-toastify/dist/ReactToastify.css';
 import { Toaster, toast } from 'react-hot-toast';
 
-import { addGiaoVien } from '../../api/Teacher';
+import { addGiaoVien } from '../../../api/Teacher';
 
 export default function QuanLyGiaoVien({ functionType }) {
   const [teacherInfo, setTeacherInfo] = useState({
