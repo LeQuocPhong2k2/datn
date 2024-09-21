@@ -44,8 +44,8 @@
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
-    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans',
+    'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -95,4 +95,37 @@ code {
 
 .fadeOutRight {
   animation: fadeOutRight 1s ease-out;
+}
+
+.table-container {
+  position: relative;
+  overflow-x: auto;
+}
+
+.table-header {
+  z-index: 1;
+  border: 1px solid #000;
+}
+
+.table-header th {
+  border: 1px solid #000; /* Thêm border cho các thẻ <th> */
+}
+
+.table-content {
+  overflow-y: auto;
+  max-height: 24rem; /* Adjust as needed */
+}
+
+.bg-primary-2 {
+  background-color: #427cac !important;
+}
+
+.d-grid-15-85 {
+  display: grid;
+  grid-template-columns: 15% 85%;
+}
+
+.d-grid-25-75 {
+  display: grid;
+  grid-template-columns: 50% 50%;
 }

@@ -274,7 +274,6 @@ const XemChiTietLopHoc = ({ classId, classes, studentList, handleBackDsLopHoc, s
               <th className="py-2 px-4 border border-b border-gray-300 text-left">Họ và tên</th>
               <th className="py-2 px-4 border border-b border-gray-300 text-left">Năm sinh</th>
               <th className="py-2 px-4 border border-b border-gray-300 text-left">Giới tính</th>
-              <th className="py-2 px-4 border border-b border-gray-300 text-left">Dân tộc</th>
               <th className="py-2 px-4 border border-b border-gray-300 text-left">Ngày vào trường</th>
               <th className="py-2 px-4 border border-b border-gray-300 text-left">Số điện thoại</th>
               <th className="py-2 px-4 border border-b border-gray-300 text-left">Địa chỉ</th>
@@ -290,7 +289,6 @@ const XemChiTietLopHoc = ({ classId, classes, studentList, handleBackDsLopHoc, s
                   {new Date(student.dateOfBirth).toLocaleDateString('en-GB')}
                 </td>
                 <td className="py-2 px-4 border border-b border-gray-300 text-left">{student.gender}</td>
-                <td className="py-2 px-4 border border-b border-gray-300 text-left">{student.ethnicGroups}</td>
                 <td className="py-2 px-4 border border-b border-gray-300 text-left">
                   {new Date(student.dateOfEnrollment).toLocaleDateString('en-GB')}
                 </td>

@@ -5,12 +5,17 @@ import { PiExport } from 'react-icons/pi';
 import 'react-datepicker/dist/react-datepicker.css';
 import { LuFilterX } from 'react-icons/lu';
 
+import * as FileSaver from 'file-saver';
+import * as XLSX from 'xlsx';
+
 import { getLopHocByNamHocOrKhoiOrTenLopOrBuoiHoc, getDsHocSinhByLopHoc } from '../../../api/Class';
 
 import ViewClassDetail from './ViewClassDetail';
 import UpdateClass from './UpdateClass';
 
 export default function ListClass({ filterClass, action }) {
+  const fileExtension = '.xlsx';
+  const fileType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
   const [filter, setFilter] = useState({
     namHoc: '',
     khoiLop: '',
@@ -23,6 +28,7 @@ export default function ListClass({ filterClass, action }) {
     khoiLop: '',
     tenLop: '',
     giaoVienChuNhiem: '',
+    idGiaoVienChuNhiem: '',
     ngayBatDau: '',
     buoiHoc: '',
   });
@@ -43,7 +49,20 @@ export default function ListClass({ filterClass, action }) {
   });
 
   useEffect(() => {
-    handleSearchClass();
+    const date = new Date();
+    const year = date.getFullYear();
+    setFilter({ ...filter, namHoc: `${year}-${year + 1}` });
+
+    const fetchClasses = async () => {
+      try {
+        const res = await getLopHocByNamHocOrKhoiOrTenLopOrBuoiHoc(`${year}-${year + 1}`, '', '', '');
+        setClasses(res.data);
+      } catch (error) {
+        console.error('Lỗi khi tìm kiếm lớp học:', error);
+      }
+    };
+
+    fetchClasses();
   }, []);
 
   useEffect(() => {
@@ -51,12 +70,6 @@ export default function ListClass({ filterClass, action }) {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
-
-  useEffect(() => {
-    const date = new Date();
-    const year = date.getFullYear();
-    setFilter({ ...filter, namHoc: `${year}-${year + 1}` });
   }, []);
 
   //handle click outside
@@ -101,10 +114,60 @@ export default function ListClass({ filterClass, action }) {
   };
 
   /**
-   * handle export class
+   * handle show export class
    */
-  const handleExportClass = () => {
+  const handleShowExportClass = () => {
     setShowExport(!iShowExport);
+  };
+
+  /**
+   * handle export class
+   * @param {*} args
+   */
+  const handleExportClass = (args) => {
+    let columnNames = [];
+    let formatData = [];
+    if (args === 'basic') {
+      ({ columnNames, formatData } = exportClassDetailBasic());
+    }
+    const ws = XLSX.utils.json_to_sheet(formatData, {
+      header: columnNames,
+    });
+    const wb = {
+      Sheets: { DSLOP: ws },
+      SheetNames: ['DSLOP'], // Ensure SheetNames is an array
+    };
+    const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    const dataBlob = new Blob([excelBuffer], { type: fileType });
+    FileSaver.saveAs(dataBlob, 'Danh sách lớp năm học ' + filter.namHoc + fileExtension);
+  };
+
+  /**
+   * set data for export class detail basic
+   * @returns
+   */
+  const exportClassDetailBasic = () => {
+    const columnNames = [
+      'STT',
+      'Năm học',
+      'Khối lớp',
+      'Tên lớp',
+      'Buổi học',
+      'Giáo viên chủ nhiệm',
+      'Ngày vào bắt đầu lớp học',
+      'Sỉ số',
+    ];
+    const formatData = classes.map((item, index) => ({
+      STT: index + 1,
+      'Năm học': item.academicYear,
+      'Khối lớp': item.grade,
+      'Tên lớp': item.className,
+      'Buổi học': item.classSession,
+      'Giáo viên chủ nhiệm': item.teacherInfo.userName,
+      'Ngày vào bắt đầu lớp học': new Date(item.startDate).toLocaleDateString('en-GB'),
+      'Sỉ số': item.totalStudents,
+    }));
+    return { columnNames, formatData };
   };
 
   /**
@@ -230,6 +293,7 @@ export default function ListClass({ filterClass, action }) {
                 <option value="2022-2023">2022-2023</option>
                 <option value="2023-2024">2023-2024</option>
                 <option value="2024-2025">2024-2025</option>
+                <option value="2025-2026">2025-2026</option>
               </select>
             </div>
             <div className="grid grid-cols-10 items-center">
@@ -301,7 +365,7 @@ export default function ListClass({ filterClass, action }) {
             <div className="flex items-center justify-end relative dropdown-export" ref={dropdownRef}>
               <button
                 disabled={classes.length === 0}
-                onClick={handleExportClass}
+                onClick={handleShowExportClass}
                 className="relative flex items-center justify-center gap-2 border px-4 py-2 rounded"
               >
                 <PiExport />
@@ -310,7 +374,7 @@ export default function ListClass({ filterClass, action }) {
                 {iShowExport && (
                   <ul className="w-full absolute z-50 top-10 bg-white border rounded mt-1 p-2 slide-down">
                     <li className="px-1 hover:bg-gray-200 ">
-                      <a href="#add-student" className="text-gray-700">
+                      <a href="#export-list-class" onClick={() => handleExportClass('basic')} className="text-gray-700">
                         Xuất danh sách lớp học
                       </a>
                     </li>
@@ -328,17 +392,21 @@ export default function ListClass({ filterClass, action }) {
             <table className="w-full bg-white border border-gray-300">
               <thead>
                 <tr>
-                  <th className="w-5 py-2 px-4 border border-b border-gray-300 text-center">
+                  <th className="w-5 py-2 px-4 border border-b bg-gray-200 border-gray-300 text-center">
                     <input id="checkedExportAll" type="checkbox" onChange={handleSelectAll} />
                   </th>
-                  <th className="w-10 py-2 px-4 border border-b border-gray-300 text-left">STT</th>
-                  <th className="w-36 min-w-36 py-2 px-4 border border-b border-gray-300 text-left">Năm học</th>
-                  <th className="w-36 py-2 px-4 border border-b border-gray-300 text-left">Khối lớp</th>
-                  <th className="w-36 py-2 px-4 border border-b border-gray-300 text-left">Tên lớp học</th>
-                  <th className="w-36 py-2 px-4 border border-b border-gray-300 text-left">Buổi học</th>
-                  <th className="w-36 py-2 px-4 border border-b border-gray-300 text-left">Sỉ số</th>
-                  <th className="w-80 py-2 px-4 border border-b border-gray-300 text-left">Giáo viên chủ nhiệm</th>
-                  <th className="w-56 py-2 px-4 border border-b border-gray-300 text-left">Hành động</th>
+                  <th className="w-10 py-2 px-4 border border-b bg-gray-200 border-gray-300 text-left">STT</th>
+                  <th className="w-36 min-w-36 py-2 px-4 border border-b bg-gray-200 border-gray-300 text-left">
+                    Năm học
+                  </th>
+                  <th className="w-36 py-2 px-4 border border-b bg-gray-200 border-gray-300 text-left">Khối lớp</th>
+                  <th className="w-36 py-2 px-4 border border-b bg-gray-200 border-gray-300 text-left">Tên lớp học</th>
+                  <th className="w-36 py-2 px-4 border border-b bg-gray-200 border-gray-300 text-left">Buổi học</th>
+                  <th className="w-36 py-2 px-4 border border-b bg-gray-200 border-gray-300 text-left">Sỉ số</th>
+                  <th className="w-80 py-2 px-4 border border-b bg-gray-200 border-gray-300 text-left">
+                    Giáo viên chủ nhiệm
+                  </th>
+                  <th className="w-56 py-2 px-4 border border-b bg-gray-200 border-gray-300 text-left">Hành động</th>
                 </tr>
               </thead>
               <tbody>
@@ -352,7 +420,9 @@ export default function ListClass({ filterClass, action }) {
                     <td className="py-2 px-4 border border-b border-gray-300 text-left">{classItem.grade}</td>
                     <td className="py-2 px-4 border border-b border-gray-300 text-left">{classItem.className}</td>
                     <td className="py-2 px-4 border border-b border-gray-300 text-left">{classItem.classSession}</td>
-                    <td className="py-2 px-4 border border-b border-gray-300 text-left">39/40</td>
+                    <td className="py-2 px-4 border border-b border-gray-300 text-left">
+                      {classItem.totalStudents + '/' + classItem.maxStudents}
+                    </td>
                     <td className="py-2 px-4 border border-b border-gray-300 text-left">
                       {classItem.teacherInfo.userName}
                     </td>

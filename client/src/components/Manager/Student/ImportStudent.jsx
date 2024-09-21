@@ -184,12 +184,12 @@ const ImportStudent = () => {
           <table className="min-w-full bg-white border border-gray-300">
             <thead>
               <tr>
-                <th className="w-10"></th>
-                <th className="w-40"></th>
-                <th className="w-52"></th>
-                <th className="w-20"></th>
-                <th className="w-40"></th>
-                <th className="w-96"></th>
+                <th className="p-0 border-0 w-10"></th>
+                <th className="p-0 border-0 w-40"></th>
+                <th className="p-0 border-0 w-52"></th>
+                <th className="p-0 border-0 w-20"></th>
+                <th className="p-0 border-0 w-40"></th>
+                <th className="p-0 border-0 w-96"></th>
               </tr>
             </thead>
             <tbody>
