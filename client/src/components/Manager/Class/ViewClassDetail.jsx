@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react';
 import { IoMdArrowRoundBack } from 'react-icons/io';
 import { IoSearch } from 'react-icons/io5';
 import { PiExport } from 'react-icons/pi';
+import { IoHomeOutline } from 'react-icons/io5';
 
 import * as FileSaver from 'file-saver';
 import * as XLSX from 'xlsx';
@@ -171,16 +172,33 @@ const XemChiTietLopHoc = ({ classId, classes, studentList, handleBackDsLopHoc, s
   };
 
   return (
-    <div id="root" className="grid grid-flow-row gap-4 p-4 max-h-full w-full overflow-auto relative">
-      <div className="flex items-center justify-start gap-2">
+    <div id="root" className="grid grid-flow-row gap-2 p-4 max-h-full w-full overflow-auto relative">
+      <div className="pb-5">
+        <span
+          onClick={handleBackDsLopHoc}
+          className="w-fit text-lg font-medium flex items-center justify-start gap-1 text-blue-500 cursor-pointer"
+        >
+          Danh sách lớp học
+        </span>
+        <span className="text-lg font-medium flex items-center justify-start gap-1">
+          Xem thông tin chi tiết lớp học {classes[classId].className}
+        </span>
+        <span
+          className="
+              text-sm text-gray-500 font-normal flex items-center justify-start gap-1
+            "
+        >
+          Trang này cho phép bạn xem danh sách lớp học, xem chi tiết lớp học, chỉnh sửa thông tin lớp học.
+        </span>
+      </div>
+      {/* <div className="flex items-center justify-start gap-2">
         <span
           onClick={handleBackDsLopHoc}
           className="font-medium flex items-center justify-start gap-1 text-blue-500 cursor-pointer"
         >
-          <IoMdArrowRoundBack /> Quay lại danh sách lớp học
+          <IoHomeOutline /> Quay lại danh sách lớp học
         </span>
-        <span className="font-medium">/ Xem thông tin chi tiết lớp học {classes[classId].className}</span>
-      </div>
+      </div> */}
       <div>
         <span className="font-medium">1. Thông tin chung</span>
       </div>
@@ -188,34 +206,34 @@ const XemChiTietLopHoc = ({ classId, classes, studentList, handleBackDsLopHoc, s
         <table className="min-w-full bg-white border border-gray-300">
           <thead>
             <tr>
-              <th className="py-2 px-4 border border-b border-gray-300 text-left">Năm học</th>
-              <th className="py-2 px-4 border border-b border-gray-300 text-left">Khối lớp</th>
-              <th className="py-2 px-4 border border-b border-gray-300 text-left">Tên lớp học</th>
-              <th className="py-2 px-4 border border-b border-gray-300 text-left">Gv Chủ nhiệm</th>
-              <th className="py-2 px-4 border border-b border-gray-300 text-left">Buổi học</th>
-              <th className="py-2 px-4 border border-b border-gray-300 text-left">Ngày bắt đầu lớp học</th>
-              <th className="py-2 px-4 border border-b border-gray-300 text-left">Sỉ số tối đa</th>
-              <th className="py-2 px-4 border border-b border-gray-300 text-left">Sỉ số hiện tại</th>
-              <th className="py-2 px-4 border border-b border-gray-300 text-left">SLHS Nam</th>
-              <th className="py-2 px-4 border border-b border-gray-300 text-left">SLHS Nữ</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left">Năm học</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left">Khối lớp</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left">Tên lớp học</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left">Gv Chủ nhiệm</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left">Buổi học</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left">Ngày bắt đầu lớp học</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left">Sỉ số tối đa</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left">Sỉ số hiện tại</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left">SLHS Nam</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left">SLHS Nữ</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td className="py-2 px-4 border border-b border-gray-300 text-left">{classes[classId].academicYear}</td>
-              <td className="py-2 px-4 border border-b border-gray-300 text-left">{classes[classId].grade}</td>
-              <td className="py-2 px-4 border border-b border-gray-300 text-left">{classes[classId].className}</td>
-              <td className="py-2 px-4 border border-b border-gray-300 text-left">
+              <td className="py-2 px-2 border border-b border-gray-300 text-left">{classes[classId].academicYear}</td>
+              <td className="py-2 px-2 border border-b border-gray-300 text-left">{classes[classId].grade}</td>
+              <td className="py-2 px-2 border border-b border-gray-300 text-left">{classes[classId].className}</td>
+              <td className="py-2 px-2 border border-b border-gray-300 text-left">
                 {classes[classId].teacherInfo.userName}
               </td>
-              <td className="py-2 px-4 border border-b border-gray-300 text-left">{classes[classId].classSession}</td>
-              <td className="py-2 px-4 border border-b border-gray-300 text-left">
+              <td className="py-2 px-2 border border-b border-gray-300 text-left">{classes[classId].classSession}</td>
+              <td className="py-2 px-2 border border-b border-gray-300 text-left">
                 {new Date(classes[classId].startDate).toLocaleDateString('en-GB')}
               </td>
-              <td className="py-2 px-4 border border-b border-gray-300 text-left">{classes[classId].maxStudents}</td>
-              <td className="py-2 px-4 border border-b border-gray-300 text-left">{classes[classId].totalStudents}</td>
-              <td className="py-2 px-4 border border-b border-gray-300 text-left">{classes[classId].maleStudents}</td>
-              <td className="py-2 px-4 border border-b border-gray-300 text-left">{classes[classId].femaleStudents}</td>
+              <td className="py-2 px-2 border border-b border-gray-300 text-left">{classes[classId].maxStudents}</td>
+              <td className="py-2 px-2 border border-b border-gray-300 text-left">{classes[classId].totalStudents}</td>
+              <td className="py-2 px-2 border border-b border-gray-300 text-left">{classes[classId].maleStudents}</td>
+              <td className="py-2 px-2 border border-b border-gray-300 text-left">{classes[classId].femaleStudents}</td>
             </tr>
           </tbody>
         </table>
@@ -269,31 +287,31 @@ const XemChiTietLopHoc = ({ classId, classes, studentList, handleBackDsLopHoc, s
         <table className="min-w-full bg-white border border-gray-300">
           <thead>
             <tr>
-              <th className="py-2 px-4 border border-b border-gray-300 text-left">STT</th>
-              <th className="py-2 px-4 border border-b border-gray-300 text-left">Mã số học sinh</th>
-              <th className="py-2 px-4 border border-b border-gray-300 text-left">Họ và tên</th>
-              <th className="py-2 px-4 border border-b border-gray-300 text-left">Năm sinh</th>
-              <th className="py-2 px-4 border border-b border-gray-300 text-left">Giới tính</th>
-              <th className="py-2 px-4 border border-b border-gray-300 text-left">Ngày vào trường</th>
-              <th className="py-2 px-4 border border-b border-gray-300 text-left">Số điện thoại</th>
-              <th className="py-2 px-4 border border-b border-gray-300 text-left">Địa chỉ</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left">STT</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left">Mã số học sinh</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left">Họ và tên</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left">Năm sinh</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left">Giới tính</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left">Ngày vào trường</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left">Số điện thoại</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left">Địa chỉ</th>
             </tr>
           </thead>
           <tbody>
             {studentList.map((student, index) => (
               <tr key={student._id}>
-                <td className="py-2 px-4 border border-b border-gray-300 text-left">{index + 1}</td>
-                <td className="py-2 px-4 border border-b border-gray-300 text-left">{student.studentCode}</td>
-                <td className="py-2 px-4 border border-b border-gray-300 text-left">{student.userName}</td>
-                <td className="py-2 px-4 border border-b border-gray-300 text-left">
+                <td className="py-2 px-2 border border-b border-gray-300 text-left">{index + 1}</td>
+                <td className="py-2 px-2 border border-b border-gray-300 text-left">{student.studentCode}</td>
+                <td className="py-2 px-2 border border-b border-gray-300 text-left">{student.userName}</td>
+                <td className="py-2 px-2 border border-b border-gray-300 text-left">
                   {new Date(student.dateOfBirth).toLocaleDateString('en-GB')}
                 </td>
-                <td className="py-2 px-4 border border-b border-gray-300 text-left">{student.gender}</td>
-                <td className="py-2 px-4 border border-b border-gray-300 text-left">
+                <td className="py-2 px-2 border border-b border-gray-300 text-left">{student.gender}</td>
+                <td className="py-2 px-2 border border-b border-gray-300 text-left">
                   {new Date(student.dateOfEnrollment).toLocaleDateString('en-GB')}
                 </td>
-                <td className="py-2 px-4 border border-b border-gray-300 text-left">{student.phoneNumber}</td>
-                <td className="py-2 px-4 border border-b border-gray-300 text-left">{student.address}</td>
+                <td className="py-2 px-2 border border-b border-gray-300 text-left">{student.phoneNumber}</td>
+                <td className="py-2 px-2 border border-b border-gray-300 text-left">{student.address}</td>
               </tr>
             ))}
           </tbody>

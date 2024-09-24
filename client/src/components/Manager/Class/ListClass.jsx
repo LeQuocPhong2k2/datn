@@ -272,8 +272,18 @@ export default function ListClass({ filterClass, action }) {
     <>
       {iShowComponet.classList && (
         <div id="root" className="grid grid-flow-row gap-4 p-4 max-h-full w-full overflow-auto relative">
+          <div className="pb-5">
+            <span className="text-lg font-medium flex items-center justify-start gap-1">Danh sách lớp học</span>
+            <span
+              className="
+              text-sm text-gray-500 font-normal flex items-center justify-start gap-1
+            "
+            >
+              Trang này cho phép bạn xem danh sách lớp học, xem chi tiết lớp học, chỉnh sửa thông tin lớp học.
+            </span>
+          </div>
           <div>
-            <span className="font-medium">Bộ lọc tìm kiếm</span>
+            <span className="font-medium">1. Bộ lọc tìm kiếm</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2">
             <div className="grid grid-cols-10 items-center">
@@ -361,7 +371,7 @@ export default function ListClass({ filterClass, action }) {
             </div>
           </div>
           <div className="grid grid-flow-col items-center gap-2">
-            <span className="font-medium">Danh sách lớp học</span>
+            <span className="font-medium">2. Danh sách lớp học</span>
             <div className="flex items-center justify-end relative dropdown-export" ref={dropdownRef}>
               <button
                 disabled={classes.length === 0}

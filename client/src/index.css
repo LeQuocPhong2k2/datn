@@ -129,3 +129,39 @@ code {
   display: grid;
   grid-template-columns: 50% 50%;
 }
+
+.navbar-width {
+  width: 150px;
+}
+
+.group:hover .group-hover\:block {
+  display: block;
+}
+
+@media screen and (max-width: 768px) {
+  .wrapper {
+    display: flex;
+    flex-direction: column;
+  }
+  .dropdown-list {
+    position: absolute;
+    top: 2.5rem;
+    left: 0;
+  }
+  .header {
+    position: fixed;
+    width: 100%;
+    background-color: white;
+    height: fit-content;
+    z-index: 1000;
+  }
+  .body {
+    padding-top: 12rem;
+  }
+}
+
+@media screen and (min-width: 778px) {
+  .body {
+    padding-left: 15rem;
+  }
+}
