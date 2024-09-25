@@ -15,7 +15,6 @@ import QuanLyHocSinh from './Manager/Student/QuanLyHocSinh';
 import QuanLyGiaoVien from './Manager/Teacher/QuanLyGiaoVien';
 import AddClass from './Manager/Class/AddClass';
 import ListClass from './Manager/Class/ListClass';
-import { set } from 'mongoose';
 
 export default function Home() {
   useEffect(() => {
@@ -52,11 +51,11 @@ export default function Home() {
   };
   return (
     <div className="wrapper w-screen h-screen grid grid-cols-1">
-      {/* 
+      {/*
         Left side
       */}
       <div className="header fixed z-50 bg-white shadow-md h-full border-r md:shadow-md py-1">
-        {/* 
+        {/*
           Banner
         */}
         <div className="border-b">
@@ -72,7 +71,7 @@ export default function Home() {
             </div>
           </div>
         </div>
-        {/* 
+        {/*
           Navbar
         */}
         <div className="w-full">
@@ -224,7 +223,7 @@ export default function Home() {
           </ul>
         </div>
       </div>
-      {/* 
+      {/*
         Right side
       */}
       <div className="body w-full h-screen">

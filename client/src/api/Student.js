@@ -53,5 +53,46 @@ async function searchStudents(studentCode) {
   );
   return response.data;
 }
-
-export { addStudent, getAllStudents, getStudentByCode, searchStudents };
+// getFullInfoStudentByCode cho trang sửa hồ sơ học sinh
+async function getFullInfoStudentByCode(studentCode) {
+  const response = await axios.post(
+    'http://localhost:3000/students/getFullInfoStudentByCode',
+    { studentCode },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+  return response.data;
+}
+// editStudent cho trang sửa hồ sơ học sinh
+async function editStudent(student) {
+  const response = await axios.post('http://localhost:3000/students/editStudent', student, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+  return response;
+}
+async function deleteStudent(studentCode) {
+  const response = await axios.post(
+    'http://localhost:3000/students/deleteStudent',
+    { studentCode },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+  return response;
+}
+export {
+  addStudent,
+  getAllStudents,
+  getStudentByCode,
+  searchStudents,
+  getFullInfoStudentByCode,
+  editStudent,
+  deleteStudent,
+};
