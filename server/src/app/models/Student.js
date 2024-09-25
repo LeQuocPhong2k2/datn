@@ -24,6 +24,7 @@ const StudentSchema = new Schema(
     },
     ethnicGroups: String,
     status: String,
+    isDeleted: { type: Boolean, default: false }, // Thêm trường xoá học sinh mặc định là false
   },
   { collection: 'Student' }
 )
