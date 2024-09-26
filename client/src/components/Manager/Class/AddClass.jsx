@@ -151,7 +151,7 @@ export default function QuanLyGiaoVien({ functionType }) {
     <>
       <Toaster toastOptions={{ duration: 2200 }} />
       {functionType === 'add-classRoom' && (
-        <div id="root" className="grid grid-flow-row gap-4 p-4 max-h-full overflow-auto relative">
+        <div id="root" className="grid grid-flow-row gap-4 p-4 px-10 max-h-full overflow-auto relative">
           <div>
             <span className="font-medium">1. Thông tin chung</span>
           </div>

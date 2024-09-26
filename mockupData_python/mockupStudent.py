@@ -9,7 +9,7 @@ fake = Faker("vi_VN")  # 'vi_VN' cho dữ liệu giả Việt Nam
 df = pd.read_excel("dataTempalte.xlsx")
 
 def generate_vietnamese_phone_number():
-    prefixes = ['03', '07', '08', '09']
+    prefixes = ["03", "07", "08", "09"]
     prefix = random.choice(prefixes)
     number = ''.join(random.choices('0123456789', k=8))
     return prefix + number
@@ -53,6 +53,14 @@ def generate_vietnamese_name():
     last_name = fake.last_name()
     return f"{last_name} {first_name}"
 
+def generate_vietnamese_first_name():
+    first_name = random.choice(ho_viet_nam) + " " + random.choice(ten_dem_viet_nam)
+    return first_name
+
+def generate_vietnamese_first_last_name():
+    last_name = fake.last_name()
+    return last_name
+
 def create_fake_student():
     cha = fake.random_element(elements=("Có", "Không"))
     me = fake.random_element(elements=("Có", "Không"))
@@ -63,7 +71,8 @@ def create_fake_student():
     else:
         quan_he_khac = "Không"
     return {
-            "Họ và tên": generate_vietnamese_name(),
+            "Fist Name": generate_vietnamese_first_name(),
+            "Last Name": generate_vietnamese_first_last_name(),
             "Năm sinh": generate_formatted_dob(),
             "Giới tính": fake.random_element(elements=("Nam", "Nữ")),
             "Dân tộc": fake.random_element(

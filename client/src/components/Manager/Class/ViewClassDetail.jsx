@@ -1,17 +1,21 @@
 import React from 'react';
-import { useEffect, useRef } from 'react';
-import { IoMdArrowRoundBack } from 'react-icons/io';
+import { useEffect, useRef, useState } from 'react';
 import { IoSearch } from 'react-icons/io5';
 import { PiExport } from 'react-icons/pi';
-import { IoHomeOutline } from 'react-icons/io5';
+import { IoIosArrowForward } from 'react-icons/io';
+import { IoCloseCircleOutline } from 'react-icons/io5';
+
+import { getStudentByNameAndAcademicYearAndGradeAndClassName } from '../../../api/Student';
 
 import * as FileSaver from 'file-saver';
 import * as XLSX from 'xlsx';
 
 const XemChiTietLopHoc = ({ classId, classes, studentList, handleBackDsLopHoc, setShowComponet, iShowComponet }) => {
   const fileExtension = '.xlsx';
-  const driopdownExportDetailRef = useRef(null);
+  const [studentName, setStudentName] = useState('');
   const fileType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
+  const [studentsSearch, setStudentsSearch] = useState([]);
+  const dropdownRef = useRef(null);
 
   useEffect(() => {
     document.addEventListener('mousedown', handleClickOutside);
@@ -21,14 +25,14 @@ const XemChiTietLopHoc = ({ classId, classes, studentList, handleBackDsLopHoc, s
   }, []);
 
   const handleClickOutside = (event) => {
-    if (driopdownExportDetailRef.current && !driopdownExportDetailRef.current.contains(event.target)) {
+    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
       setShowComponet({
         ...iShowComponet,
+        exportDetail: false,
         classList: false,
         classDetail: true,
         classUpdate: false,
         searchStudent: false,
-        exportDetail: false,
       });
     }
   };
@@ -74,19 +78,36 @@ const XemChiTietLopHoc = ({ classId, classes, studentList, handleBackDsLopHoc, s
       'Địa chỉ',
       'Trạng thái',
     ];
-    const formatData = studentList.map((item, index) => ({
-      STT: index + 1,
-      'Mã số học sinh': item.studentCode,
-      'Họ và tên': item.userName,
-      'Năm sinh': new Date(item.dateOfBirth).toLocaleDateString('en-GB'),
-      'Giới tính': item.gender,
-      'Dân tộc': item.ethnicGroups,
-      'Ngày vào trường': new Date(item.dateOfEnrollment).toLocaleDateString('en-GB'),
-      'Số điện thoại': item.phoneNumber,
-      'Địa chỉ': item.address,
-      'Trạng thái': item.status,
-    }));
-    return { columnNames, formatData };
+
+    if (studentsSearch.length > 0) {
+      const formatData = studentsSearch.map((item, index) => ({
+        STT: index + 1,
+        'Mã số học sinh': item.studentCode,
+        'Họ và tên': item.userName,
+        'Năm sinh': new Date(item.dateOfBirth).toLocaleDateString('en-GB'),
+        'Giới tính': item.gender,
+        'Dân tộc': item.ethnicGroups,
+        'Ngày vào trường': new Date(item.dateOfEnrollment).toLocaleDateString('en-GB'),
+        'Số điện thoại': item.phoneNumber,
+        'Địa chỉ': item.address,
+        'Trạng thái': item.status,
+      }));
+      return { columnNames, formatData };
+    } else {
+      const formatData = studentList.map((item, index) => ({
+        STT: index + 1,
+        'Mã số học sinh': item.studentCode,
+        'Họ và tên': item.userName,
+        'Năm sinh': new Date(item.dateOfBirth).toLocaleDateString('en-GB'),
+        'Giới tính': item.gender,
+        'Dân tộc': item.ethnicGroups,
+        'Ngày vào trường': new Date(item.dateOfEnrollment).toLocaleDateString('en-GB'),
+        'Số điện thoại': item.phoneNumber,
+        'Địa chỉ': item.address,
+        'Trạng thái': item.status,
+      }));
+      return { columnNames, formatData };
+    }
   };
 
   /**
@@ -98,20 +119,20 @@ const XemChiTietLopHoc = ({ classId, classes, studentList, handleBackDsLopHoc, s
     let colCha = [];
     let colMe = [];
     let colQuanHeKhac = [];
-    const setColRelationship = studentList.map((item, index) => {
-      if (item.parents.length > 0) {
-        item.parents.forEach((parent) => {
-          if (parent.relationship === 'Cha') {
-            colCha[index] = 'Có';
-          } else if (parent.relationship === 'Mẹ') {
-            colMe[index] = 'Có';
-          } else {
-            colQuanHeKhac[index] = parent.relationship;
-          }
-        });
-      }
-      return null;
-    });
+    // const setColRelationship = studentList.map((item, index) => {
+    //   if (item.parents.length > 0) {
+    //     item.parents.forEach((parent) => {
+    //       if (parent.relationship === 'Cha') {
+    //         colCha[index] = 'Có';
+    //       } else if (parent.relationship === 'Mẹ') {
+    //         colMe[index] = 'Có';
+    //       } else {
+    //         colQuanHeKhac[index] = parent.relationship;
+    //       }
+    //     });
+    //   }
+    //   return null;
+    // });
     const formatData = studentList.map((item, index) => {
       const formattedItem = {
         STT: index + 1,
@@ -171,8 +192,29 @@ const XemChiTietLopHoc = ({ classId, classes, studentList, handleBackDsLopHoc, s
     return { columnNames, formatData };
   };
 
+  const handleSearchByName = async (e) => {
+    setStudentName(e.target.value);
+    try {
+      const res = await getStudentByNameAndAcademicYearAndGradeAndClassName(e.target.value);
+      setStudentsSearch(res);
+      setShowComponet({
+        ...iShowComponet,
+        searchStudent: true,
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const handleSelectStudentViewDetail = (student) => {
+    console.log('student', student);
+  };
+
   return (
-    <div id="root" className="grid grid-flow-row gap-2 p-4 max-h-full w-full overflow-auto relative">
+    <div
+      id="root"
+      className="grid grid-flow-row gap-2 p-4 px-10 max-h-full w-full overflow-auto relative custom-scrollbar"
+    >
       <div className="pb-5">
         <span
           onClick={handleBackDsLopHoc}
@@ -191,14 +233,7 @@ const XemChiTietLopHoc = ({ classId, classes, studentList, handleBackDsLopHoc, s
           Trang này cho phép bạn xem danh sách lớp học, xem chi tiết lớp học, chỉnh sửa thông tin lớp học.
         </span>
       </div>
-      {/* <div className="flex items-center justify-start gap-2">
-        <span
-          onClick={handleBackDsLopHoc}
-          className="font-medium flex items-center justify-start gap-1 text-blue-500 cursor-pointer"
-        >
-          <IoHomeOutline /> Quay lại danh sách lớp học
-        </span>
-      </div> */}
+
       <div>
         <span className="font-medium">1. Thông tin chung</span>
       </div>
@@ -242,16 +277,26 @@ const XemChiTietLopHoc = ({ classId, classes, studentList, handleBackDsLopHoc, s
         <span className="font-medium">2. Danh sách học sinh</span>
       </div>
       <div className="grid lg:grid-cols-2 md:grid-cols-2 sm:grid-cols-1 gap-4">
-        <div className="flex items-center relative">
+        <div className="flex items-center relative gap-2">
           <input
             type="text"
-            id="namHoc"
+            value={studentName}
+            onChange={(e) => handleSearchByName(e)}
             className="w-full p-2  border border-gray-300 rounded"
             placeholder="Tìm kiếm tên học sinh..."
           />
-          <IoSearch className="absolute right-4" />
+          <IoSearch className="absolute right-8" />
+          {studentName.length > 0 && (
+            <IoCloseCircleOutline
+              onClick={() => {
+                setStudentName('');
+                setStudentsSearch([]);
+              }}
+              className="cursor-pointer text-red-500"
+            />
+          )}
         </div>
-        <div className="flex items-center md:justify-end sm:justify-start" ref={driopdownExportDetailRef}>
+        <div className="flex items-center md:justify-end sm:justify-start">
           <button
             onClick={() => setShowComponet({ ...iShowComponet, exportDetail: true })}
             className="relative w-fit flex items-center justify-center gap-2 border px-4 py-2 rounded"
@@ -259,7 +304,7 @@ const XemChiTietLopHoc = ({ classId, classes, studentList, handleBackDsLopHoc, s
             <PiExport />
             Xuất danh sách học sinh
             {iShowComponet.exportDetail && (
-              <ul className="w-full absolute z-50 top-10 bg-white border rounded mt-1 p-2 slide-down">
+              <ul ref={dropdownRef} className="w-full absolute z-50 top-10 bg-white border rounded mt-1 p-2 slide-down">
                 <li className="text-start px-1 hover:bg-gray-200 ">
                   <a
                     href="#export-class-detail"
@@ -287,33 +332,67 @@ const XemChiTietLopHoc = ({ classId, classes, studentList, handleBackDsLopHoc, s
         <table className="min-w-full bg-white border border-gray-300">
           <thead>
             <tr>
-              <th className="py-2 px-2 border border-b border-gray-300 text-left">STT</th>
-              <th className="py-2 px-2 border border-b border-gray-300 text-left">Mã số học sinh</th>
-              <th className="py-2 px-2 border border-b border-gray-300 text-left">Họ và tên</th>
-              <th className="py-2 px-2 border border-b border-gray-300 text-left">Năm sinh</th>
-              <th className="py-2 px-2 border border-b border-gray-300 text-left">Giới tính</th>
-              <th className="py-2 px-2 border border-b border-gray-300 text-left">Ngày vào trường</th>
-              <th className="py-2 px-2 border border-b border-gray-300 text-left">Số điện thoại</th>
-              <th className="py-2 px-2 border border-b border-gray-300 text-left">Địa chỉ</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left w-14">STT</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left w-40">Mã số học sinh</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left w-40">Họ và tên</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left w-40">Năm sinh</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left w-28">Giới tính</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left w-40">Ngày vào trường</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left w-40">Số điện thoại</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left w-40">Địa chỉ</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left w-14"></th>
             </tr>
           </thead>
           <tbody>
-            {studentList.map((student, index) => (
-              <tr key={student._id}>
-                <td className="py-2 px-2 border border-b border-gray-300 text-left">{index + 1}</td>
-                <td className="py-2 px-2 border border-b border-gray-300 text-left">{student.studentCode}</td>
-                <td className="py-2 px-2 border border-b border-gray-300 text-left">{student.userName}</td>
-                <td className="py-2 px-2 border border-b border-gray-300 text-left">
-                  {new Date(student.dateOfBirth).toLocaleDateString('en-GB')}
-                </td>
-                <td className="py-2 px-2 border border-b border-gray-300 text-left">{student.gender}</td>
-                <td className="py-2 px-2 border border-b border-gray-300 text-left">
-                  {new Date(student.dateOfEnrollment).toLocaleDateString('en-GB')}
-                </td>
-                <td className="py-2 px-2 border border-b border-gray-300 text-left">{student.phoneNumber}</td>
-                <td className="py-2 px-2 border border-b border-gray-300 text-left">{student.address}</td>
-              </tr>
-            ))}
+            {studentsSearch.length > 0
+              ? studentsSearch.map((student, index) => (
+                  <tr key={student._id}>
+                    <td className="py-2 px-2 border border-b border-gray-300 text-left">{index + 1}</td>
+                    <td className="py-2 px-2 border border-b border-gray-300 text-left">{student.studentCode}</td>
+                    <td className="py-2 px-2 border border-b border-gray-300 text-left">{student.userName}</td>
+                    <td className="py-2 px-2 border border-b border-gray-300 text-left">
+                      {new Date(student.dateOfBirth).toLocaleDateString('en-GB')}
+                    </td>
+                    <td className="py-2 px-2 border border-b border-gray-300 text-left">{student.gender}</td>
+                    <td className="py-2 px-2 border border-b border-gray-300 text-left">
+                      {new Date(student.dateOfEnrollment).toLocaleDateString('en-GB')}
+                    </td>
+                    <td className="py-2 px-2 border border-b border-gray-300 text-left">{student.phoneNumber}</td>
+                    <td className="py-2 px-2 border border-b border-gray-300 text-left">{student.address}</td>
+                    <td className="cursor-pointer py-2 px-2 border border-b border-gray-300 text-left">
+                      <div
+                        className="flex items-center justify-center text-blue-500 text-xl"
+                        onClick={() => handleSelectStudentViewDetail(student)}
+                      >
+                        <IoIosArrowForward />
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              : studentList.map((student, index) => (
+                  <tr key={student._id}>
+                    <td className="py-2 px-2 border border-b border-gray-300 text-left">{index + 1}</td>
+                    <td className="py-2 px-2 border border-b border-gray-300 text-left">{student.studentCode}</td>
+                    <td className="py-2 px-2 border border-b border-gray-300 text-left">{student.userName}</td>
+                    <td className="py-2 px-2 border border-b border-gray-300 text-left">
+                      {new Date(student.dateOfBirth).toLocaleDateString('en-GB')}
+                    </td>
+                    <td className="py-2 px-2 border border-b border-gray-300 text-left">{student.gender}</td>
+                    <td className="py-2 px-2 border border-b border-gray-300 text-left">
+                      {new Date(student.dateOfEnrollment).toLocaleDateString('en-GB')}
+                    </td>
+                    <td className="py-2 px-2 border border-b border-gray-300 text-left">{student.phoneNumber}</td>
+                    <td className="py-2 px-2 border border-b border-gray-300 text-left">{student.address}</td>
+                    <td className="cursor-pointer py-2 px-2 border border-b border-gray-300 text-left">
+                      <div
+                        className="flex items-center justify-center text-blue-500 text-xl"
+                        onClick={() => handleSelectStudentViewDetail(student)}
+                      >
+                        <IoIosArrowForward />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
           </tbody>
         </table>
       </div>

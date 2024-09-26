@@ -4,32 +4,28 @@ import { useEffect, useState } from 'react';
 import imgAvatar from '../assets/avatar.jpg';
 import imgBanner from '../assets/img-banner.png';
 import { AiOutlineTeam } from 'react-icons/ai';
-import { FaAngleDown, FaAngleUp } from 'react-icons/fa';
 import { BsPersonVideo3 } from 'react-icons/bs';
 import { SiGoogleclassroom } from 'react-icons/si';
-import { FaBars } from 'react-icons/fa6';
-import { FaAnglesRight } from 'react-icons/fa6';
 import { FaCaretLeft } from 'react-icons/fa';
+import { LuBookMarked } from 'react-icons/lu';
 
 import QuanLyHocSinh from './Manager/Student/QuanLyHocSinh';
 import QuanLyGiaoVien from './Manager/Teacher/QuanLyGiaoVien';
 import AddClass from './Manager/Class/AddClass';
 import ListClass from './Manager/Class/ListClass';
+import ImportSubject from './Manager/Subject/ImportSubject';
+import AddSubject from './Manager/Subject/AddSubject';
 
 export default function Home() {
   useEffect(() => {
     document.title = 'Home';
   }, []);
 
-  const [activeBody, setActiveBody] = useState({
-    navbar: true,
-    body: true,
-  });
-
   const [selectedFunction, setSelectedFunction] = useState(null);
   const [showSubMenus, setShowSubMenus] = useState({
     hocSinh: false,
     lopHoc: false,
+    monHoc: false,
     giaoVien: false,
   });
 
@@ -46,6 +42,7 @@ export default function Home() {
       ...showSubMenus,
       hocSinh: false,
       lopHoc: false,
+      monHoc: false,
       giaoVien: false,
     });
   };
@@ -88,11 +85,6 @@ export default function Home() {
                 <AiOutlineTeam className="" />
                 <span className="font-medium">Quản lý học sinh</span>
               </div>
-              {!showSubMenus.hocSinh && (
-                <div className="absolute top-2 -right-[0.6rem] font-medium text-2xl text-white">
-                  <FaCaretLeft />
-                </div>
-              )}
               {showSubMenus.hocSinh && (
                 <ul className="dropdown-list w-[13.4rem] absolute z-50 -right-[13.45rem] px-2 top-0 bg-slate-300">
                   <li
@@ -147,11 +139,7 @@ export default function Home() {
                 <BsPersonVideo3 />
                 <span className="font-medium">Quản lý giáo viên</span>
               </div>
-              {!showSubMenus.giaoVien && (
-                <div className="absolute top-2 -right-[0.6rem] font-medium text-2xl text-white">
-                  <FaCaretLeft />
-                </div>
-              )}
+
               {showSubMenus.giaoVien && (
                 <ul className="dropdown-list w-[13.4rem] absolute z-50 -right-[13.45rem] px-2 top-0 bg-slate-300">
                   <li
@@ -189,11 +177,7 @@ export default function Home() {
                 <SiGoogleclassroom />
                 <span className="font-medium">Quản lý lớp học</span>
               </div>
-              {!showSubMenus.lopHoc && (
-                <div className="absolute top-2 -right-[0.6rem] font-medium text-2xl text-white">
-                  <FaCaretLeft />
-                </div>
-              )}
+
               {showSubMenus.lopHoc && (
                 <ul className="dropdown-list w-[13.4rem] absolute z-50 -right-[13.45rem] px-2 top-0 bg-slate-300">
                   <li
@@ -220,6 +204,55 @@ export default function Home() {
                 </ul>
               )}
             </li>
+
+            <li
+              onMouseLeave={() => setShowSubMenus({ monHoc: false })}
+              onMouseEnter={() => setShowSubMenus({ monHoc: true })}
+              className={`group relative py-2 border-l-4 border-l-white hover:border-l-blue-700  ${activeMenus.monHoc ? 'bg-blue-300' : 'hover:bg-slate-400'}`}
+            >
+              <div className="px-3 flex justify-start items-center gap-2 cursor-pointer">
+                <LuBookMarked />
+                <span className="font-medium">Quản lý môn học</span>
+              </div>
+
+              {showSubMenus.monHoc && (
+                <ul className="dropdown-list w-[13.4rem] absolute z-50 -right-[13.45rem] px-2 top-0 bg-slate-300">
+                  <li
+                    className={`py-1 px-2 border-l-4 border-l-slate-300 hover:border-l-blue-700 hover:text-blue-700 ${selectedFunction === 'add-subject' ? 'bg-gray-300' : ''}`}
+                    onClick={() => {
+                      handleFunctionSelect('add-subject');
+                      setActiveMenus({ hocSinh: false, monHoc: true, giaoVien: false });
+                    }}
+                  >
+                    <div className="absolute top-2 -left-[0.9rem] font-medium text-2xl text-slate-300">
+                      <FaCaretLeft />
+                    </div>
+                    <a href="#add-subject">Thêm mới môn học</a>
+                  </li>
+                  <li
+                    className={`py-1 px-2 border-l-4 border-l-slate-300 hover:border-l-blue-700 hover:text-blue-700 ${selectedFunction === 'import-subject' ? 'bg-gray-300' : ''}`}
+                    onClick={() => {
+                      handleFunctionSelect('import-subject');
+                      setActiveMenus({ hocSinh: false, monHoc: true, giaoVien: false });
+                    }}
+                  >
+                    <div className="absolute top-2 -left-[0.9rem] font-medium text-2xl text-slate-300">
+                      <FaCaretLeft />
+                    </div>
+                    <a href="#import-subject">Import môn học</a>
+                  </li>
+                  <li
+                    className={`py-1 px-2 border-l-4 border-l-slate-300 hover:border-l-blue-700 hover:text-blue-700 ${selectedFunction === 'list-classRoom' ? 'bg-gray-300' : ''}`}
+                    onClick={() => {
+                      handleFunctionSelect('list-classRoom');
+                      setActiveMenus({ hocSinh: false, monHoc: true, giaoVien: false, lopHoc: false });
+                    }}
+                  >
+                    <a href="#list-classRoom">Danh sách lớp học</a>
+                  </li>
+                </ul>
+              )}
+            </li>
           </ul>
         </div>
       </div>
@@ -239,6 +272,8 @@ export default function Home() {
             {selectedFunction === 'add-classRoom' && <AddClass functionType="add-classRoom" />}
             {selectedFunction === 'list-classRoom' && <ListClass functionType="list-classRoom" />}
             {selectedFunction === 'list-student' && <QuanLyHocSinh functionType="list-student" />}
+            {selectedFunction === 'import-subject' && <ImportSubject />}
+            {selectedFunction === 'add-subject' && <AddSubject />}
           </>
         )}
       </div>

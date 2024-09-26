@@ -38,6 +38,10 @@ const ClassController = {
           model: "Parent",
         },
       });
+
+      // Sắp xếp danh sách học sinh theo tên
+      students.studentList.sort((a, b) => a.lastName.localeCompare(b.lastName));
+
       console.log(JSON.stringify(students, null, 2));
       console.log("Danh sách học sinh trong lớp:", students);
       res.status(200).json(students.studentList);

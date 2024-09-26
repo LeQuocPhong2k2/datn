@@ -15,6 +15,8 @@ const ImportStudent = () => {
   const [studentInfo, setStudentInfo] = useState({
     mssv: '',
     hoTen: '',
+    firstName: '',
+    lastName: '',
     namSinh: '',
     gioiTinh: '',
     danToc: '',
@@ -74,9 +76,9 @@ const ImportStudent = () => {
 
     for (let index = 0; index < totalStudents; index++) {
       const student = studentsImport[index];
-
-      studentInfo.mssv = student['Mã số sinh viên'];
-      studentInfo.hoTen = student['Họ và tên'];
+      studentInfo.mssv = student['Mã số học sinh'];
+      studentInfo.firstName = student['Fist Name'];
+      studentInfo.lastName = student['Last Name'];
       studentInfo.namSinh = student['Năm sinh'];
       studentInfo.gioiTinh = student['Giới tính'];
       studentInfo.danToc = student['Dân tộc'];
@@ -120,7 +122,7 @@ const ImportStudent = () => {
           console.log('Mã số sinh viên đã tồn tại');
         }
         if (error.response.status === 402) {
-          console.log(`Số điện thoại đã được đăng ký cho tên ${studentInfo.hoTen}`);
+          console.log(`Số điện thoại đã được đăng ký cho tên ${studentInfo.firstName} ${studentInfo.lastName}`);
         }
         if (error.response.status === 403) {
           console.log('Không tìm thấy lớp học');
@@ -143,7 +145,17 @@ const ImportStudent = () => {
   };
 
   return (
-    <div className="w-full p-20 grid grid-rows-4">
+    <div id="root" className="grid grid-flow-row gap-2 p-4 max-h-full w-full overflow-auto relative">
+      <div className="pb-5">
+        <span className="text-lg font-medium flex items-center justify-start gap-1">Import danh sách học sinh</span>
+        <span
+          className="
+              text-sm text-gray-500 font-normal flex items-center justify-start gap-1
+            "
+        >
+          Trang này dùng để import danh sách học sinh từ file excel
+        </span>
+      </div>
       <div>
         <input type="file" onChange={handleFileUpload} />
         <button
@@ -163,43 +175,41 @@ const ImportStudent = () => {
         <span>Thất bại: {progressStatus.failed}</span>
       </div>
       <div>
-        <span className="font-medium">Danh sách import thất bại</span>
+        <span className="font-medium text-red-500 underline underline-offset-2">Danh sách import thất bại</span>
       </div>
       <div>
-        <div className="overflow-y-scroll">
+        <div className="h-full overflow-y-auto">
           <table className="min-w-full bg-white border border-gray-300">
             <thead>
               <tr>
                 <th className="py-2 pl-2 border border-b border-gray-300 text-left w-10">STT</th>
-                <th className="py-2 pl-2 border border-b border-gray-300 text-left w-40">Mã số học sinh</th>
                 <th className="py-2 pl-2 border border-b border-gray-300 text-left w-52">Họ và tên</th>
                 <th className="py-2 pl-2 border border-b border-gray-300 text-left w-20">Lớp</th>
                 <th className="py-2 pl-2 border border-b border-gray-300 text-left w-40">Số điện thoại</th>
+                <th className="py-2 pl-2 border border-b border-gray-300 text-left w-40">Năm sinh</th>
+                <th className="py-2 pl-2 border border-b border-gray-300 text-left w-40">Địa chỉ</th>
                 <th className="py-2 pl-2 border border-b border-gray-300 text-left w-96">Ghi chú</th>
-              </tr>
-            </thead>
-          </table>
-        </div>
-        <div className="h-96 overflow-y-auto">
-          <table className="min-w-full bg-white border border-gray-300">
-            <thead>
-              <tr>
-                <th className="p-0 border-0 w-10"></th>
-                <th className="p-0 border-0 w-40"></th>
-                <th className="p-0 border-0 w-52"></th>
-                <th className="p-0 border-0 w-20"></th>
-                <th className="p-0 border-0 w-40"></th>
-                <th className="p-0 border-0 w-96"></th>
               </tr>
             </thead>
             <tbody>
               {studentsImportFailed.map((student, index) => (
                 <tr key={index}>
-                  <td className="py-2 pl-2 border border-b border-gray-300">{index + 1}</td>
-                  <td className="py-2 pl-2 border border-b border-gray-300">{student.student.mssv}</td>
-                  <td className="py-2 pl-2 border border-b border-gray-300">{student.student.hoTen}</td>
-                  <td className="py-2 pl-2 border border-b border-gray-300">{student.student.lopHoc}</td>
-                  <td className="py-2 pl-2 border border-b border-gray-300">{student.student.sdt}</td>
+                  <td className="py-2 pl-2 border border-b border-gray-300">{student.student && index + 1}</td>
+                  <td className="py-2 pl-2 border border-b border-gray-300">
+                    {student.student && student.student.firstName} {student.student && student.student.lastName}
+                  </td>
+                  <td className="py-2 pl-2 border border-b border-gray-300">
+                    {student.student && student.student.lopHoc}
+                  </td>
+                  <td className="py-2 pl-2 border border-b border-gray-300">
+                    {student.student && student.student.sdt}
+                  </td>
+                  <td className="py-2 pl-2 border border-b border-gray-300">
+                    {student.student && student.student.namSinh}
+                  </td>
+                  <td className="py-2 pl-2 border border-b border-gray-300">
+                    {student.student && student.student.diaChi}
+                  </td>
                   <td className="py-2 pl-2 border border-b border-gray-300">{student.message}</td>
                 </tr>
               ))}

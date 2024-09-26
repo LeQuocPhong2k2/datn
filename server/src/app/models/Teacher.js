@@ -14,7 +14,6 @@ const GiaoVienSchema = new Schema(
     levelOfExpertise: String,
     address: String,
     dateOfEnrollment: Date,
-    role: String,
   },
   { collection: "Teacher" }
 );

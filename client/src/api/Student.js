@@ -32,6 +32,20 @@ async function getStudentByCode(code) {
   return response.data;
   // search students
 }
+
+async function getStudentByNameAndAcademicYearAndGradeAndClassName(userName) {
+  const response = await axios.post(
+    'http://localhost:3000/students/getStudentByNameAndAcademicYearAndGradeAndClassName',
+    { userName },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+  return response.data;
+}
+
 async function searchStudents(studentCode) {
   const response = await axios.post(
     'http://localhost:3000/students/searchStudents',
@@ -95,4 +109,5 @@ export {
   getFullInfoStudentByCode,
   editStudent,
   deleteStudent,
+  getStudentByNameAndAcademicYearAndGradeAndClassName,
 };
