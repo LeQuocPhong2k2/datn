@@ -269,6 +269,7 @@ export default function Home() {
             {selectedFunction === 'add-student' && <QuanLyHocSinh functionType="add-student" />}
             {selectedFunction === 'add-student-import' && <QuanLyHocSinh functionType="add-student-import" />}
             {selectedFunction === 'add-teacher' && <QuanLyGiaoVien functionType="add-teacher" />}
+            {selectedFunction === 'edit-teacher' && <QuanLyGiaoVien functionType="edit-teacher" />}
             {selectedFunction === 'add-classRoom' && <AddClass functionType="add-classRoom" />}
             {selectedFunction === 'list-classRoom' && <ListClass functionType="list-classRoom" />}
             {selectedFunction === 'list-student' && <QuanLyHocSinh functionType="list-student" />}
