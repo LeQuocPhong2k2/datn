@@ -1,17 +1,12 @@
 import axios from 'axios';
 
 async function addLopHoc(lopHoc) {
-  try {
-    const response = await axios.post('http://localhost:3000/class/addClass', lopHoc, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Add class error:', error.response ? error.response.data : error.message);
-    throw error;
-  }
+  const response = await axios.post('http://localhost:3000/class/addClass', lopHoc, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+  return response.data;
 }
 
 async function getLopHocByNamHocVaKhoi(namHoc, khoiLop) {
@@ -27,10 +22,7 @@ async function getLopHocByNamHocVaKhoi(namHoc, khoiLop) {
     );
     return response.data;
   } catch (error) {
-    console.error(
-      'Get class by academic year and grade error:',
-      error.response ? error.response.data : error.message
-    );
+    console.error('Get class by academic year and grade error:', error.response ? error.response.data : error.message);
     throw error;
   }
 }
@@ -61,9 +53,28 @@ async function getDsHocSinhByLopHoc(idLopHoc) {
   return response.data;
 }
 
+async function importStudents(idClass, students, academicYear, grade) {
+  const response = await axios.post(
+    'http://localhost:3000/class/importStudents',
+    {
+      idClass: idClass,
+      students: students,
+      academicYear: academicYear,
+      grade: grade,
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+  return response.data;
+}
+
 export {
   addLopHoc,
   getLopHocByNamHocVaKhoi,
   getLopHocByNamHocOrKhoiOrTenLopOrBuoiHoc,
   getDsHocSinhByLopHoc,
+  importStudents,
 };

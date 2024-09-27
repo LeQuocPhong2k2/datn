@@ -511,6 +511,7 @@ export default function ListClass({ filterClass, action }) {
           classId={classId}
           classes={classes}
           studentList={studentList}
+          setStudentList={setStudentList}
           setShowComponet={setShowComponet}
           iShowComponet={iShowComponet}
           handleBackDsLopHoc={handleBackDsLopHoc}

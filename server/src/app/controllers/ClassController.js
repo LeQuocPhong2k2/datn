@@ -1,6 +1,7 @@
 require("dotenv").config({ path: "../../../../.env" });
 const Class = require("../models/Class");
 const Teacher = require("../models/Teacher");
+const Student = require("../models/Student");
 const socket = require("../../socket");
 const { get } = require("mongoose");
 
@@ -222,12 +223,79 @@ const ClassController = {
         studentList: [],
       });
 
+      /**
+       * kiểm tra class đã tồn tại chưa
+       */
+      const classExist = await Class.findOne({
+        academicYear: namHoc,
+        grade: khoiLop,
+        className: tenLop,
+      });
+
+      if (classExist) {
+        return res.status(400).json({ error: "Lớp học đã tồn tại" });
+      }
       await newClass.save();
       const io = socket.getIo();
       io.emit("addClass", newClass);
       res.status(201).json(newClass);
     } catch (error) {
       console.error("Lỗi khi thêm lớp:", error);
+      res.status(500).json({ error: error.message });
+    }
+  },
+
+  importStudents: async (req, res) => {
+    try {
+      const { idClass, students, academicYear, grade } = req.body;
+
+      // kiểm tra học sinh đã tồn tại chưa
+      const studentExist = await Student.findOne({
+        studentCode: students.studentCode,
+      });
+
+      if (!studentExist) {
+        return res.status(400).json({ error: "Học sinh không tồn tại" });
+      }
+
+      // kiểm tra tất cả các lớp học có năm học và khối lớp có tồn tại học sinh chưa
+      const classExist = await Class.findOne({
+        _id: idClass,
+      }).lean(); // Use lean() to avoid circular references
+
+      if (!classExist) {
+        return res.status(400).json({ error: "Không tìm thấy lớp học" });
+      }
+
+      // kiểm tra số lượng học sinh trong lớp
+      if (classExist.studentList && classExist.studentList.length >= classExist.maxStudents) {
+        return res.status(400).json({ error: "Sỉ số lớp đã đầy hoặc danh sách học sinh không tồn tại" });
+      }
+
+      const studentExistClasses = await Class.findOne({
+        academicYear: academicYear,
+        grade: grade,
+        studentList: studentExist._id,
+      }).lean(); // Use lean() to avoid circular references
+
+      if (studentExistClasses) {
+        return res.status(400).json({ error: "Học sinh đã tồn tại trong lớp học khác" });
+      }
+
+      // thêm học sinh vào lớp
+      const classUpdated = await Class.findById(idClass);
+      if (classUpdated) {
+        if (studentExist.status === "Đang học") {
+          classUpdated.studentList.push(studentExist._id);
+          await classUpdated.save();
+        }
+      } else {
+        console.log("Class not found");
+      }
+
+      res.status(201).json({ message: "Thêm học sinh vào lớp thành công", student: studentExist });
+    } catch (error) {
+      console.error("Lỗi khi import học sinh:", error);
       res.status(500).json({ error: error.message });
     }
   },

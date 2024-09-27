@@ -2,6 +2,7 @@ import React from 'react';
 import 'flowbite';
 import { useEffect, useState } from 'react';
 import imgAvatar from '../assets/avatar.jpg';
+import imgAvatarAdmin from '../assets/avatar-admin.png';
 import imgBanner from '../assets/img-banner.png';
 import { AiOutlineTeam } from 'react-icons/ai';
 import { BsPersonVideo3 } from 'react-icons/bs';
@@ -15,10 +16,24 @@ import AddClass from './Manager/Class/AddClass';
 import ListClass from './Manager/Class/ListClass';
 import ImportSubject from './Manager/Subject/ImportSubject';
 import AddSubject from './Manager/Subject/AddSubject';
+import TeachingAssignment from './Manager/Subject/TeachingAssignment';
+
+import { getAccountById } from '../api/Login';
 
 export default function Home() {
+  const [accounts, setAccounts] = useState([]);
   useEffect(() => {
     document.title = 'Home';
+    const accountId = localStorage.getItem('_id');
+    const res = getAccountById(accountId);
+    res
+      .then((data) => {
+        setAccounts(data);
+      })
+      .catch((error) => {
+        console.log(error);
+        window.location.href = '/login';
+      });
   }, []);
 
   const [selectedFunction, setSelectedFunction] = useState(null);
@@ -51,7 +66,7 @@ export default function Home() {
       {/*
         Left side
       */}
-      <div className="header fixed z-50 bg-white shadow-md h-full border-r md:shadow-md py-1">
+      <div className="header fixed min-w-[16rem] z-50 bg-white shadow-md h-full border-r md:shadow-md py-1">
         {/*
           Banner
         */}
@@ -59,10 +74,17 @@ export default function Home() {
           <div className="h-full flex items-center justify-start sm:justify-start px-3">
             <div className="flex items-center justify-start gap-2">
               <div className="flex items-center gap-4">
-                <img className="w-16 h-16 rounded-full" src={imgAvatar} alt="Rounded avatar" />
+                {accounts.role === 'Admin' ? (
+                  <img className="w-16 h-16 rounded-full" src={imgAvatarAdmin} alt="Rounded avatar" />
+                ) : (
+                  <img className="w-16 h-16 rounded-full" src={imgAvatar} alt="Rounded avatar" />
+                )}
+
                 <div className="font-medium">
-                  <div>Jese Leos</div>
-                  <div className="text-sm text-gray-500">Joined in August 2014</div>
+                  <div>{accounts.userName}</div>
+                  <div className="text-sm text-gray-500">
+                    {accounts.role === 'Admin' ? 'Người quản trị hệ thống' : accounts.role}
+                  </div>
                 </div>
               </div>
             </div>
@@ -242,13 +264,22 @@ export default function Home() {
                     <a href="#import-subject">Import môn học</a>
                   </li>
                   <li
-                    className={`py-1 px-2 border-l-4 border-l-slate-300 hover:border-l-blue-700 hover:text-blue-700 ${selectedFunction === 'list-classRoom' ? 'bg-gray-300' : ''}`}
+                    className={`py-1 px-2 border-l-4 border-l-slate-300 hover:border-l-blue-700 hover:text-blue-700 ${selectedFunction === 'list-subject' ? 'bg-gray-300' : ''}`}
                     onClick={() => {
-                      handleFunctionSelect('list-classRoom');
+                      handleFunctionSelect('list-subject');
                       setActiveMenus({ hocSinh: false, monHoc: true, giaoVien: false, lopHoc: false });
                     }}
                   >
-                    <a href="#list-classRoom">Danh sách lớp học</a>
+                    <a href="#list-subject">Danh sách môn học</a>
+                  </li>
+                  <li
+                    className={`py-1 px-2 border-l-4 border-l-slate-300 hover:border-l-blue-700 hover:text-blue-700 ${selectedFunction === 'teaching-assignment' ? 'bg-gray-300' : ''}`}
+                    onClick={() => {
+                      handleFunctionSelect('teaching-assignment');
+                      setActiveMenus({ hocSinh: false, monHoc: true, giaoVien: false, lopHoc: false });
+                    }}
+                  >
+                    <a href="#teaching-assignment">Phân công giảng dạy</a>
                   </li>
                 </ul>
               )}
@@ -259,7 +290,7 @@ export default function Home() {
       {/*
         Right side
       */}
-      <div className="body w-full h-screen">
+      <div className="body w-full h-screen md:mt-0 sm:mt-10">
         {selectedFunction === null ? (
           <div className="flex items-center justify-center h-full w-full">
             <img className="scale-150" src={imgBanner} alt="Rounded avatar" />
@@ -275,6 +306,7 @@ export default function Home() {
             {selectedFunction === 'list-student' && <QuanLyHocSinh functionType="list-student" />}
             {selectedFunction === 'import-subject' && <ImportSubject />}
             {selectedFunction === 'add-subject' && <AddSubject />}
+            {selectedFunction === 'teaching-assignment' && <TeachingAssignment />}
           </>
         )}
       </div>

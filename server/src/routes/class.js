@@ -8,5 +8,6 @@ router.post("/addClass", ClassController.addClass);
 router.post("/getClassesByAcademicYearAndGrade", ClassController.getClassesByAcademicYearAndGrade);
 router.post("/getClassesByAcademicYearOrGradeOrClassNameOrClassSession", ClassController.getClassesByAcademicYearOrGradeOrClassNameOrClassSession);
 router.post("/getDsStudentByClass", ClassController.getDsStudentByClass);
+router.post("/importStudents", ClassController.importStudents);
 
 module.exports = router;

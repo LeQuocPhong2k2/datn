@@ -171,7 +171,9 @@ const StudentController = {
     } = req.body;
 
     let hoTen = firstName + " " + lastName;
-    console.log("Thông tin học sinh:", req.body);
+    let parent1;
+    let parent2;
+    let parent3;
 
     let studentCodeGen = "";
     try {
@@ -223,7 +225,7 @@ const StudentController = {
           });
 
           console.log("Đang lưu phụ huynh...");
-          await newParent.save();
+          parent1 = newParent;
           parents.push(newParent._id);
         }
       } else {
@@ -245,7 +247,7 @@ const StudentController = {
             });
 
             console.log("Đang lưu phụ huynh 1...");
-            await newParent.save();
+            parent2 = newParent;
             parents.push(newParent._id);
           }
         }
@@ -268,7 +270,7 @@ const StudentController = {
             });
 
             console.log("Đang lưu phụ huynh 2...");
-            await newParent.save();
+            parent3 = newParent;
             parents.push(newParent._id);
           }
         }
@@ -282,8 +284,6 @@ const StudentController = {
         password: studentCodeGen,
         role: "student",
       });
-      console.log("Đang lưu tài khoản...");
-      await newAccount.save();
 
       /**
        * tạo học sinh mới
@@ -324,12 +324,29 @@ const StudentController = {
           return res.status(404).json({ message: "Sỉ số lớp đã đầy", student: req.body });
         }
         classInfo.studentList.push(newStudent._id);
+        console.log("Đang câp nhật sỉ số lớp...");
         await classInfo.save();
       }
 
+      if (parent1) {
+        console.log("Đang lưu phụ huynh 1...");
+        await parent1.save();
+      }
+
+      if (parent2) {
+        console.log("Đang lưu phụ huynh 2...");
+        await parent2.save();
+      }
+
+      if (parent3) {
+        console.log("Đang lưu phụ huynh 3...");
+        await parent3.save();
+      }
+
+      console.log("Đang lưu tài khoản...");
+      await newAccount.save();
       console.log("Đang lưu học sinh...");
       await newStudent.save();
-
       res.status(201).json(newStudent);
     } catch (error) {
       console.error("Lỗi khi thêm học sinh:", error);

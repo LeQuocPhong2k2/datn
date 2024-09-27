@@ -4,18 +4,35 @@ import { IoSearch } from 'react-icons/io5';
 import { PiExport } from 'react-icons/pi';
 import { IoIosArrowForward } from 'react-icons/io';
 import { IoCloseCircleOutline } from 'react-icons/io5';
+import { CiImport } from 'react-icons/ci';
 
 import { getStudentByNameAndAcademicYearAndGradeAndClassName } from '../../../api/Student';
+import { importStudents, getDsHocSinhByLopHoc } from '../../../api/Class';
 
 import * as FileSaver from 'file-saver';
 import * as XLSX from 'xlsx';
 
-const XemChiTietLopHoc = ({ classId, classes, studentList, handleBackDsLopHoc, setShowComponet, iShowComponet }) => {
+const XemChiTietLopHoc = ({
+  classId,
+  classes,
+  studentList,
+  setStudentList,
+  handleBackDsLopHoc,
+  setShowComponet,
+  iShowComponet,
+}) => {
   const fileExtension = '.xlsx';
+  const dropdownRef = useRef(null);
   const [studentName, setStudentName] = useState('');
+  const [importProgress, setImportProgress] = useState(0);
+  const [studentsImport, setStudentsImport] = useState([]);
   const fileType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
   const [studentsSearch, setStudentsSearch] = useState([]);
-  const dropdownRef = useRef(null);
+
+  const studentInfo = {
+    studentCode: '',
+    status: '',
+  };
 
   useEffect(() => {
     document.addEventListener('mousedown', handleClickOutside);
@@ -119,20 +136,6 @@ const XemChiTietLopHoc = ({ classId, classes, studentList, handleBackDsLopHoc, s
     let colCha = [];
     let colMe = [];
     let colQuanHeKhac = [];
-    // const setColRelationship = studentList.map((item, index) => {
-    //   if (item.parents.length > 0) {
-    //     item.parents.forEach((parent) => {
-    //       if (parent.relationship === 'Cha') {
-    //         colCha[index] = 'Có';
-    //       } else if (parent.relationship === 'Mẹ') {
-    //         colMe[index] = 'Có';
-    //       } else {
-    //         colQuanHeKhac[index] = parent.relationship;
-    //       }
-    //     });
-    //   }
-    //   return null;
-    // });
     const formatData = studentList.map((item, index) => {
       const formattedItem = {
         STT: index + 1,
@@ -210,6 +213,39 @@ const XemChiTietLopHoc = ({ classId, classes, studentList, handleBackDsLopHoc, s
     console.log('student', student);
   };
 
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+      setStudentsImport(worksheet);
+    };
+    reader.readAsArrayBuffer(file);
+  };
+
+  const handleImport = async () => {
+    let totalStudents = studentsImport.length;
+    setImportProgress(0);
+    for (let index = 0; index < totalStudents; index++) {
+      const student = studentsImport[index];
+      studentInfo.studentCode = student['Mã số học sinh'];
+      studentInfo.status = student['Trạng thái'];
+
+      try {
+        await importStudents(classes[classId]._id, studentInfo, classes[classId].academicYear, classes[classId].grade);
+        const res = getDsHocSinhByLopHoc(classes[classId]._id);
+        res.then((data) => {
+          setStudentList(data);
+        });
+      } catch (error) {}
+
+      setImportProgress(Math.round(((index + 1) / totalStudents) * 100));
+    }
+  };
+
   return (
     <div
       id="root"
@@ -276,7 +312,7 @@ const XemChiTietLopHoc = ({ classId, classes, studentList, handleBackDsLopHoc, s
       <div>
         <span className="font-medium">2. Danh sách học sinh</span>
       </div>
-      <div className="grid lg:grid-cols-2 md:grid-cols-2 sm:grid-cols-1 gap-4">
+      <div className="grid xl:grid-cols-2 lg:grid-cols-1 md:grid-cols-1 sm:grid-cols-1 gap-4">
         <div className="flex items-center relative gap-2">
           <input
             type="text"
@@ -296,13 +332,24 @@ const XemChiTietLopHoc = ({ classId, classes, studentList, handleBackDsLopHoc, s
             />
           )}
         </div>
-        <div className="flex items-center md:justify-end sm:justify-start">
+        <div className="flex items-center xl:justify-end lg:justify-start md:justify-start sm:justify-start gap-2">
+          <div className="flex items-center relative h-10">
+            <span className="px-2">{importProgress > 0 ? `Process: ${importProgress}%` : ''} </span>
+            <button
+              onClick={handleImport}
+              className="w-fit h-full flex items-center justify-center px-2 py-2 border-y bg-gray-500 text-white"
+            >
+              <CiImport />
+            </button>
+            <input className="h-full border-e border-y rounded-e px-2" type="file" onChange={handleFileUpload} />
+          </div>
+
           <button
             onClick={() => setShowComponet({ ...iShowComponet, exportDetail: true })}
             className="relative w-fit flex items-center justify-center gap-2 border px-4 py-2 rounded"
           >
             <PiExport />
-            Xuất danh sách học sinh
+            Export danh sách học sinh
             {iShowComponet.exportDetail && (
               <ul ref={dropdownRef} className="w-full absolute z-50 top-10 bg-white border rounded mt-1 p-2 slide-down">
                 <li className="text-start px-1 hover:bg-gray-200 ">

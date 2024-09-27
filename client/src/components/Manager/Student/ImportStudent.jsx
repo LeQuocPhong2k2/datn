@@ -145,7 +145,7 @@ const ImportStudent = () => {
   };
 
   return (
-    <div id="root" className="grid grid-flow-row gap-2 p-4 max-h-full w-full overflow-auto relative">
+    <div id="root" className="grid grid-flow-row gap-2 p-4 px-10 max-h-full w-full overflow-auto relative">
       <div className="pb-5">
         <span className="text-lg font-medium flex items-center justify-start gap-1">Import danh sách học sinh</span>
         <span

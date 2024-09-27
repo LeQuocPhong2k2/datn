@@ -41,27 +41,24 @@ export default function QuanLyGiaoVien({ functionType }) {
    */
   const handleSubmit = async () => {
     if (validateInput()) {
-      try {
-        addLopHoc(lopHocInfo);
+      const res = addLopHoc(lopHocInfo);
 
-        setLopHocInfo((prevInfo) => ({
-          ...prevInfo,
-          khoiLop: '',
-          tenLop: '',
-          giaoVienChuNhiem: '',
-          idGiaoVienChuNhiem: '',
-          ngayBatDau: '',
-          buoiHoc: '',
-        }));
-
-        toast.success('Thêm giáo viên thành công');
-      } catch (error) {
-        if (error.response.status === 400) {
-          toast.error('Số điện thoại đã tồn tại');
-        } else {
-          toast.error('Thêm giáo viên thất bại');
-        }
-      }
+      res
+        .then((res) => {
+          setLopHocInfo((prevInfo) => ({
+            ...prevInfo,
+            khoiLop: '',
+            tenLop: '',
+            giaoVienChuNhiem: '',
+            idGiaoVienChuNhiem: '',
+            ngayBatDau: '',
+            buoiHoc: '',
+          }));
+          toast.success('Thêm lớp học thành công');
+        })
+        .catch((err) => {
+          toast.error(err.response.data.error);
+        });
     }
   };
 
@@ -186,13 +183,40 @@ export default function QuanLyGiaoVien({ functionType }) {
             </div>
             <div>
               <label htmlFor="name2">Tên Lớp*</label>
-              <input
-                type="text"
+              <select
+                name="tenLop"
                 id="tenLop"
                 value={lopHocInfo.tenLop}
                 onChange={handleChange}
                 className="w-full p-2 border border-gray-300 rounded"
-              />
+              >
+                <option value="" selected></option>
+                <option value="1A1">1A1</option>
+                <option value="1A2">1A2</option>
+                <option value="1A3">1A3</option>
+                <option value="1A4">1A4</option>
+                <option value="1A5">1A5</option>
+                <option value="2A1">2A1</option>
+                <option value="2A2">2A2</option>
+                <option value="2A3">2A3</option>
+                <option value="2A4">2A4</option>
+                <option value="2A5">2A5</option>
+                <option value="3A1">1A1</option>
+                <option value="3A2">1A2</option>
+                <option value="3A3">1A3</option>
+                <option value="3A4">1A4</option>
+                <option value="3A5">3A5</option>
+                <option value="4A1">4A1</option>
+                <option value="4A2">4A2</option>
+                <option value="4A3">4A3</option>
+                <option value="4A4">4A4</option>
+                <option value="4A5">4A5</option>
+                <option value="5A1">5A1</option>
+                <option value="5A2">5A2</option>
+                <option value="5A3">5A3</option>
+                <option value="5A4">5A4</option>
+                <option value="5A5">5A5</option>
+              </select>
             </div>
             <div className="relative">
               <label htmlFor="name1">Giáo viên chủ nhiệm*</label>

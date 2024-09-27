@@ -1,7 +1,7 @@
 import React from 'react';
 import 'flowbite';
 import imgLogin from '../assets/backtoschool.2024.png';
-import loginApi from '../api/Login';
+import { login } from '../api/Login';
 import { useEffect, useState } from 'react';
 import Cookies from 'cookie-universal';
 import 'react-toastify/dist/ReactToastify.css';
@@ -26,7 +26,7 @@ export default function Login() {
 
     try {
       // gọi api đăng nhập
-      const response = await loginApi(userName, password);
+      const response = await login(userName, password);
       alert('Đăng nhập thành công');
 
       // lưu token vào cookie
@@ -38,8 +38,14 @@ export default function Login() {
       // lưu _id vào localStorage
       localStorage.setItem('_id', response.account.id);
 
-      // chuyển hướng sang trang admin
-      window.location.href = '/admin';
+      if (response.account.role === 'Admin') {
+        // lưu role vào localStorage
+        localStorage.setItem('role', response.account.role);
+        // chuyển hướng sang trang admin
+        window.location.href = '/';
+      } else {
+        window.location.href = '/';
+      }
     } catch (error) {
       // hiển thị thông báo lỗi theo từng status
       if (error.response.status === 401) {
@@ -89,12 +95,12 @@ export default function Login() {
                 placeholder="Nhập mật khẩu"
               />
 
-              <div className="w-3/4 flex justify-end items-center gap-2 mt-4">
+              {/* <div className="w-3/4 flex justify-end items-center gap-2 mt-4">
                 <input type="checkbox" id="remember" name="remember" value="remember" />
                 <label className="text-subtitle-login" htmlFor="remember">
                   Ghi nhớ tài khoản
                 </label>
-              </div>
+              </div> */}
 
               <button onClick={handleLogin} className="w-3/4 h-12 btn-login rounded-lg mt-4">
                 Đăng nhập
