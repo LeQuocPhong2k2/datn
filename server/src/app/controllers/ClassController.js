@@ -1,7 +1,9 @@
 require("dotenv").config({ path: "../../../../.env" });
-const Class = require("../models/Class");
 const Teacher = require("../models/Teacher");
 const Student = require("../models/Student");
+const Parent = require("../models/Parent");
+const Class = require("../models/Class");
+const Account = require("../models/Account");
 const socket = require("../../socket");
 const { get } = require("mongoose");
 
@@ -209,96 +211,197 @@ const ClassController = {
    * @returns
    */
   addClass: async (req, res) => {
-    const { namHoc, khoiLop, tenLop, idGiaoVienChuNhiem, ngayBatDau, buoiHoc } = req.body;
-
+    const { namHoc, khoiLop, tenLop, idGiaoVienChuNhiem, ngayBatDau, typeFileImport } = req.body;
     try {
+      // 1. Kiểm tra xem lớp đã tồn tại chưa
+      const checkClass = await Class.findOne({
+        academicYear: namHoc,
+        grade: khoiLop,
+        className: tenLop,
+      });
+      if (checkClass) {
+        return res.status(400).json({ message: "Lớp đã tồn tại" });
+      }
+
+      // 2. Tạo lớp mới
       const newClass = new Class({
         academicYear: namHoc,
         grade: khoiLop,
         className: tenLop,
-        classSession: buoiHoc,
+        homeRoomTeacher: idGiaoVienChuNhiem,
         startDate: ngayBatDau,
         maxStudents: 40,
-        homeRoomTeacher: idGiaoVienChuNhiem,
         studentList: [],
       });
 
-      /**
-       * kiểm tra class đã tồn tại chưa
-       */
-      const classExist = await Class.findOne({
+      // 3. Lưu lớp mới
+      console.log("Đang lưu lớp mới...");
+      await newClass.save();
+
+      // 4. Trả về kết quả
+      console.log("Thêm lớp học thành công:", newClass);
+      res.status(200).json(newClass);
+    } catch (error) {
+      console.error("Lỗi khi thêm lớp học:", error);
+      res.status(500).json({ error: error.message });
+    }
+  },
+
+  importNewProfileStudent: async (req, res) => {
+    const { student, namHoc, khoiLop, tenLop } = req.body;
+    try {
+      // 1. kiểm tra học sinh có tồn tại
+      const checkStudent = await Student.findOne({
+        firstName: student.ho,
+        lastName: student.ten,
+        phoneNumber: student.sdt,
+      });
+      if (checkStudent) {
+        return res.status(400).json({ message: "Học sinh đã tồn tại", student: checkStudent });
+      }
+
+      // 2. Parent
+      let parent1 = null;
+      let parent2 = null;
+      let parent3 = null;
+      let parents = [];
+      if (student.moiQuanHeKhac) {
+        const checkParent = await Parent.findOne({
+          userName: student.hoTenNguoiGiamHo,
+          phoneNumber: student.sdtNguoiGiamHo,
+        });
+        if (!checkParent) {
+          parent1 = new Parent({
+            userName: student.hoTenNguoiGiamHo,
+            dateOfBirth: student.namSinhNguoiGiamHo,
+            job: student.ngheNghiepNguoiGiamHo,
+            phoneNumber: student.sdtNguoiGiamHo,
+            relationship: student.moiQuanHe,
+          });
+          parents.push(parent1._id);
+        } else {
+          parents.push(checkParent._id);
+        }
+      } else {
+        if (student.moiQuanHeCha) {
+          const checkParent = await Parent.findOne({
+            userName: student.hoTenCha,
+            phoneNumber: student.sdtCha,
+          });
+          if (!checkParent) {
+            parent2 = new Parent({
+              userName: student.hoTenCha,
+              dateOfBirth: student.namSinhCha,
+              job: student.ngheNghiepCha,
+              phoneNumber: student.sdtCha,
+              relationship: "Cha",
+            });
+            parents.push(parent2._id);
+          } else {
+            parents.push(checkParent._id);
+          }
+        }
+        if (student.moiQuanHeMe) {
+          const checkParent = await Parent.findOne({
+            userName: student.hoTenMe,
+            phoneNumber: student.sdtMe,
+          });
+          if (!checkParent) {
+            parent3 = new Parent({
+              userName: student.hoTenMe,
+              dateOfBirth: student.namSinhMe,
+              job: student.ngheNghiepMe,
+              phoneNumber: student.sdtMe,
+              relationship: "Me",
+            });
+            parents.push(parent3._id);
+          } else {
+            parents.push(checkParent._id);
+          }
+        }
+      }
+
+      // 3. Tạo học sinh
+      let studentCodeGen = "";
+      do {
+        const yearOfEnrollment = new Date(student.ngayVaoTruong).getFullYear();
+        studentCodeGen = generateStudentID(yearOfEnrollment);
+        const checkStudentCode = await Student.findOne({
+          studentCode: studentCodeGen,
+        });
+
+        if (!checkStudentCode) {
+          break;
+        }
+      } while (true);
+
+      // 4. Tạo tài khoản học sinh
+      const accountStudent = new Account({
+        userName: studentCodeGen,
+        password: studentCodeGen,
+        role: "Student",
+      });
+
+      // 5. Tạo học sinh
+      let hoTen = student.ho + " " + student.ten;
+      const newStudent = new Student({
+        studentCode: studentCodeGen,
+        userName: hoTen,
+        firstName: student.ho,
+        lastName: student.ten,
+        dateOfBirth: student.namSinh,
+        gender: student.gioiTinh,
+        dateOfEnrollment: student.ngayVaoTruong,
+        phoneNumber: student.sdt,
+        address: student.diaChi,
+        relationshipOther: student.moiQuanHeKhac,
+        parents: parents,
+        account: accountStudent._id,
+        status: "Đang học",
+        ethnicGroups: student.danToc,
+      });
+
+      // 6. Cập nhật danh sách học sinh vào lớp
+      const classInfo = await Class.findOne({
         academicYear: namHoc,
         grade: khoiLop,
         className: tenLop,
       });
 
-      if (classExist) {
-        return res.status(400).json({ error: "Lớp học đã tồn tại" });
-      }
-      await newClass.save();
-      const io = socket.getIo();
-      io.emit("addClass", newClass);
-      res.status(201).json(newClass);
-    } catch (error) {
-      console.error("Lỗi khi thêm lớp:", error);
-      res.status(500).json({ error: error.message });
-    }
-  },
+      parent1 && (await parent1.save());
+      parent2 && (await parent2.save());
+      parent3 && (await parent3.save());
+      await accountStudent.save();
+      await newStudent.save();
 
-  importStudents: async (req, res) => {
-    try {
-      const { idClass, students, academicYear, grade } = req.body;
-
-      // kiểm tra học sinh đã tồn tại chưa
-      const studentExist = await Student.findOne({
-        studentCode: students.studentCode,
-      });
-
-      if (!studentExist) {
-        return res.status(400).json({ error: "Học sinh không tồn tại" });
-      }
-
-      // kiểm tra tất cả các lớp học có năm học và khối lớp có tồn tại học sinh chưa
-      const classExist = await Class.findOne({
-        _id: idClass,
-      }).lean(); // Use lean() to avoid circular references
-
-      if (!classExist) {
-        return res.status(400).json({ error: "Không tìm thấy lớp học" });
-      }
-
-      // kiểm tra số lượng học sinh trong lớp
-      if (classExist.studentList && classExist.studentList.length >= classExist.maxStudents) {
-        return res.status(400).json({ error: "Sỉ số lớp đã đầy hoặc danh sách học sinh không tồn tại" });
-      }
-
-      const studentExistClasses = await Class.findOne({
-        academicYear: academicYear,
-        grade: grade,
-        studentList: studentExist._id,
-      }).lean(); // Use lean() to avoid circular references
-
-      if (studentExistClasses) {
-        return res.status(400).json({ error: "Học sinh đã tồn tại trong lớp học khác" });
-      }
-
-      // thêm học sinh vào lớp
-      const classUpdated = await Class.findById(idClass);
-      if (classUpdated) {
-        if (studentExist.status === "Đang học") {
-          classUpdated.studentList.push(studentExist._id);
-          await classUpdated.save();
-        }
+      if (!classInfo) {
+        return res.status(404).json({ message: "Không tìm thấy lớp học" });
       } else {
-        console.log("Class not found");
+        if (classInfo.studentList.length >= classInfo.maxStudents) {
+          return res.status(405).json({ message: "Sỉ số lớp đã đầy", student: newStudent });
+        }
+        classInfo.studentList.push(newStudent._id);
+        await classInfo.save();
       }
-
-      res.status(201).json({ message: "Thêm học sinh vào lớp thành công", student: studentExist });
+      res.status(200).json({ message: "Import học sinh thành công" });
     } catch (error) {
       console.error("Lỗi khi import học sinh:", error);
       res.status(500).json({ error: error.message });
     }
   },
 };
+
+/**
+ * function tạo mã số sinh viên bao gồm 4 số đầu là năm nhập học và 6 số cuối là số ngẫu nhiên
+ * @param {*} yearOfEnrollment
+ * @returns
+ */
+function generateStudentID(yearOfEnrollment) {
+  const randomSixDigits = Math.floor(1000 + Math.random() * 9000);
+
+  const studentID = yearOfEnrollment.toString() + randomSixDigits.toString();
+
+  return studentID;
+}
 
 module.exports = ClassController;

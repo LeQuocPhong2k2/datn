@@ -76,9 +76,11 @@ const ImportStudent = () => {
 
     for (let index = 0; index < totalStudents; index++) {
       const student = studentsImport[index];
-      studentInfo.mssv = student['Mã số học sinh'];
-      studentInfo.firstName = student['Fist Name'];
-      studentInfo.lastName = student['Last Name'];
+      studentInfo.namHoc = student['Năm học'];
+      studentInfo.khoiLop = student['Khối'];
+      studentInfo.lopHoc = student['Lớp'];
+      studentInfo.firstName = student['Họ'];
+      studentInfo.lastName = student['Tên'];
       studentInfo.namSinh = student['Năm sinh'];
       studentInfo.gioiTinh = student['Giới tính'];
       studentInfo.danToc = student['Dân tộc'];
@@ -101,9 +103,6 @@ const ImportStudent = () => {
       studentInfo.namSinhNguoiGiamHo = student['Năm sinh quan hệ khác'];
       studentInfo.ngheNghiepNguoiGiamHo = student['Nghề nghiệp quan hệ khác'];
       studentInfo.sdtNguoiGiamHo = student['Số điện thoại quan hệ khác'];
-      studentInfo.namHoc = student['Năm học'];
-      studentInfo.khoiLop = student['Khối'];
-      studentInfo.lopHoc = student['Lớp'];
 
       try {
         await addStudent(studentInfo);
@@ -147,13 +146,13 @@ const ImportStudent = () => {
   return (
     <div id="root" className="grid grid-flow-row gap-2 p-4 px-10 max-h-full w-full overflow-auto relative">
       <div className="pb-5">
-        <span className="text-lg font-medium flex items-center justify-start gap-1">Import danh sách học sinh</span>
+        <span className="text-lg font-medium flex items-center justify-start gap-1">Import hồ sơ học sinh</span>
         <span
           className="
               text-sm text-gray-500 font-normal flex items-center justify-start gap-1
             "
         >
-          Trang này dùng để import danh sách học sinh từ file excel
+          Trang này dùng để import hồ sơ học sinh từ file excel
         </span>
       </div>
       <div>
@@ -188,7 +187,7 @@ const ImportStudent = () => {
                 <th className="py-2 pl-2 border border-b border-gray-300 text-left w-40">Số điện thoại</th>
                 <th className="py-2 pl-2 border border-b border-gray-300 text-left w-40">Năm sinh</th>
                 <th className="py-2 pl-2 border border-b border-gray-300 text-left w-40">Địa chỉ</th>
-                <th className="py-2 pl-2 border border-b border-gray-300 text-left w-96">Ghi chú</th>
+                <th className="py-2 pl-2 border border-b border-gray-300 text-left w-96">Lý do import thất bại</th>
               </tr>
             </thead>
             <tbody>

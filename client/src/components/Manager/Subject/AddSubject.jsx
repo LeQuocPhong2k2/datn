@@ -14,7 +14,7 @@ export default function AddSubject() {
       <div>
         <span className="font-medium">1. Thông tin môn học</span>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-5">
         <div>
           <label htmlFor="tenMonHoc">Tên môn học*</label>
           <input type="text" id="tenMonHoc" className="w-full p-2 border border-gray-300 rounded" />
@@ -41,6 +41,70 @@ export default function AddSubject() {
           <label htmlFor="moTa">Mô tả</label>
           <input type="text" id="moTa" className="w-full p-2 border border-gray-300 rounded" />
         </div>
+        <div>
+          <div></div>
+          <br />
+          <button className=" bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+            Thêm môn học
+          </button>
+        </div>
+      </div>
+      <div>
+        <span className="font-medium">2. Danh sách môn học</span>
+      </div>
+      <div>
+        <table className="min-w-full bg-white border border-gray-300">
+          <thead>
+            <tr>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left w-14">STT</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left">Tên môn học</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left">Khối lớp</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left">Số tiết</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left">Loại môn học</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left">Mô tả</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left"></th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td className="py-2 px-2 border border-b border-gray-300 text-left">1</td>
+              <td className="py-2 px-2 border border-b border-gray-300 text-left">Toán</td>
+              <td className="py-2 px-2 border border-b border-gray-300 text-left">10</td>
+              <td className="py-2 px-2 border border-b border-gray-300 text-left">4</td>
+              <td className="py-2 px-2 border border-b border-gray-300 text-left">Cơ bản</td>
+              <td className="py-2 px-2 border border-b border-gray-300 text-left">Môn học cơ bản</td>
+              <td className="py-2 px-2 border border-b border-gray-300 text-left">
+                <div className="flex items-center justify-center">
+                  <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded">Xóa</button>
+                </div>
+              </td>
+              <td className="py-2 px-2 border border-b border-gray-300 text-left">
+                <div className="flex items-center justify-center">
+                  <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded">Sửa</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td className="py-2 px-2 border border-b border-gray-300 text-left">2</td>
+              <td className="py-2 px-2 border border-b border-gray-300 text-left">Văn</td>
+              <td className="py-2 px-2 border border-b border-gray-300 text-left">10</td>
+              <td className="py-2 px-2 border border-b border-gray-300 text-left">4</td>
+              <td className="py-2 px-2 border border-b border-gray-300 text-left">Cơ bản</td>
+              <td className="py-2 px-2 border border-b border-gray-300 text-left">Môn học cơ bản</td>
+              <td className="py-2 px-2 border border-b border-gray-300 text-left">
+                <div className="flex items-center justify-center">
+                  <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded">Xóa</button>
+                </div>
+              </td>
+              <td className="py-2 px-2 border border-b border-gray-300 text-left">
+                <div className="flex items-center justify-center">
+                  <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded">Sửa</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   );

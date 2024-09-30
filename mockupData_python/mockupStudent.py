@@ -71,8 +71,11 @@ def create_fake_student( namHoc, khoi, lop):
     else:
         quan_he_khac = "Không"
     return {
-            "Fist Name": generate_vietnamese_first_name(),
-            "Last Name": generate_vietnamese_first_last_name(),
+            "Năm học": namHoc,
+            "Khối": khoi,
+            "Lớp": lop,
+            "Họ": generate_vietnamese_first_name(),
+            "Tên": generate_vietnamese_first_last_name(),
             "Năm sinh": generate_formatted_dob(),
             "Giới tính": fake.random_element(elements=("Nam", "Nữ")),
             "Dân tộc": fake.random_element(
@@ -162,9 +165,6 @@ def create_fake_student( namHoc, khoi, lop):
             "Ngày vào trường": generate_past_date(),
             'Số điện thoại': generate_vietnamese_phone_number(),
             "Địa chỉ": generate_vietnamese_address(),
-            "Trạng thái": fake.random_element(
-                elements=("Đang học",)
-            ),
             "Cha": cha,
             "Mẹ": me,
             "Quan hệ khác": quan_he_khac,
@@ -227,10 +227,7 @@ def create_fake_student( namHoc, khoi, lop):
                 fake.job()
                 if quan_he_khac != "Không"
                 else None
-            ),
-            "Năm học": namHoc,
-            "Khối": khoi,
-            "Lớp": lop,
+            )
         }
 if __name__ == "__main__":
     namHoc = input("Nhập năm học: ")
