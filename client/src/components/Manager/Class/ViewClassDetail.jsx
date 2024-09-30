@@ -7,7 +7,7 @@ import { IoCloseCircleOutline } from 'react-icons/io5';
 import { CiImport } from 'react-icons/ci';
 
 import { getStudentByNameAndAcademicYearAndGradeAndClassName } from '../../../api/Student';
-import { importStudents, getDsHocSinhByLopHoc } from '../../../api/Class';
+import { importNewProfileStudent, getDsHocSinhByLopHoc } from '../../../api/Class';
 
 import * as FileSaver from 'file-saver';
 import * as XLSX from 'xlsx';
@@ -86,7 +86,8 @@ const XemChiTietLopHoc = ({
     const columnNames = [
       'STT',
       'Mã số học sinh',
-      'Họ và tên',
+      'Họ',
+      'Tên',
       'Năm sinh',
       'Giới tính',
       'Dân tộc',
@@ -100,7 +101,8 @@ const XemChiTietLopHoc = ({
       const formatData = studentsSearch.map((item, index) => ({
         STT: index + 1,
         'Mã số học sinh': item.studentCode,
-        'Họ và tên': item.userName,
+        Họ: item.firstName,
+        Tên: item.lastName,
         'Năm sinh': new Date(item.dateOfBirth).toLocaleDateString('en-GB'),
         'Giới tính': item.gender,
         'Dân tộc': item.ethnicGroups,
@@ -114,7 +116,8 @@ const XemChiTietLopHoc = ({
       const formatData = studentList.map((item, index) => ({
         STT: index + 1,
         'Mã số học sinh': item.studentCode,
-        'Họ và tên': item.userName,
+        Họ: item.firstName,
+        Tên: item.lastName,
         'Năm sinh': new Date(item.dateOfBirth).toLocaleDateString('en-GB'),
         'Giới tính': item.gender,
         'Dân tộc': item.ethnicGroups,
@@ -140,7 +143,8 @@ const XemChiTietLopHoc = ({
       const formattedItem = {
         STT: index + 1,
         'Mã số học sinh': item.studentCode,
-        'Họ và tên': item.userName,
+        Họ: item.firstName,
+        Tên: item.lastName,
         'Năm sinh': new Date(item.dateOfBirth).toLocaleDateString('en-GB'),
         'Giới tính': item.gender,
         'Dân tộc': item.ethnicGroups,
@@ -235,7 +239,12 @@ const XemChiTietLopHoc = ({
       studentInfo.status = student['Trạng thái'];
 
       try {
-        await importStudents(classes[classId]._id, studentInfo, classes[classId].academicYear, classes[classId].grade);
+        await importNewProfileStudent(
+          classes[classId]._id,
+          studentInfo,
+          classes[classId].academicYear,
+          classes[classId].grade
+        );
         const res = getDsHocSinhByLopHoc(classes[classId]._id);
         res.then((data) => {
           setStudentList(data);

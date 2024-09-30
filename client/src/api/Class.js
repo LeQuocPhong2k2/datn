@@ -1,11 +1,22 @@
 import axios from 'axios';
 
 async function addLopHoc(lopHoc) {
-  const response = await axios.post('http://localhost:3000/class/addClass', lopHoc, {
-    headers: {
-      'Content-Type': 'application/json',
+  console.log('lopHoc', lopHoc);
+  const response = await axios.post(
+    'http://localhost:3000/class/addClass',
+    {
+      namHoc: lopHoc.namHoc,
+      khoiLop: lopHoc.khoiLop,
+      tenLop: lopHoc.tenLop,
+      idGiaoVienChuNhiem: lopHoc.idGiaoVienChuNhiem,
+      ngayBatDau: lopHoc.ngayBatDau,
     },
-  });
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
   return response.data;
 }
 
@@ -53,14 +64,14 @@ async function getDsHocSinhByLopHoc(idLopHoc) {
   return response.data;
 }
 
-async function importStudents(idClass, students, academicYear, grade) {
+async function importNewProfileStudent(studentInfo, namHoc, khoiLop, tenLop) {
   const response = await axios.post(
-    'http://localhost:3000/class/importStudents',
+    'http://localhost:3000/class/importNewProfileStudent',
     {
-      idClass: idClass,
-      students: students,
-      academicYear: academicYear,
-      grade: grade,
+      student: studentInfo,
+      namHoc,
+      khoiLop,
+      tenLop,
     },
     {
       headers: {
@@ -76,5 +87,5 @@ export {
   getLopHocByNamHocVaKhoi,
   getLopHocByNamHocOrKhoiOrTenLopOrBuoiHoc,
   getDsHocSinhByLopHoc,
-  importStudents,
+  importNewProfileStudent,
 };

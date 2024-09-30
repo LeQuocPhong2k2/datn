@@ -1,0 +1,17 @@
+{
+  "configurations": [
+    {
+      "type": "chrome",
+      "name": "http://localhost:3000/class/addClass",
+      "request": "launch",
+      "url": "http://localhost:3000/class/addClass"
+    },
+    {
+      "type": "node-terminal",
+      "name": "Run Script: start",
+      "request": "launch",
+      "command": "nodemon start",
+      "cwd": "${workspaceFolder}\\server"
+    }
+  ]
+}

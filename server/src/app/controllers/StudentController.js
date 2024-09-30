@@ -229,7 +229,7 @@ const StudentController = {
           parents.push(newParent._id);
         }
       } else {
-        if (!moiQuanHeCha) {
+        if (moiQuanHeCha) {
           const checkParentByPhoneNumberAndNameFather = await Parent.findOne({
             userName: hoTenCha,
             phoneNumber: sdtCha,
@@ -252,7 +252,7 @@ const StudentController = {
           }
         }
 
-        if (!moiQuanHeMe) {
+        if (moiQuanHeMe) {
           const checkParentByPhoneNumberAndNameMother = await Parent.findOne({
             userName: hoTenMe,
             phoneNumber: sdtMe,
