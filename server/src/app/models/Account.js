@@ -5,6 +5,7 @@ const AccountSchema = new Schema(
   {
     userName: String,
     password: String,
+    role: String,
   },
   { collection: 'Account' }
 ) // Chỉ định rõ tên collection

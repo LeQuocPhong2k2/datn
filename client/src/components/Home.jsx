@@ -15,10 +15,18 @@ import QuanLyHocSinh from './Manager/Student/QuanLyHocSinh';
 import QuanLyGiaoVien from './Manager/Teacher/QuanLyGiaoVien';
 import AddClass from './Manager/Class/AddClass';
 import ListClass from './Manager/Class/ListClass';
+import Cookies from 'js-cookie'; // Thêm import để sử dụng
+// import { jwtDecode } from 'jwt-decode'; // Sửa import thành jwtDecode
 
 export default function Home() {
   useEffect(() => {
     document.title = 'Home';
+  }, []);
+  useEffect(() => {
+    const admin_token = Cookies.get('admin_token'); // Lấy token từ cookie
+    if (!admin_token) {
+      window.location.href = '/login'; // Nếu không có token, chuyển hướng về trang login
+    }
   }, []);
 
   const [activeBody, setActiveBody] = useState({

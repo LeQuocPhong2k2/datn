@@ -30,17 +30,26 @@ const AccountController = {
         return res.status(402).json({ error: 'Mật khẩu không chính xác' })
       }
 
-      // sử dụng jwt để tạo token
-      const token = jwt.sign({ id: account._id }, JWT_SECRET, {
-        expiresIn: '24h',
-      })
+      // sử dụng jwt để tạo token với vai trò
+      const token = jwt.sign(
+        { id: account._id, role: account.role },
+        JWT_SECRET,
+        {
+          expiresIn: '1h',
+        }
+      )
       console.log('Token:', token)
+      // // Kiểm tra vai trò của tài khoản
+      // const role = account.role
 
-      // Gửi token về client
       res.status(200).json({
         message: 'Login successful',
         token: token,
-        account: { id: account._id, userName: account.userName },
+        account: {
+          id: account._id,
+          userName: account.userName,
+          role: account.role,
+        },
       })
     } catch (error) {
       console.error('Login error:', error)
