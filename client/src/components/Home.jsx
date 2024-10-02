@@ -32,12 +32,19 @@ export default function Home() {
   }, []);
   useEffect(() => {
     const admin_token = Cookies.get('admin_token'); // Lấy token từ cookie
-    if (!admin_token) {
-      window.location.href = '/login'; // Nếu không có token, chuyển hướng về trang login
-    } else {
-      refreshAccessToken().catch(() => {
-        window.location.href = '/login'; // Nếu không thể refresh token, chuyển hướng về trang login
-      });
+    const refresh_token = Cookies.get('refresh_token');
+    if (!admin_token || admin_token === 'undefined') {
+      if (refresh_token) {
+        refreshAccessToken(refresh_token)
+          .then((tokenName) => {
+            // Sau khi gọi refreshAccessToken, admin_token sẽ được tạo lại và lưu vào cookie
+          })
+          .catch(() => {
+            window.location.href = '/login'; // Nếu không thể refresh token, chuyển hướng về trang login
+          });
+      } else {
+        window.location.href = '/login'; // Nếu không có token và không có refresh token, chuyển hướng về trang login
+      }
     }
   }, []);
 
