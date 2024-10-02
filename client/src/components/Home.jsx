@@ -15,10 +15,18 @@ import QuanLyHocSinh from './Manager/Student/QuanLyHocSinh';
 import QuanLyGiaoVien from './Manager/Teacher/QuanLyGiaoVien';
 import AddClass from './Manager/Class/AddClass';
 import ListClass from './Manager/Class/ListClass';
-import Cookies from 'js-cookie'; // Thêm import để sử dụng
-// import { jwtDecode } from 'jwt-decode'; // Sửa import thành jwtDecode
+import Cookies from 'js-cookie';
 
+import toast from 'react-hot-toast';
+import { refreshAccessToken } from '../api/auth';
+// const SERVER_URL = process.env.REACT_APP_SERVER_URL;
 export default function Home() {
+  // useEffect(() => {
+  //   toast.dismiss();
+  //   alert(SERVER_URL);
+  //   console.log(SERVER_URL);
+  // }, []);
+
   useEffect(() => {
     document.title = 'Home';
   }, []);
@@ -26,6 +34,10 @@ export default function Home() {
     const admin_token = Cookies.get('admin_token'); // Lấy token từ cookie
     if (!admin_token) {
       window.location.href = '/login'; // Nếu không có token, chuyển hướng về trang login
+    } else {
+      refreshAccessToken().catch(() => {
+        window.location.href = '/login'; // Nếu không thể refresh token, chuyển hướng về trang login
+      });
     }
   }, []);
 
