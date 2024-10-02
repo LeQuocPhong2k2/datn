@@ -413,7 +413,7 @@ export default function QuanLyHocSinh({ functionType }) {
         <>
           <Toaster toastOptions={{ duration: 2200 }} />
           {functionType === 'add-student' && (
-            <div className="grid grid-flow-row gap-4 p-4 max-h-full overflow-auto">
+            <div className="grid grid-flow-row gap-4 p-4 px-10 max-h-full overflow-auto">
               <div>
                 <span className="font-medium">1. Thông tin cá nhân</span>
               </div>
@@ -887,7 +887,7 @@ export default function QuanLyHocSinh({ functionType }) {
             </div>
           </Modal>
           {functionType === 'list-student' && (
-            <div className="grid grid-flow-row gap-4 p-4 max-h-full overflow-x w-full" style={{ width: '100%' }}>
+            <div className="grid grid-flow-row gap-4 p-4 px-10 max-h-full overflow-x w-full" style={{ width: '100%' }}>
               <div>
                 <span className="font-medium text-1.5xl">Danh sách học sinh</span>
               </div>
