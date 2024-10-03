@@ -1,7 +1,7 @@
 import React from 'react';
 import 'flowbite';
 import imgLogin from '../assets/backtoschool.2024.png';
-import { login } from '../api/Login';
+import loginApi from '../api/Login';
 import { useEffect, useState } from 'react';
 import Cookies from 'cookie-universal';
 import 'react-toastify/dist/ReactToastify.css';
@@ -26,9 +26,8 @@ export default function Login() {
 
     try {
       // gọi api đăng nhập
-      const response = await login(userName, password);
-      toast.dismiss();
-      toast.success('Đăng nhập thành công');
+      const response = await loginApi(userName, password);
+      alert('Đăng nhập thành công');
 
       // lưu token vào cookie với tên khác nhau dựa trên vai trò
       const tokenName =
@@ -44,13 +43,8 @@ export default function Login() {
       cookies.set(tokenName, response.token, {
         path: '/',
         expires: new Date(Date.now() + 60 * 60 * 1000),
-      }); // 60 * 60 * 1000 = 1 giờ
-
-      // Lưu refresh token vào cookie (có thể thêm thuộc tính httpOnly từ server)
-      cookies.set('refresh_token', response.account.refreshToken, {
-        path: '/',
-        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 ngày
       });
+      // 60 * 60 * 1000 = 1 giờ
 
       // lưu _id vào localStorage
       localStorage.setItem('_id', response.account.id);
@@ -111,12 +105,12 @@ export default function Login() {
                 placeholder="Nhập mật khẩu"
               />
 
-              <div className="w-3/4 flex justify-end items-center gap-2 mt-4">
+              {/* <div className="w-3/4 flex justify-end items-center gap-2 mt-4">
                 <input type="checkbox" id="remember" name="remember" value="remember" />
                 <label className="text-subtitle-login" htmlFor="remember">
                   Ghi nhớ tài khoản
                 </label>
-              </div>
+              </div> */}
 
               <button onClick={handleLogin} className="w-3/4 h-12 btn-login rounded-lg mt-4">
                 Đăng nhập
