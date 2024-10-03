@@ -12,6 +12,4 @@ router.post("/importNewProfileStudent", ClassController.importNewProfileStudent)
 
 router.post("/addClass", ClassController.addClass);
 
-router.post("/addClass", ClassController.addClass);
-
 module.exports = router;

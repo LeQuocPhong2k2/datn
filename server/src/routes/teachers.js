@@ -9,6 +9,5 @@ router.post(
 )
 router.get('/getAllGiaoViens', GiaoVienController.getAllGiaoViens)
 router.post('/addGiaoVien', GiaoVienController.addGiaoVien)
-router.post('/searchTeacher', GiaoVienController.searchTeacher)
 
 module.exports = router

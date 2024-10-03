@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Student from './components/Client/index';
+import Admin from './components/Admin/index';
 import Login from './components/Login';
 import Home from './components/Home';
 import './App.css';
@@ -10,7 +10,7 @@ function App() {
       <div>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/student" element={<Student />} />
+          <Route path="/admin" element={<Admin />} />
           <Route path="/" element={<Home />} />
         </Routes>
       </div>
