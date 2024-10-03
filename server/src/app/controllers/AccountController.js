@@ -30,17 +30,29 @@ const AccountController = {
         return res.status(402).json({ error: "Mật khẩu không chính xác" });
       }
 
-      // sử dụng jwt để tạo token
-      const token = jwt.sign({ id: account._id }, JWT_SECRET, {
-        expiresIn: "24h",
+      // sử dụng jwt để tạo token với vai trò
+      const token = jwt.sign({ id: account._id, role: account.role }, JWT_SECRET, {
+        expiresIn: "1h",
+      });
+      // Tạo refresh token
+      const refreshToken = jwt.sign({ id: account._id, role: account.role }, JWT_SECRET, {
+        expiresIn: "7d", // Thời gian sống lâu hơn
       });
       console.log("Token:", token);
+      console.log("Refresh Token:", refreshToken);
 
-      // Gửi token về client
+      // Lưu refresh token vào cơ sở dữ liệu
+      await Account.updateOne({ _id: account._id }, { refreshToken: refreshToken });
+
       res.status(200).json({
         message: "Login successful",
         token: token,
-        account: { id: account._id, userName: account.userName, role: account.role },
+        account: {
+          id: account._id,
+          userName: account.userName,
+          role: account.role,
+          refreshToken: refreshToken,
+        },
       });
     } catch (error) {
       console.error("Login error:", error);
@@ -62,6 +74,42 @@ const AccountController = {
     } catch (error) {
       console.error("Lỗi khi truy vấn tài khoản:", error);
       res.status(500).json({ error: error.message });
+    }
+  },
+
+  refreshToken: async (req, res) => {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(401).json({ error: "Refresh token không hợp lệ" });
+    }
+
+    try {
+      // Kiểm tra refresh token
+      const decoded = jwt.verify(refreshToken, JWT_SECRET);
+      const account = await Account.findById(decoded.id);
+
+      if (!account || account.refreshToken !== refreshToken) {
+        return res.status(403).json({ error: "Refresh token không hợp lệ" });
+      }
+
+      // Tạo access token mới
+      const token = jwt.sign({ id: account._id, role: account.role }, JWT_SECRET, { expiresIn: "1h" });
+      console.log("Refresh token thành công ");
+      console;
+
+      res.status(200).json({
+        message: "Refresh token thành công",
+        token: token,
+        account: {
+          id: account._id,
+          userName: account.userName,
+          role: account.role,
+        },
+      });
+    } catch (error) {
+      console.error("Refresh token error:", error);
+      res.status(500).json({ error: "Internal server error" });
     }
   },
 };

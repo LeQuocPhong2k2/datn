@@ -27,24 +27,40 @@ export default function Login() {
     try {
       // gọi api đăng nhập
       const response = await login(userName, password);
-      alert('Đăng nhập thành công');
+      toast.dismiss();
+      toast.success('Đăng nhập thành công');
 
-      // lưu token vào cookie
-      cookies.set('token', response.token, {
+      // lưu token vào cookie với tên khác nhau dựa trên vai trò
+      const tokenName =
+        response.account.role === 'Admin'
+          ? 'admin_token'
+          : response.account.role === 'Parent'
+            ? 'parent_token'
+            : response.account.role === 'Student'
+              ? 'student_token'
+              : response.account.role === 'Teacher'
+                ? 'teacher_token'
+                : 'default_token'; // Thêm trường hợp cho Parent và Student
+      cookies.set(tokenName, response.token, {
         path: '/',
-        expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        expires: new Date(Date.now() + 60 * 60 * 1000),
+      }); // 60 * 60 * 1000 = 1 giờ
+
+      // Lưu refresh token vào cookie (có thể thêm thuộc tính httpOnly từ server)
+      cookies.set('refresh_token', response.account.refreshToken, {
+        path: '/',
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 ngày
       });
 
       // lưu _id vào localStorage
       localStorage.setItem('_id', response.account.id);
 
+      // kiểm tra respornse có role là gì nếu roel là  Admin thì chuyển hướng đến trang admin
       if (response.account.role === 'Admin') {
-        // lưu role vào localStorage
-        localStorage.setItem('role', response.account.role);
-        // chuyển hướng sang trang admin
         window.location.href = '/';
-      } else {
-        window.location.href = '/';
+      } else if (response.account.role === 'Student') {
+        // nếu không phải Admin thì chuyển hướng đến trang student
+        window.location.href = '/student';
       }
     } catch (error) {
       // hiển thị thông báo lỗi theo từng status
@@ -95,12 +111,12 @@ export default function Login() {
                 placeholder="Nhập mật khẩu"
               />
 
-              {/* <div className="w-3/4 flex justify-end items-center gap-2 mt-4">
+              <div className="w-3/4 flex justify-end items-center gap-2 mt-4">
                 <input type="checkbox" id="remember" name="remember" value="remember" />
                 <label className="text-subtitle-login" htmlFor="remember">
                   Ghi nhớ tài khoản
                 </label>
-              </div> */}
+              </div>
 
               <button onClick={handleLogin} className="w-3/4 h-12 btn-login rounded-lg mt-4">
                 Đăng nhập
