@@ -237,7 +237,11 @@ const UpdateClass = ({
   };
 
   return (
+<<<<<<< HEAD
     <div id="root" className="grid grid-flow-row gap-4 p-4 max-h-full relative">
+=======
+    <div id="root" className="grid grid-flow-row gap-4 p-4 px-10 max-h-full relative">
+>>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
       <div className="flex items-center justify-start gap-2">
         <span
           onClick={handleBackDsLopHoc}

@@ -2,42 +2,45 @@ import React from 'react';
 import 'flowbite';
 import { useEffect, useState } from 'react';
 import imgAvatar from '../assets/avatar.jpg';
+import imgAvatarAdmin from '../assets/avatar-admin.png';
 import imgBanner from '../assets/img-banner.png';
 import { AiOutlineTeam } from 'react-icons/ai';
-import { FaAngleDown, FaAngleUp } from 'react-icons/fa';
 import { BsPersonVideo3 } from 'react-icons/bs';
 import { SiGoogleclassroom } from 'react-icons/si';
-import { FaBars } from 'react-icons/fa6';
-import { FaAnglesRight } from 'react-icons/fa6';
 import { FaCaretLeft } from 'react-icons/fa';
+import { LuBookMarked } from 'react-icons/lu';
 
 import QuanLyHocSinh from './Manager/Student/QuanLyHocSinh';
 import QuanLyGiaoVien from './Manager/Teacher/QuanLyGiaoVien';
 import AddClass from './Manager/Class/AddClass';
 import ListClass from './Manager/Class/ListClass';
-import Cookies from 'js-cookie'; // Thêm import để sử dụng
-// import { jwtDecode } from 'jwt-decode'; // Sửa import thành jwtDecode
+import ImportSubject from './Manager/Subject/ImportSubject';
+import AddSubject from './Manager/Subject/AddSubject';
+import TeachingAssignment from './Manager/Subject/TeachingAssignment';
+
+import { getAccountById } from '../api/Login';
 
 export default function Home() {
+  const [accounts, setAccounts] = useState([]);
   useEffect(() => {
     document.title = 'Home';
+    const accountId = localStorage.getItem('_id');
+    const res = getAccountById(accountId);
+    res
+      .then((data) => {
+        setAccounts(data);
+      })
+      .catch((error) => {
+        console.log(error);
+        window.location.href = '/login';
+      });
   }, []);
-  useEffect(() => {
-    const admin_token = Cookies.get('admin_token'); // Lấy token từ cookie
-    if (!admin_token) {
-      window.location.href = '/login'; // Nếu không có token, chuyển hướng về trang login
-    }
-  }, []);
-
-  const [activeBody, setActiveBody] = useState({
-    navbar: true,
-    body: true,
-  });
 
   const [selectedFunction, setSelectedFunction] = useState(null);
   const [showSubMenus, setShowSubMenus] = useState({
     hocSinh: false,
     lopHoc: false,
+    monHoc: false,
     giaoVien: false,
   });
 
@@ -54,6 +57,7 @@ export default function Home() {
       ...showSubMenus,
       hocSinh: false,
       lopHoc: false,
+      monHoc: false,
       giaoVien: false,
     });
   };
@@ -62,7 +66,7 @@ export default function Home() {
       {/*
         Left side
       */}
-      <div className="header fixed z-50 bg-white shadow-md h-full border-r md:shadow-md py-1">
+      <div className="header fixed min-w-[16rem] z-50 bg-white shadow-md h-full border-r md:shadow-md py-1">
         {/*
           Banner
         */}
@@ -70,10 +74,17 @@ export default function Home() {
           <div className="h-full flex items-center justify-start sm:justify-start px-3">
             <div className="flex items-center justify-start gap-2">
               <div className="flex items-center gap-4">
-                <img className="w-16 h-16 rounded-full" src={imgAvatar} alt="Rounded avatar" />
+                {accounts.role === 'Admin' ? (
+                  <img className="w-16 h-16 rounded-full" src={imgAvatarAdmin} alt="Rounded avatar" />
+                ) : (
+                  <img className="w-16 h-16 rounded-full" src={imgAvatar} alt="Rounded avatar" />
+                )}
+
                 <div className="font-medium">
-                  <div>Jese Leos</div>
-                  <div className="text-sm text-gray-500">Joined in August 2014</div>
+                  <div>{accounts.userName}</div>
+                  <div className="text-sm text-gray-500">
+                    {accounts.role === 'Admin' ? 'Người quản trị hệ thống' : accounts.role}
+                  </div>
                 </div>
               </div>
             </div>
@@ -96,11 +107,6 @@ export default function Home() {
                 <AiOutlineTeam className="" />
                 <span className="font-medium">Quản lý học sinh</span>
               </div>
-              {!showSubMenus.hocSinh && (
-                <div className="absolute top-2 -right-[0.6rem] font-medium text-2xl text-white">
-                  <FaCaretLeft />
-                </div>
-              )}
               {showSubMenus.hocSinh && (
                 <ul className="dropdown-list w-[13.4rem] absolute z-50 -right-[13.45rem] px-2 top-0 bg-slate-300">
                   <li
@@ -155,11 +161,6 @@ export default function Home() {
                 <BsPersonVideo3 />
                 <span className="font-medium">Quản lý giáo viên</span>
               </div>
-              {!showSubMenus.giaoVien && (
-                <div className="absolute top-2 -right-[0.6rem] font-medium text-2xl text-white">
-                  <FaCaretLeft />
-                </div>
-              )}
               {showSubMenus.giaoVien && (
                 <ul className="dropdown-list w-[13.4rem] absolute z-50 -right-[13.45rem] px-2 top-0 bg-slate-300">
                   <li
@@ -197,11 +198,6 @@ export default function Home() {
                 <SiGoogleclassroom />
                 <span className="font-medium">Quản lý lớp học</span>
               </div>
-              {!showSubMenus.lopHoc && (
-                <div className="absolute top-2 -right-[0.6rem] font-medium text-2xl text-white">
-                  <FaCaretLeft />
-                </div>
-              )}
               {showSubMenus.lopHoc && (
                 <ul className="dropdown-list w-[13.4rem] absolute z-50 -right-[13.45rem] px-2 top-0 bg-slate-300">
                   <li
@@ -228,13 +224,71 @@ export default function Home() {
                 </ul>
               )}
             </li>
+
+            <li
+              onMouseLeave={() => setShowSubMenus({ monHoc: false })}
+              onMouseEnter={() => setShowSubMenus({ monHoc: true })}
+              className={`group relative py-2 border-l-4 border-l-white hover:border-l-blue-700  ${activeMenus.monHoc ? 'bg-blue-300' : 'hover:bg-slate-400'}`}
+            >
+              <div className="px-3 flex justify-start items-center gap-2 cursor-pointer">
+                <LuBookMarked />
+                <span className="font-medium">Quản lý môn học</span>
+              </div>
+
+              {showSubMenus.monHoc && (
+                <ul className="dropdown-list w-[13.4rem] absolute z-50 -right-[13.45rem] px-2 top-0 bg-slate-300">
+                  <li
+                    className={`py-1 px-2 border-l-4 border-l-slate-300 hover:border-l-blue-700 hover:text-blue-700 ${selectedFunction === 'add-subject' ? 'bg-gray-300' : ''}`}
+                    onClick={() => {
+                      handleFunctionSelect('add-subject');
+                      setActiveMenus({ hocSinh: false, monHoc: true, giaoVien: false });
+                    }}
+                  >
+                    <div className="absolute top-2 -left-[0.9rem] font-medium text-2xl text-slate-300">
+                      <FaCaretLeft />
+                    </div>
+                    <a href="#add-subject">Thêm mới môn học</a>
+                  </li>
+                  <li
+                    className={`py-1 px-2 border-l-4 border-l-slate-300 hover:border-l-blue-700 hover:text-blue-700 ${selectedFunction === 'import-subject' ? 'bg-gray-300' : ''}`}
+                    onClick={() => {
+                      handleFunctionSelect('import-subject');
+                      setActiveMenus({ hocSinh: false, monHoc: true, giaoVien: false });
+                    }}
+                  >
+                    <div className="absolute top-2 -left-[0.9rem] font-medium text-2xl text-slate-300">
+                      <FaCaretLeft />
+                    </div>
+                    <a href="#import-subject">Import môn học</a>
+                  </li>
+                  <li
+                    className={`py-1 px-2 border-l-4 border-l-slate-300 hover:border-l-blue-700 hover:text-blue-700 ${selectedFunction === 'list-subject' ? 'bg-gray-300' : ''}`}
+                    onClick={() => {
+                      handleFunctionSelect('list-subject');
+                      setActiveMenus({ hocSinh: false, monHoc: true, giaoVien: false, lopHoc: false });
+                    }}
+                  >
+                    <a href="#list-subject">Danh sách môn học</a>
+                  </li>
+                  <li
+                    className={`py-1 px-2 border-l-4 border-l-slate-300 hover:border-l-blue-700 hover:text-blue-700 ${selectedFunction === 'teaching-assignment' ? 'bg-gray-300' : ''}`}
+                    onClick={() => {
+                      handleFunctionSelect('teaching-assignment');
+                      setActiveMenus({ hocSinh: false, monHoc: true, giaoVien: false, lopHoc: false });
+                    }}
+                  >
+                    <a href="#teaching-assignment">Phân công giảng dạy</a>
+                  </li>
+                </ul>
+              )}
+            </li>
           </ul>
         </div>
       </div>
       {/*
         Right side
       */}
-      <div className="body w-full h-screen">
+      <div className="body w-full h-screen md:mt-0 sm:mt-10">
         {selectedFunction === null ? (
           <div className="flex items-center justify-center h-full w-full">
             <img className="scale-150" src={imgBanner} alt="Rounded avatar" />
@@ -248,6 +302,9 @@ export default function Home() {
             {selectedFunction === 'add-classRoom' && <AddClass functionType="add-classRoom" />}
             {selectedFunction === 'list-classRoom' && <ListClass functionType="list-classRoom" />}
             {selectedFunction === 'list-student' && <QuanLyHocSinh functionType="list-student" />}
+            {selectedFunction === 'import-subject' && <ImportSubject />}
+            {selectedFunction === 'add-subject' && <AddSubject />}
+            {selectedFunction === 'teaching-assignment' && <TeachingAssignment />}
           </>
         )}
       </div>

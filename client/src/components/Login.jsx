@@ -105,12 +105,12 @@ export default function Login() {
                 placeholder="Nhập mật khẩu"
               />
 
-              <div className="w-3/4 flex justify-end items-center gap-2 mt-4">
+              {/* <div className="w-3/4 flex justify-end items-center gap-2 mt-4">
                 <input type="checkbox" id="remember" name="remember" value="remember" />
                 <label className="text-subtitle-login" htmlFor="remember">
                   Ghi nhớ tài khoản
                 </label>
-              </div>
+              </div> */}
 
               <button onClick={handleLogin} className="w-3/4 h-12 btn-login rounded-lg mt-4">
                 Đăng nhập
