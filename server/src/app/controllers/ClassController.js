@@ -5,7 +5,6 @@ const Parent = require("../models/Parent");
 const Class = require("../models/Class");
 const Account = require("../models/Account");
 const socket = require("../../socket");
-const { get } = require("mongoose");
 
 const ClassController = {
   /**
