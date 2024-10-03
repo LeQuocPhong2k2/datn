@@ -161,6 +161,7 @@ export default function Home() {
                 <BsPersonVideo3 />
                 <span className="font-medium">Quản lý giáo viên</span>
               </div>
+
               {showSubMenus.giaoVien && (
                 <ul className="dropdown-list w-[13.4rem] absolute z-50 -right-[13.45rem] px-2 top-0 bg-slate-300">
                   <li
@@ -198,6 +199,7 @@ export default function Home() {
                 <SiGoogleclassroom />
                 <span className="font-medium">Quản lý lớp học</span>
               </div>
+
               {showSubMenus.lopHoc && (
                 <ul className="dropdown-list w-[13.4rem] absolute z-50 -right-[13.45rem] px-2 top-0 bg-slate-300">
                   <li

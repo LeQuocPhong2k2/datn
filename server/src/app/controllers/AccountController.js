@@ -18,36 +18,12 @@ const AccountController = {
   },
 
   login: async (req, res) => {
-<<<<<<< HEAD
-    console.log('JWT_SECRET là :', JWT_SECRET)
-    const { userName, password } = req.body
-=======
     console.log("JWT_SECRET là :", JWT_SECRET);
     const { userName, password } = req.body;
->>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
 
     try {
       const account = await Account.findOne({ userName });
       if (!account) {
-<<<<<<< HEAD
-        return res.status(401).json({ error: 'Tài khoản không tồn tại' })
-      }
-      if (account.password !== password) {
-        return res.status(402).json({ error: 'Mật khẩu không chính xác' })
-      }
-
-      // sử dụng jwt để tạo token với vai trò
-      const token = jwt.sign(
-        { id: account._id, role: account.role },
-        JWT_SECRET,
-        {
-          expiresIn: '1h',
-        }
-      )
-      console.log('Token:', token)
-      // // Kiểm tra vai trò của tài khoản
-      // const role = account.role
-=======
         return res.status(401).json({ error: "Tài khoản không tồn tại" });
       }
       if (account.password !== password) {
@@ -59,22 +35,13 @@ const AccountController = {
         expiresIn: "24h",
       });
       console.log("Token:", token);
->>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
 
+      // Gửi token về client
       res.status(200).json({
         message: "Login successful",
         token: token,
-<<<<<<< HEAD
-        account: {
-          id: account._id,
-          userName: account.userName,
-          role: account.role,
-        },
-      })
-=======
         account: { id: account._id, userName: account.userName, role: account.role },
       });
->>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
     } catch (error) {
       console.error("Login error:", error);
       res.status(500).json({ error: "Internal server error" });

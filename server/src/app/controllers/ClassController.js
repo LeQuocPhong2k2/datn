@@ -1,14 +1,9 @@
 require("dotenv").config({ path: "../../../../.env" });
-<<<<<<< HEAD
-const Class = require("../models/Class");
-const Teacher = require("../models/Teacher");
-=======
 const Teacher = require("../models/Teacher");
 const Student = require("../models/Student");
 const Parent = require("../models/Parent");
 const Class = require("../models/Class");
 const Account = require("../models/Account");
->>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
 const socket = require("../../socket");
 const { get } = require("mongoose");
 
@@ -46,13 +41,10 @@ const ClassController = {
           model: "Parent",
         },
       });
-<<<<<<< HEAD
-=======
 
       // Sắp xếp danh sách học sinh theo tên
       students.studentList.sort((a, b) => a.lastName.localeCompare(b.lastName));
 
->>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
       console.log(JSON.stringify(students, null, 2));
       console.log("Danh sách học sinh trong lớp:", students);
       res.status(200).json(students.studentList);
@@ -219,11 +211,6 @@ const ClassController = {
    * @returns
    */
   addClass: async (req, res) => {
-<<<<<<< HEAD
-    const { namHoc, khoiLop, tenLop, idGiaoVienChuNhiem, ngayBatDau, buoiHoc } = req.body;
-
-    try {
-=======
     const { namHoc, khoiLop, tenLop, idGiaoVienChuNhiem, ngayBatDau, typeFileImport } = req.body;
     try {
       // 1. Kiểm tra xem lớp đã tồn tại chưa
@@ -237,26 +224,10 @@ const ClassController = {
       }
 
       // 2. Tạo lớp mới
->>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
       const newClass = new Class({
         academicYear: namHoc,
         grade: khoiLop,
         className: tenLop,
-<<<<<<< HEAD
-        classSession: buoiHoc,
-        startDate: ngayBatDau,
-        maxStudents: 40,
-        homeRoomTeacher: idGiaoVienChuNhiem,
-        studentList: [],
-      });
-
-      await newClass.save();
-      const io = socket.getIo();
-      io.emit("addClass", newClass);
-      res.status(201).json(newClass);
-    } catch (error) {
-      console.error("Lỗi khi thêm lớp:", error);
-=======
         homeRoomTeacher: idGiaoVienChuNhiem,
         startDate: ngayBatDau,
         maxStudents: 40,
@@ -415,14 +386,11 @@ const ClassController = {
       res.status(200).json({ message: "Import học sinh thành công" });
     } catch (error) {
       console.error("Lỗi khi import học sinh:", error);
->>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
       res.status(500).json({ error: error.message });
     }
   },
 };
 
-<<<<<<< HEAD
-=======
 /**
  * function tạo mã số sinh viên bao gồm 4 số đầu là năm nhập học và 6 số cuối là số ngẫu nhiên
  * @param {*} yearOfEnrollment
@@ -436,5 +404,4 @@ function generateStudentID(yearOfEnrollment) {
   return studentID;
 }
 
->>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
 module.exports = ClassController;

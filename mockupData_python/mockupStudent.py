@@ -9,11 +9,7 @@ fake = Faker("vi_VN")  # 'vi_VN' cho dữ liệu giả Việt Nam
 df = pd.read_excel("dataTempalte.xlsx")
 
 def generate_vietnamese_phone_number():
-<<<<<<< HEAD
-    prefixes = ['03', '07', '08', '09']
-=======
     prefixes = ["03", "07", "08", "09"]
->>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
     prefix = random.choice(prefixes)
     number = ''.join(random.choices('0123456789', k=8))
     return prefix + number
@@ -57,9 +53,6 @@ def generate_vietnamese_name():
     last_name = fake.last_name()
     return f"{last_name} {first_name}"
 
-<<<<<<< HEAD
-def create_fake_student():
-=======
 def generate_vietnamese_first_name():
     first_name = random.choice(ho_viet_nam) + " " + random.choice(ten_dem_viet_nam)
     return first_name
@@ -69,7 +62,6 @@ def generate_vietnamese_first_last_name():
     return last_name
 
 def create_fake_student( namHoc, khoi, lop): 
->>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
     cha = fake.random_element(elements=("Có", "Không"))
     me = fake.random_element(elements=("Có", "Không"))
 
@@ -79,15 +71,11 @@ def create_fake_student( namHoc, khoi, lop):
     else:
         quan_he_khac = "Không"
     return {
-<<<<<<< HEAD
-            "Họ và tên": generate_vietnamese_name(),
-=======
             "Năm học": namHoc,
             "Khối": khoi,
             "Lớp": lop,
             "Họ": generate_vietnamese_first_name(),
             "Tên": generate_vietnamese_first_last_name(),
->>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
             "Năm sinh": generate_formatted_dob(),
             "Giới tính": fake.random_element(elements=("Nam", "Nữ")),
             "Dân tộc": fake.random_element(
@@ -177,12 +165,6 @@ def create_fake_student( namHoc, khoi, lop):
             "Ngày vào trường": generate_past_date(),
             'Số điện thoại': generate_vietnamese_phone_number(),
             "Địa chỉ": generate_vietnamese_address(),
-<<<<<<< HEAD
-            "Trạng thái": fake.random_element(
-                elements=("Đang học", "Nghỉ học", "Thôi học")
-            ),
-=======
->>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
             "Cha": cha,
             "Mẹ": me,
             "Quan hệ khác": quan_he_khac,
@@ -245,15 +227,6 @@ def create_fake_student( namHoc, khoi, lop):
                 fake.job()
                 if quan_he_khac != "Không"
                 else None
-<<<<<<< HEAD
-            ),
-            "Năm học": "2024-2025",
-            "Khối": "1",
-            "Lớp": "1A2",
-        }
-if __name__ == "__main__":
-    fake_students = [create_fake_student() for _ in range(40)]
-=======
             )
         }
 if __name__ == "__main__":
@@ -261,7 +234,6 @@ if __name__ == "__main__":
     khoi = input("Nhập khối: ")
     lop = input("Nhập lớp: ")
     fake_students = [create_fake_student( namHoc=namHoc, khoi=khoi, lop=lop) for _ in range(40)]
->>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
 
     df_fake = pd.DataFrame(fake_students)
 

@@ -14,10 +14,7 @@ import ViewClassDetail from './ViewClassDetail';
 import UpdateClass from './UpdateClass';
 
 export default function ListClass({ filterClass, action }) {
-<<<<<<< HEAD
-=======
   const [pageLoading, setPageLoading] = useState(true);
->>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
   const fileExtension = '.xlsx';
   const fileType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
   const [filter, setFilter] = useState({
@@ -37,8 +34,6 @@ export default function ListClass({ filterClass, action }) {
     buoiHoc: '',
   });
 
-<<<<<<< HEAD
-=======
   useEffect(() => {
     handlePageLoading();
   }, []);
@@ -50,7 +45,6 @@ export default function ListClass({ filterClass, action }) {
     }, 500);
   };
 
->>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
   const dropdownRef = useRef(null);
 
   const [classId, setClassId] = useState('');
@@ -194,10 +188,7 @@ export default function ListClass({ filterClass, action }) {
    */
   const handleViewDetails = (classId) => {
     setClassId(classId);
-<<<<<<< HEAD
-=======
     handlePageLoading();
->>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
     setShowComponet({
       ...iShowComponet,
       classList: false,
@@ -230,10 +221,7 @@ export default function ListClass({ filterClass, action }) {
       ngayBatDau: classes[classId].startDate,
       buoiHoc: classes[classId].classSession,
     });
-<<<<<<< HEAD
-=======
     handlePageLoading();
->>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
     setShowComponet({
       ...iShowComponet,
       classList: false,
@@ -252,10 +240,7 @@ export default function ListClass({ filterClass, action }) {
 
   //handle back to class list
   const handleBackDsLopHoc = () => {
-<<<<<<< HEAD
-=======
     handlePageLoading();
->>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
     setShowComponet({
       ...iShowComponet,
       classList: true,
@@ -300,10 +285,6 @@ export default function ListClass({ filterClass, action }) {
 
   return (
     <>
-<<<<<<< HEAD
-      {iShowComponet.classList && (
-        <div id="root" className="grid grid-flow-row gap-4 p-4 max-h-full w-full overflow-auto relative">
-=======
       {pageLoading && (
         <div
           id="root"
@@ -337,7 +318,6 @@ export default function ListClass({ filterClass, action }) {
 
       {iShowComponet.classList && !pageLoading && (
         <div id="root" className="grid grid-flow-row gap-4 p-4 px-10 max-h-full w-full overflow-auto relative">
->>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
           <div className="pb-5">
             <span className="text-lg font-medium flex items-center justify-start gap-1">Danh sách lớp học</span>
             <span
@@ -526,30 +506,19 @@ export default function ListClass({ filterClass, action }) {
         </div>
       )}
 
-<<<<<<< HEAD
-      {iShowComponet.classDetail && (
-=======
       {iShowComponet.classDetail && !pageLoading && (
->>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
         <ViewClassDetail
           classId={classId}
           classes={classes}
           studentList={studentList}
-<<<<<<< HEAD
-=======
           setStudentList={setStudentList}
->>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
           setShowComponet={setShowComponet}
           iShowComponet={iShowComponet}
           handleBackDsLopHoc={handleBackDsLopHoc}
         />
       )}
 
-<<<<<<< HEAD
-      {iShowComponet.classUpdate && (
-=======
       {iShowComponet.classUpdate && !pageLoading && (
->>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
         <UpdateClass
           classUpdate={classUpdate}
           setClassUpdate={setClassUpdate}
