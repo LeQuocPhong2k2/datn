@@ -20,28 +20,36 @@ const AccountController = {
   login: async (req, res) => {
     console.log('JWT_SECRET là :', JWT_SECRET)
     const { userName, password } = req.body
+
     try {
       const account = await Account.findOne({ userName })
       if (!account) {
-        return res.status(401).json({ error: 'Invalid credentials' })
+        return res.status(401).json({ error: 'Tài khoản không tồn tại' })
       }
-      // // sử dụng bcrypt để so sánh password
-      // const isMatch = await bcrypt.compare(password, account.password)
-      // if (!isMatch) {
-      //   return res.status(401).json({ error: 'Invalid credentials' })
-      // }
+      if (account.password !== password) {
+        return res.status(402).json({ error: 'Mật khẩu không chính xác' })
+      }
 
-      // sử dụng jwt để tạo token
-      const token = jwt.sign({ id: account._id }, JWT_SECRET, {
-        expiresIn: '1h',
-      })
+      // sử dụng jwt để tạo token với vai trò
+      const token = jwt.sign(
+        { id: account._id, role: account.role },
+        JWT_SECRET,
+        {
+          expiresIn: '1h',
+        }
+      )
       console.log('Token:', token)
+      // // Kiểm tra vai trò của tài khoản
+      // const role = account.role
 
-      // Gửi token về client
       res.status(200).json({
         message: 'Login successful',
         token: token,
-        account: { id: account._id, userName: account.userName },
+        account: {
+          id: account._id,
+          userName: account.userName,
+          role: account.role,
+        },
       })
     } catch (error) {
       console.error('Login error:', error)
