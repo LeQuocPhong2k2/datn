@@ -1,6 +1,14 @@
 import 'flowbite';
 import React from 'react';
 import Modal from 'react-modal';
+<<<<<<< HEAD
+import { FiSearch } from 'react-icons/fi';
+import { useEffect, useState } from 'react';
+import 'react-toastify/dist/ReactToastify.css';
+import { Toaster, toast } from 'react-hot-toast';
+
+import { addLopHoc } from '../../../api/Class';
+=======
 import { CiImport } from 'react-icons/ci';
 import { FiSearch } from 'react-icons/fi';
 import { useEffect, useState, useRef } from 'react';
@@ -14,12 +22,15 @@ import * as XLSX from 'xlsx';
 import * as FileSaver from 'file-saver';
 
 import { addLopHoc, importNewProfileStudent } from '../../../api/Class';
+>>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
 import { getGiaoVienChuaPhanCongChuNhiem } from '../../../api/Teacher';
 
 Modal.setAppElement('#root');
 
 export default function QuanLyGiaoVien({ functionType }) {
   const [teachers, setTeachers] = useState([]);
+<<<<<<< HEAD
+=======
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [importProgress, setImportProgress] = useState(0);
   const [newClassProgress, setNewClassProgress] = useState(0);
@@ -28,12 +39,19 @@ export default function QuanLyGiaoVien({ functionType }) {
   const [iShowComponet, setShowComponent] = useState({
     showDownloadFileSample: false,
   });
+>>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
   const [lopHocInfo, setLopHocInfo] = useState({
     namHoc: '',
     khoiLop: '',
     tenLop: '',
     giaoVienChuNhiem: '',
     idGiaoVienChuNhiem: '',
+<<<<<<< HEAD
+    ngayBatDau: '',
+    buoiHoc: '',
+  });
+  const [isModalOpen, setIsModalOpen] = useState(false);
+=======
     ngayBatDau: '05/09/2024',
     studentsList: [],
     typeFileImport: '',
@@ -65,6 +83,7 @@ export default function QuanLyGiaoVien({ functionType }) {
     ngheNghiepNguoiGiamHo: '',
     sdtNguoiGiamHo: '',
   });
+>>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
 
   /**
    * handle change input
@@ -79,6 +98,38 @@ export default function QuanLyGiaoVien({ functionType }) {
   };
 
   /**
+<<<<<<< HEAD
+   * handle submit
+   */
+  const handleSubmit = async () => {
+    if (validateInput()) {
+      try {
+        addLopHoc(lopHocInfo);
+
+        setLopHocInfo((prevInfo) => ({
+          ...prevInfo,
+          khoiLop: '',
+          tenLop: '',
+          giaoVienChuNhiem: '',
+          idGiaoVienChuNhiem: '',
+          ngayBatDau: '',
+          buoiHoc: '',
+        }));
+
+        toast.success('Thêm giáo viên thành công');
+      } catch (error) {
+        if (error.response.status === 400) {
+          toast.error('Số điện thoại đã tồn tại');
+        } else {
+          toast.error('Thêm giáo viên thất bại');
+        }
+      }
+    }
+  };
+
+  /**
+=======
+>>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
    * handle search teacher
    */
   const handleSearchTeacher = async () => {
@@ -121,6 +172,19 @@ export default function QuanLyGiaoVien({ functionType }) {
       return false;
     }
 
+<<<<<<< HEAD
+    if (lopHocInfo.ngayBatDau === '') {
+      toast.error('Vui lòng nhập ngày bắt đầu');
+      return false;
+    }
+
+    if (lopHocInfo.buoiHoc === '') {
+      toast.error('Vui lòng chọn buổi học');
+      return false;
+    }
+
+=======
+>>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
     return true;
   };
 
@@ -133,8 +197,11 @@ export default function QuanLyGiaoVien({ functionType }) {
     setLopHocInfo((prevInfo) => ({
       ...prevInfo,
       namHoc: `${year}-${year + 1}`,
+<<<<<<< HEAD
+=======
       ngayBatDau: `05/09/${year}`,
       typeFileImport: prevInfo.khoiLop === '1' ? 'newClass' : 'oldClass',
+>>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
     }));
   }, []);
 
@@ -152,6 +219,8 @@ export default function QuanLyGiaoVien({ functionType }) {
     setIsModalOpen(false);
   };
 
+<<<<<<< HEAD
+=======
   /**
    * handle file upload
    * @param {*} event
@@ -266,10 +335,18 @@ export default function QuanLyGiaoVien({ functionType }) {
     }
   };
 
+>>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
   return (
     <>
       <Toaster toastOptions={{ duration: 2200 }} />
       {functionType === 'add-classRoom' && (
+<<<<<<< HEAD
+        <div id="root" className="grid grid-flow-row gap-4 p-4 max-h-full overflow-auto relative">
+          <div>
+            <span className="font-medium">1. Thông tin chung</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-4">
+=======
         <div id="root" className="grid grid-flow-row gap-4 p-4 px-20 max-h-full overflow-auto relative">
           <div className="pb-5">
             <span className="text-lg font-medium flex items-center justify-start gap-1">Thêm mới lớp học</span>
@@ -285,6 +362,7 @@ export default function QuanLyGiaoVien({ functionType }) {
             <span className="font-medium">1. Thông tin chung</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+>>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
             <div>
               <label htmlFor="name1">Năm học*</label>
               <input
@@ -315,12 +393,20 @@ export default function QuanLyGiaoVien({ functionType }) {
             </div>
             <div>
               <label htmlFor="name2">Tên Lớp*</label>
+<<<<<<< HEAD
+              <input
+                type="text"
+=======
               <select
                 name="tenLop"
+>>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
                 id="tenLop"
                 value={lopHocInfo.tenLop}
                 onChange={handleChange}
                 className="w-full p-2 border border-gray-300 rounded"
+<<<<<<< HEAD
+              />
+=======
               >
                 <option value="" selected></option>
                 <option value="1A1">1A1</option>
@@ -349,6 +435,7 @@ export default function QuanLyGiaoVien({ functionType }) {
                 <option value="5A4">5A4</option>
                 <option value="5A5">5A5</option>
               </select>
+>>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
             </div>
             <div className="relative">
               <label htmlFor="name1">Giáo viên chủ nhiệm*</label>
@@ -362,6 +449,42 @@ export default function QuanLyGiaoVien({ functionType }) {
               <FiSearch onClick={handleSearchTeacher} className="absolute right-2 top-9 cursor-pointer" />
             </div>
             <div>
+<<<<<<< HEAD
+              <label htmlFor="name1">Ngày bắt đầu lớp học*</label>
+              <input
+                type="date"
+                id="ngayBatDau"
+                value={lopHocInfo.ngayBatDau}
+                onChange={handleChange}
+                className="w-full p-2 border border-gray-300 rounded"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="gioi-tinh">Buổi học*</label>
+              <select
+                name="buoiHoc"
+                id="buoiHoc"
+                value={lopHocInfo.buoiHoc}
+                onChange={handleChange}
+                className="w-full p-2 border border-gray-300 rounded"
+              >
+                <option value="" selected></option>
+                <option value="Sáng">Sáng</option>
+                <option value="Chiều">Chiều</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+            <button
+              onClick={handleSubmit}
+              type="button"
+              class="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
+            >
+              Thêm lớp học
+            </button>
+=======
               <label htmlFor="name1">Ngày bắt đầu lớp học</label>
               <input
                 type="text"
@@ -444,6 +567,7 @@ export default function QuanLyGiaoVien({ functionType }) {
                 ))}
               </tbody>
             </table>
+>>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
           </div>
         </div>
       )}

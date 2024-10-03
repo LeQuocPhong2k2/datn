@@ -1,7 +1,7 @@
 import React from 'react';
 import 'flowbite';
 import imgLogin from '../assets/backtoschool.2024.png';
-import { login } from '../api/Login';
+import loginApi from '../api/Login';
 import { useEffect, useState } from 'react';
 import Cookies from 'cookie-universal';
 import 'react-toastify/dist/ReactToastify.css';
@@ -26,25 +26,35 @@ export default function Login() {
 
     try {
       // gọi api đăng nhập
-      const response = await login(userName, password);
+      const response = await loginApi(userName, password);
       alert('Đăng nhập thành công');
 
-      // lưu token vào cookie
-      cookies.set('token', response.token, {
+      // lưu token vào cookie với tên khác nhau dựa trên vai trò
+      const tokenName =
+        response.account.role === 'Admin'
+          ? 'admin_token'
+          : response.account.role === 'Parent'
+            ? 'parent_token'
+            : response.account.role === 'Student'
+              ? 'student_token'
+              : response.account.role === 'Teacher'
+                ? 'teacher_token'
+                : 'default_token'; // Thêm trường hợp cho Parent và Student
+      cookies.set(tokenName, response.token, {
         path: '/',
-        expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        expires: new Date(Date.now() + 60 * 60 * 1000),
       });
+      // 60 * 60 * 1000 = 1 giờ
 
       // lưu _id vào localStorage
       localStorage.setItem('_id', response.account.id);
 
+      // kiểm tra respornse có role là gì nếu roel là  Admin thì chuyển hướng đến trang admin
       if (response.account.role === 'Admin') {
-        // lưu role vào localStorage
-        localStorage.setItem('role', response.account.role);
-        // chuyển hướng sang trang admin
         window.location.href = '/';
-      } else {
-        window.location.href = '/';
+      } else if (response.account.role === 'Student') {
+        // nếu không phải Admin thì chuyển hướng đến trang student
+        window.location.href = '/student';
       }
     } catch (error) {
       // hiển thị thông báo lỗi theo từng status

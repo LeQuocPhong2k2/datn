@@ -1,4 +1,11 @@
 import React from 'react';
+<<<<<<< HEAD
+import { useEffect, useRef } from 'react';
+import { IoMdArrowRoundBack } from 'react-icons/io';
+import { IoSearch } from 'react-icons/io5';
+import { PiExport } from 'react-icons/pi';
+import { IoHomeOutline } from 'react-icons/io5';
+=======
 import { useEffect, useRef, useState } from 'react';
 import { IoSearch } from 'react-icons/io5';
 import { PiExport } from 'react-icons/pi';
@@ -8,10 +15,17 @@ import { CiImport } from 'react-icons/ci';
 
 import { getStudentByNameAndAcademicYearAndGradeAndClassName } from '../../../api/Student';
 import { importNewProfileStudent, getDsHocSinhByLopHoc } from '../../../api/Class';
+>>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
 
 import * as FileSaver from 'file-saver';
 import * as XLSX from 'xlsx';
 
+<<<<<<< HEAD
+const XemChiTietLopHoc = ({ classId, classes, studentList, handleBackDsLopHoc, setShowComponet, iShowComponet }) => {
+  const fileExtension = '.xlsx';
+  const driopdownExportDetailRef = useRef(null);
+  const fileType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
+=======
 const XemChiTietLopHoc = ({
   classId,
   classes,
@@ -33,6 +47,7 @@ const XemChiTietLopHoc = ({
     studentCode: '',
     status: '',
   };
+>>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
 
   useEffect(() => {
     document.addEventListener('mousedown', handleClickOutside);
@@ -42,14 +57,24 @@ const XemChiTietLopHoc = ({
   }, []);
 
   const handleClickOutside = (event) => {
+<<<<<<< HEAD
+    if (driopdownExportDetailRef.current && !driopdownExportDetailRef.current.contains(event.target)) {
+      setShowComponet({
+        ...iShowComponet,
+=======
     if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
       setShowComponet({
         ...iShowComponet,
         exportDetail: false,
+>>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
         classList: false,
         classDetail: true,
         classUpdate: false,
         searchStudent: false,
+<<<<<<< HEAD
+        exportDetail: false,
+=======
+>>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
       });
     }
   };
@@ -86,8 +111,12 @@ const XemChiTietLopHoc = ({
     const columnNames = [
       'STT',
       'Mã số học sinh',
+<<<<<<< HEAD
+      'Họ và tên',
+=======
       'Họ',
       'Tên',
+>>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
       'Năm sinh',
       'Giới tính',
       'Dân tộc',
@@ -96,6 +125,21 @@ const XemChiTietLopHoc = ({
       'Địa chỉ',
       'Trạng thái',
     ];
+<<<<<<< HEAD
+    const formatData = studentList.map((item, index) => ({
+      STT: index + 1,
+      'Mã số học sinh': item.studentCode,
+      'Họ và tên': item.userName,
+      'Năm sinh': new Date(item.dateOfBirth).toLocaleDateString('en-GB'),
+      'Giới tính': item.gender,
+      'Dân tộc': item.ethnicGroups,
+      'Ngày vào trường': new Date(item.dateOfEnrollment).toLocaleDateString('en-GB'),
+      'Số điện thoại': item.phoneNumber,
+      'Địa chỉ': item.address,
+      'Trạng thái': item.status,
+    }));
+    return { columnNames, formatData };
+=======
 
     if (studentsSearch.length > 0) {
       const formatData = studentsSearch.map((item, index) => ({
@@ -128,6 +172,7 @@ const XemChiTietLopHoc = ({
       }));
       return { columnNames, formatData };
     }
+>>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
   };
 
   /**
@@ -139,12 +184,33 @@ const XemChiTietLopHoc = ({
     let colCha = [];
     let colMe = [];
     let colQuanHeKhac = [];
+<<<<<<< HEAD
+    const setColRelationship = studentList.map((item, index) => {
+      if (item.parents.length > 0) {
+        item.parents.forEach((parent) => {
+          if (parent.relationship === 'Cha') {
+            colCha[index] = 'Có';
+          } else if (parent.relationship === 'Mẹ') {
+            colMe[index] = 'Có';
+          } else {
+            colQuanHeKhac[index] = parent.relationship;
+          }
+        });
+      }
+      return null;
+    });
+=======
+>>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
     const formatData = studentList.map((item, index) => {
       const formattedItem = {
         STT: index + 1,
         'Mã số học sinh': item.studentCode,
+<<<<<<< HEAD
+        'Họ và tên': item.userName,
+=======
         Họ: item.firstName,
         Tên: item.lastName,
+>>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
         'Năm sinh': new Date(item.dateOfBirth).toLocaleDateString('en-GB'),
         'Giới tính': item.gender,
         'Dân tộc': item.ethnicGroups,
@@ -199,6 +265,10 @@ const XemChiTietLopHoc = ({
     return { columnNames, formatData };
   };
 
+<<<<<<< HEAD
+  return (
+    <div id="root" className="grid grid-flow-row gap-2 p-4 max-h-full w-full overflow-auto relative">
+=======
   const handleSearchByName = async (e) => {
     setStudentName(e.target.value);
     try {
@@ -260,6 +330,7 @@ const XemChiTietLopHoc = ({
       id="root"
       className="grid grid-flow-row gap-2 p-4 px-10 max-h-full w-full overflow-auto relative custom-scrollbar"
     >
+>>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
       <div className="pb-5">
         <span
           onClick={handleBackDsLopHoc}
@@ -278,7 +349,18 @@ const XemChiTietLopHoc = ({
           Trang này cho phép bạn xem danh sách lớp học, xem chi tiết lớp học, chỉnh sửa thông tin lớp học.
         </span>
       </div>
+<<<<<<< HEAD
+      {/* <div className="flex items-center justify-start gap-2">
+        <span
+          onClick={handleBackDsLopHoc}
+          className="font-medium flex items-center justify-start gap-1 text-blue-500 cursor-pointer"
+        >
+          <IoHomeOutline /> Quay lại danh sách lớp học
+        </span>
+      </div> */}
+=======
 
+>>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
       <div>
         <span className="font-medium">1. Thông tin chung</span>
       </div>
@@ -321,6 +403,19 @@ const XemChiTietLopHoc = ({
       <div>
         <span className="font-medium">2. Danh sách học sinh</span>
       </div>
+<<<<<<< HEAD
+      <div className="grid lg:grid-cols-2 md:grid-cols-2 sm:grid-cols-1 gap-4">
+        <div className="flex items-center relative">
+          <input
+            type="text"
+            id="namHoc"
+            className="w-full p-2  border border-gray-300 rounded"
+            placeholder="Tìm kiếm tên học sinh..."
+          />
+          <IoSearch className="absolute right-4" />
+        </div>
+        <div className="flex items-center md:justify-end sm:justify-start" ref={driopdownExportDetailRef}>
+=======
       <div className="grid xl:grid-cols-2 lg:grid-cols-1 md:grid-cols-1 sm:grid-cols-1 gap-4">
         <div className="flex items-center relative gap-2">
           <input
@@ -353,14 +448,21 @@ const XemChiTietLopHoc = ({
             <input className="h-full border-e border-y rounded-e px-2" type="file" onChange={handleFileUpload} />
           </div>
 
+>>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
           <button
             onClick={() => setShowComponet({ ...iShowComponet, exportDetail: true })}
             className="relative w-fit flex items-center justify-center gap-2 border px-4 py-2 rounded"
           >
             <PiExport />
+<<<<<<< HEAD
+            Xuất danh sách học sinh
+            {iShowComponet.exportDetail && (
+              <ul className="w-full absolute z-50 top-10 bg-white border rounded mt-1 p-2 slide-down">
+=======
             Export danh sách học sinh
             {iShowComponet.exportDetail && (
               <ul ref={dropdownRef} className="w-full absolute z-50 top-10 bg-white border rounded mt-1 p-2 slide-down">
+>>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
                 <li className="text-start px-1 hover:bg-gray-200 ">
                   <a
                     href="#export-class-detail"
@@ -388,6 +490,35 @@ const XemChiTietLopHoc = ({
         <table className="min-w-full bg-white border border-gray-300">
           <thead>
             <tr>
+<<<<<<< HEAD
+              <th className="py-2 px-2 border border-b border-gray-300 text-left">STT</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left">Mã số học sinh</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left">Họ và tên</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left">Năm sinh</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left">Giới tính</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left">Ngày vào trường</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left">Số điện thoại</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left">Địa chỉ</th>
+            </tr>
+          </thead>
+          <tbody>
+            {studentList.map((student, index) => (
+              <tr key={student._id}>
+                <td className="py-2 px-2 border border-b border-gray-300 text-left">{index + 1}</td>
+                <td className="py-2 px-2 border border-b border-gray-300 text-left">{student.studentCode}</td>
+                <td className="py-2 px-2 border border-b border-gray-300 text-left">{student.userName}</td>
+                <td className="py-2 px-2 border border-b border-gray-300 text-left">
+                  {new Date(student.dateOfBirth).toLocaleDateString('en-GB')}
+                </td>
+                <td className="py-2 px-2 border border-b border-gray-300 text-left">{student.gender}</td>
+                <td className="py-2 px-2 border border-b border-gray-300 text-left">
+                  {new Date(student.dateOfEnrollment).toLocaleDateString('en-GB')}
+                </td>
+                <td className="py-2 px-2 border border-b border-gray-300 text-left">{student.phoneNumber}</td>
+                <td className="py-2 px-2 border border-b border-gray-300 text-left">{student.address}</td>
+              </tr>
+            ))}
+=======
               <th className="py-2 px-2 border border-b border-gray-300 text-left w-14">STT</th>
               <th className="py-2 px-2 border border-b border-gray-300 text-left w-40">Mã số học sinh</th>
               <th className="py-2 px-2 border border-b border-gray-300 text-left w-40">Họ và tên</th>
@@ -449,6 +580,7 @@ const XemChiTietLopHoc = ({
                     </td>
                   </tr>
                 ))}
+>>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
           </tbody>
         </table>
       </div>

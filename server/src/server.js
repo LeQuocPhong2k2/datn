@@ -32,6 +32,21 @@ const server = http.createServer(app);
 
 socket.init(server);
 
+// Endpoint để phục vụ file Excel mẫu
+app.get("/download-template", (req, res) => {
+  const file = path.join(__dirname, "../public/templates/tempalate-them-hoc-sinh.csv");
+  res.download(file, "tempalate-them-hoc-sinh.csv", (err) => {
+    if (err) {
+      console.error("Lỗi khi tải file:", err);
+      res.status(500).send("Lỗi khi tải file");
+    }
+  });
+});
+
+const server = http.createServer(app);
+
+socket.init(server);
+
 connectDB()
   .then(() => {
     server.listen(port, () => {

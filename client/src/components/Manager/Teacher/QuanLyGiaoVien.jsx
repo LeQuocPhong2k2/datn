@@ -112,7 +112,11 @@ export default function QuanLyGiaoVien({ functionType }) {
     <>
       <Toaster toastOptions={{ duration: 2200 }} />
       {functionType === 'add-teacher' && (
+<<<<<<< HEAD
+        <div className="grid grid-flow-row gap-4 p-4 max-h-full overflow-auto">
+=======
         <div className="grid grid-flow-row gap-4 p-4 px-10 max-h-full overflow-auto">
+>>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
           <div>
             <span className="font-medium">1. Thông tin cá nhân</span>
           </div>
@@ -209,7 +213,11 @@ export default function QuanLyGiaoVien({ functionType }) {
         </div>
       )}
       {functionType === 'edit-teacher' && (
+<<<<<<< HEAD
+        <div className="grid grid-flow-row gap-4 p-4 max-h-full overflow-x w-full" style={{ width: '100%' }}>
+=======
         <div className="grid grid-flow-row gap-4 p-4 px-10 max-h-full overflow-x w-full" style={{ width: '100%' }}>
+>>>>>>> a05d443a96399c7b88f95cce1e54e526bf66d2ca
           <div>
             <span className="font-medium text-1.5xl">Danh sách giáo viên</span>
           </div>
