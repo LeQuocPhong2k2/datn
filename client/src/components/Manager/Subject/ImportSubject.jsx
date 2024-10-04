@@ -53,17 +53,17 @@ const ImportSubject = () => {
       {pageLoading && (
         <div
           id="root"
-          className="grid grid-flow-row gap-4 p-4 px-10 max-h-full w-full h-full items-center justify-center overflow-auto relative"
+          className="grid grid-flow-row gap-4 p-4 px-20 max-h-full w-full h-full items-center justify-center overflow-auto relative"
         >
           <button
             disabled
             type="button"
-            class="py-2.5 px-5 me-2 text-sm font-medium text-gray-900 bg-white rounded-lg hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 inline-flex items-center"
+            className="py-2.5 px-5 me-2 text-sm font-medium text-gray-900 bg-white rounded-lg hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 inline-flex items-center"
           >
             <svg
               aria-hidden="true"
               role="status"
-              class="inline w-6 h-w-6 me-3 text-gray-200 animate-spin dark:text-gray-600"
+              className="inline w-6 h-w-6 me-3 text-gray-200 animate-spin dark:text-gray-600"
               viewBox="0 0 100 101"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
@@ -95,7 +95,7 @@ const ImportSubject = () => {
           <input type="file" onChange={handleFileUpload} />
           <button
             onClick={handleImport}
-            class="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
+            className="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
           >
             Import
           </button>

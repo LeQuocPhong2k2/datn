@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 
 export default function TeachingAssignment() {
   return (
-    <div id="root" className="grid grid-flow-row gap-4 p-4 px-10 max-h-full overflow-auto relative">
+    <div id="root" className="grid grid-flow-row gap-4 p-4 px-20 max-h-full overflow-auto relative">
       <div className="pb-5">
         <span className="text-lg font-medium flex items-center justify-start gap-1">Phân công giảng dạy</span>
         <span className="text-sm text-gray-500 font-normal flex items-center justify-start gap-1">
