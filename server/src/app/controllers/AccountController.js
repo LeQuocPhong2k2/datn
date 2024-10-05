@@ -87,6 +87,7 @@ const AccountController = {
       res.status(500).json({ error: error.message })
     }
   },
+
   refreshToken: async (req, res) => {
     const { refreshToken } = req.body
 
@@ -126,6 +127,40 @@ const AccountController = {
       res.status(500).json({ error: 'Internal server error' })
     }
   },
+}
+
+if (!refreshToken) {
+  return res.status(401).json({ error: 'Refresh token không hợp lệ' })
+}
+
+try {
+  // Kiểm tra refresh token
+  const decoded = jwt.verify(refreshToken, JWT_SECRET)
+  const account = await Account.findById(decoded.id)
+
+  if (!account || account.refreshToken !== refreshToken) {
+    return res.status(403).json({ error: 'Refresh token không hợp lệ' })
+  }
+
+  // Tạo access token mới
+  const token = jwt.sign({ id: account._id, role: account.role }, JWT_SECRET, {
+    expiresIn: '1h',
+  })
+  console.log('Refresh token thành công ')
+  console
+
+  res.status(200).json({
+    message: 'Refresh token thành công',
+    token: token,
+    account: {
+      id: account._id,
+      userName: account.userName,
+      role: account.role,
+    },
+  })
+} catch (error) {
+  console.error('Refresh token error:', error)
+  res.status(500).json({ error: 'Internal server error' })
 }
 
 module.exports = AccountController
