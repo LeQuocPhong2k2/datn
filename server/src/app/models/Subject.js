@@ -14,3 +14,4 @@ const SubjectSchema = new Schema(
 );
 
 const Subject = mongoose.model("Subject", SubjectSchema);
+module.exports = Subject;
