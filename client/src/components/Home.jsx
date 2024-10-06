@@ -18,7 +18,10 @@ import ImportSubject from './Manager/Subject/ImportSubject';
 import AddSubject from './Manager/Subject/AddSubject';
 import TeachingAssignment from './Manager/Subject/TeachingAssignment';
 
+import Cookies from 'js-cookie';
+
 import { getAccountById } from '../api/Login';
+import { refreshAccessToken } from '../api/auth';
 
 export default function Home() {
   const [accounts, setAccounts] = useState([]);
@@ -34,6 +37,25 @@ export default function Home() {
         console.log(error);
         window.location.href = '/login';
       });
+  }, []);
+
+
+  useEffect(() => {
+    const admin_token = Cookies.get('admin_token'); // Lấy token từ cookie
+    const refresh_token = Cookies.get('refresh_token');
+    if (!admin_token || admin_token === 'undefined') {
+      if (refresh_token) {
+        refreshAccessToken(refresh_token)
+          .then((tokenName) => {
+            // Sau khi gọi refreshAccessToken, admin_token sẽ được tạo lại và lưu vào cookie
+          })
+          .catch(() => {
+            window.location.href = '/login'; // Nếu không thể refresh token, chuyển hướng về trang login
+          });
+      } else {
+        window.location.href = '/login'; // Nếu không có token và không có refresh token, chuyển hướng về trang login
+      }
+    }
   }, []);
 
   const [selectedFunction, setSelectedFunction] = useState(null);
