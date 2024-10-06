@@ -1,5 +1,5 @@
-const mongoose = require('mongoose')
-const Schema = mongoose.Schema
+const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
 
 const SubjectSchema = new Schema(
   {
@@ -10,7 +10,8 @@ const SubjectSchema = new Schema(
     subjectGrade: String,
     subjectType: String,
   },
-  { collection: 'Subject' }
-)
+  { collection: "Subject" }
+);
 
-const Subject = mongoose.model('Subject', SubjectSchema)
+const Subject = mongoose.model("Subject", SubjectSchema);
+module.exports = Subject;

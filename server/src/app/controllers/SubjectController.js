@@ -2,18 +2,39 @@ require("dotenv").config({ path: "../../../../.env" });
 const Subject = require("../models/Subject");
 
 const SubjectController = {
-  async create(req, res) {
-    const { subjectName, subjectCode, subjectDescription, subjectCredits, subjectGrade, subjectType } = req.body;
-
+  async addSubject(req, res) {
+    const { subjectName, subjectDescription, subjectCredits, subjectGrade, subjectType } = req.body;
+    console.log(req.body);
     try {
-      const subjectExists = await Subject.findOne({
-        subjectCode: subjectCode,
-      });
+      /**
+       * Generate a random 6-digit subject code
+       */
+      let subjectCode = generateSubjectCode();
+      do {
+        subjectCode = generateSubjectCode();
+        const subjectExists = await Subject.findOne({
+          subjectCode: subjectCode,
+        });
 
+        if (!subjectExists) {
+          break;
+        }
+      } while (true);
+
+      /**
+       * Check if the subject already exists
+       */
+      const subjectExists = await Subject.findOne({
+        subjectName: subjectName,
+        subjectGrade: subjectGrade,
+      });
       if (subjectExists) {
         return res.status(400).json({ error: "Subject already exists" });
       }
 
+      /**
+       * Create a new subject
+       */
       const subject = await Subject.create({
         subjectName,
         subjectCode,
@@ -65,5 +86,10 @@ const SubjectController = {
     }
   },
 };
+
+function generateSubjectCode() {
+  const randomSixDigits = Math.floor(1000 + Math.random() * 9000);
+  return randomSixDigits;
+}
 
 module.exports = SubjectController;
