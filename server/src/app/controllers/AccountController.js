@@ -98,7 +98,8 @@ const AccountController = {
     try {
       // Kiểm tra refresh token
       const decoded = jwt.verify(refreshToken, JWT_SECRET)
-      const account = await Account.findById(decoded.id)
+      // const account = await Account.findById(decoded.id)
+      const account = await Account.findById(decoded.id) // Đảm bảo await nằm trong hàm async
 
       if (!account || account.refreshToken !== refreshToken) {
         return res.status(403).json({ error: 'Refresh token không hợp lệ' })
@@ -129,38 +130,38 @@ const AccountController = {
   },
 }
 
-if (!refreshToken) {
-  return res.status(401).json({ error: 'Refresh token không hợp lệ' })
-}
+// if (!refreshToken) {
+//   return res.status(401).json({ error: 'Refresh token không hợp lệ' })
+// }
 
-try {
-  // Kiểm tra refresh token
-  const decoded = jwt.verify(refreshToken, JWT_SECRET)
-  const account = await Account.findById(decoded.id)
+// try {
+//   // Kiểm tra refresh token
+//   const decoded = jwt.verify(refreshToken, JWT_SECRET)
+//   const account = await Account.findById(decoded.id)
 
-  if (!account || account.refreshToken !== refreshToken) {
-    return res.status(403).json({ error: 'Refresh token không hợp lệ' })
-  }
+//   if (!account || account.refreshToken !== refreshToken) {
+//     return res.status(403).json({ error: 'Refresh token không hợp lệ' })
+//   }
 
-  // Tạo access token mới
-  const token = jwt.sign({ id: account._id, role: account.role }, JWT_SECRET, {
-    expiresIn: '1h',
-  })
-  console.log('Refresh token thành công ')
-  console
+//   // Tạo access token mới
+//   const token = jwt.sign({ id: account._id, role: account.role }, JWT_SECRET, {
+//     expiresIn: '1h',
+//   })
+//   console.log('Refresh token thành công ')
+//   console
 
-  res.status(200).json({
-    message: 'Refresh token thành công',
-    token: token,
-    account: {
-      id: account._id,
-      userName: account.userName,
-      role: account.role,
-    },
-  })
-} catch (error) {
-  console.error('Refresh token error:', error)
-  res.status(500).json({ error: 'Internal server error' })
-}
+//   res.status(200).json({
+//     message: 'Refresh token thành công',
+//     token: token,
+//     account: {
+//       id: account._id,
+//       userName: account.userName,
+//       role: account.role,
+//     },
+//   })
+// } catch (error) {
+//   console.error('Refresh token error:', error)
+//   res.status(500).json({ error: 'Internal server error' })
+// }
 
 module.exports = AccountController
