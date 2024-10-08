@@ -79,6 +79,11 @@ export default function Student() {
               {/* Thêm biểu tượng trường học với màu xanh dạng #429AB8 */}
               Trường Tiểu học Nguyễn Bỉnh Khiêm
             </span>
+
+            <a href="/login" className="flex items-center">
+              <i className="fas fa-sign-out-alt mr-2" style={{ color: '#429AB8' }}></i>
+              Đăng Xuất
+            </a>
           </div>
           {/* Hiện menu cho màn hình điện thoại */}
           <button onClick={() => setMenuOpen(!isMenuOpen)} className="md:hidden">
@@ -97,6 +102,10 @@ export default function Student() {
               <i className="fas fa-school mr-2" style={{ color: '#429AB8' }}></i>
               Trường Tiểu học Nguyễn Bỉnh Khiêm
             </span>
+            <a href="/login" className="flex items-center">
+              <i className="fas fa-sign-out-alt mr-2" style={{ color: '#429AB8' }}></i>
+              Đăng Xuất
+            </a>
           </div>
         )}
       </header>
@@ -515,7 +524,7 @@ export default function Student() {
                       }
                       alt="Student Profile Picture"
                       className="rounded-full mx-auto"
-                      style={{ width: '200', height: '200' }}
+                      style={{ width: '200px', height: '200px' }}
                     />
 
                     <p className="font-bold" style={{ color: '#0B6FA1' }}>
@@ -564,6 +573,9 @@ export default function Student() {
                       </div>
                       <div>
                         <strong>Dân tộc:</strong> {studentInfo.ethnicGroups}
+                      </div>
+                      <div>
+                        <strong>GVCN:</strong> {studentInfo.homeRoomTeacherName}
                       </div>
                     </div>
                   </div>
