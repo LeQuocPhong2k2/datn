@@ -174,3 +174,39 @@ code {
   -ms-overflow-style: none; /* Hide scrollbar for Internet Explorer and Edge */
   scrollbar-width: none; /* Hide scrollbar for Firefox */
 }
+
+/* //Thêm vào tệp CSS của bạn */
+.table-header {
+  background-color: #fffbf0;
+  font-weight: bold;
+  color: rgb(0, 0, 0);
+}
+.table-cell {
+  border: 1px solid #e5e7eb;
+  padding: 8px;
+  text-align: center;
+}
+.table-cell-tongket {
+  border: 1px solid #e5e7eb;
+  padding: 8px;
+  text-align: center;
+  width: 25%;
+}
+.table-cell-grade {
+  color: blue;
+}
+.table-cell-grade-red {
+  color: red;
+}
+
+.summary-header {
+  background-color: #f3f4f6;
+  font-weight: bold;
+}
+.summary-cell {
+  border: 1px solid #e5e7eb;
+  padding: 8px;
+}
+.summary-cell-value {
+  text-align: center;
+}
