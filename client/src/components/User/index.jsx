@@ -110,14 +110,13 @@ export default function Student() {
 
                 <div className="mt-4">
                   <div className="font-bold">Nguyễn Ngọc Diệu An</div>
-                  {/* <div className="text-gray-600">Lớp 1A2</div>
-                <div className="text-gray-600">MSHS : 20245437</div> */}
-                  <div className=" flex justify-center space-x-4">
-                    <div className="text-gray-600 ">
+
+                  <div className="flex flex-col md:flex-row justify-center space-y-2 md:space-y-0 md:space-x-4 break-words md:flex-wrap">
+                    <div className="text-gray-600">
                       Lớp: <b>1A2</b>
                     </div>
 
-                    <div className="text-gray-600 ">
+                    <div className="text-gray-600">
                       MSHS:<b>20245437</b>
                     </div>
                   </div>
@@ -250,55 +249,80 @@ export default function Student() {
                     <tr>
                       <td className="border p-2">Sáng</td>
                       <td className="border p-2">1</td>
-                      <td className="border p-2">Chào cờ</td>
-                      <td className="border p-2">Sinh hoạt lớp</td>
-                      <td className="border p-2">Sinh học</td>
-                      <td className="border p-2">Thể dục</td>
-                      <td className="border p-2">GDCD</td>
+                      <td className="border p-2">HĐTN</td>
+                      <td className="border p-2">GDTC</td>
+                      <td className="border p-2">Tiếng Việt</td>
+                      <td className="border p-2">Tiếng Việt</td>
+                      <td className="border p-2">Tiếng Việt</td>
+
                       <td className="border p-2"></td>
                       <td className="border p-2"></td>
                     </tr>
                     <tr>
                       <td className="border p-2"></td>
                       <td className="border p-2">2</td>
-                      <td className="border p-2">Sinh hoạt lớp</td>
-                      <td className="border p-2">Sinh học</td>
-                      <td className="border p-2">Địa lí</td>
-                      <td className="border p-2">Công nghệ</td>
-                      <td className="border p-2">Mĩ Thuật</td>
+                      <td className="border p-2">Tiếng Việt</td>
+                      <td className="border p-2">Tiếng Việt</td>
+                      <td className="border p-2">Toán</td>
+                      <td className="border p-2">Toán</td>
+                      <td className="border p-2">Toán</td>
                       <td className="border p-2"></td>
                       <td className="border p-2"></td>
                     </tr>
                     <tr>
                       <td className="border p-2"></td>
                       <td className="border p-2">3</td>
-                      <td className="border p-2">Âm nhạc</td>
-                      <td className="border p-2">Ngữ Văn</td>
-                      <td className="border p-2">GDCD</td>
-                      <td className="border p-2">Tin học</td>
-                      <td className="border p-2">Thể dục</td>
+                      <td className="border p-2">Đạo Đức</td>
+                      <td className="border p-2">Toán</td>
+                      <td className="border p-2">Anh Văn</td>
+                      <td className="border p-2">Khoa Học</td>
+                      <td className="border p-2">HĐTN</td>
                       <td className="border p-2"></td>
                       <td className="border p-2"></td>
                     </tr>
                     <tr>
                       <td className="border p-2"></td>
                       <td className="border p-2">4</td>
-                      <td className="border p-2">Công nghệ</td>
-                      <td className="border p-2">Tin học</td>
                       <td className="border p-2">Toán</td>
-                      <td className="border p-2">Thể dục</td>
-                      <td className="border p-2">Toán</td>
+                      <td className="border p-2">Khoa Học</td>
+                      <td className="border p-2">Anh Văn</td>
+                      <td className="border p-2">Lịch Sử & Địa Lý</td>
+                      <td className="border p-2">POKI</td>
+
+                      <td className="border p-2"></td>
+                      <td className="border p-2"></td>
+                    </tr>
+
+                    <tr>
+                      <td className="border p-2"> Chiều</td>
+                      <td className="border p-2">5</td>
+                      <td className="border p-2">GDTC</td>
+                      <td className="border p-2">Tiếng Việt</td>
+                      <td className="border p-2">Tin Học</td>
+                      <td className="border p-2">Anh Văn</td>
+                      <td className="border p-2"></td>
                       <td className="border p-2"></td>
                       <td className="border p-2"></td>
                     </tr>
                     <tr>
                       <td className="border p-2"></td>
-                      <td className="border p-2">5</td>
-                      <td className="border p-2">Địa lí</td>
-                      <td className="border p-2">Tin học</td>
-                      <td className="border p-2">Vật lí</td>
-                      <td className="border p-2">Ngữ Văn</td>
-                      <td className="border p-2">Ngữ Văn</td>
+                      <td className="border p-2">6</td>
+                      <td className="border p-2">Công Nghệ</td>
+                      <td className="border p-2">Lịch sử & Địa lý</td>
+                      <td className="border p-2">Mĩ Thuật</td>
+                      <td className="border p-2">Anh Văn</td>
+                      <td className="border p-2"></td>
+                      <td className="border p-2"></td>
+                      <td className="border p-2"></td>
+                    </tr>
+                    <tr>
+                      <td className="border p-2"></td>
+                      <td className="border p-2">7</td>
+                      <td className="border p-2">Âm nhạc</td>
+                      <td className="border p-2">HĐTN</td>
+                      <td className="border p-2">Tiếng Việt</td>
+                      <td className="border p-2">L Tiếng Việt</td>
+                      <td className="border p-2"></td>
                       <td className="border p-2"></td>
                       <td className="border p-2"></td>
                     </tr>
