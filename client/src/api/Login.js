@@ -1,9 +1,9 @@
 import axios from 'axios';
-
+const API_URL = process.env.REACT_APP_API_URL;
 async function login(userName, password) {
   try {
     const response = await axios.post(
-      'http://localhost:3000/accounts/login', // Đảm bảo port này đúng với port server của bạn
+      `${API_URL}/accounts/login`, // Đảm bảo port này đúng với port server của bạn
       {
         userName,
         password,

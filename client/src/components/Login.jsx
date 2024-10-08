@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import Cookies from 'cookie-universal';
 import 'react-toastify/dist/ReactToastify.css';
 import { Toaster, toast } from 'react-hot-toast';
+import path from 'path-browserify';
 
 export default function Login() {
   useEffect(() => {
@@ -54,6 +55,11 @@ export default function Login() {
 
       // lưu _id vào localStorage
       localStorage.setItem('_id', response.account.id);
+      // lưu studentCode vào Cookie lưu ý trong db userName là studentCode
+      cookies.set('studentCode', response.account.userName, {
+        path: '/',
+        expires: new Date(Date.now() + 7 * 60 * 60 * 1000),
+      }); // lưu studentCode vào Cookie trong 7 ngày
 
       // kiểm tra respornse có role là gì nếu roel là  Admin thì chuyển hướng đến trang admin
       if (response.account.role === 'Admin') {

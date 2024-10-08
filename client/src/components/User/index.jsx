@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import Cookies from 'js-cookie'; // Thêm import để sử dụng Cookies
 // import { jwtDecode } from 'jwt-decode';
 import { useState } from 'react'; // Thêm import useState
-
+import { getFullInfoStudentByCode } from '../../api/Student';
 export default function Student() {
   useEffect(() => {
     const student_token = Cookies.get('student_token'); // Lấy token từ cookie
@@ -11,6 +11,15 @@ export default function Student() {
       window.location.href = '/login'; // Nếu không có token, chuyển hướng về trang login
     }
   }, []);
+  // gọi tới apiu getFullInfoStudentByCode đựa trên studentCode ở trong cookie
+  const studentCode = Cookies.get('studentCode');
+  const [studentInfo, setStudentInfo] = useState({});
+  useEffect(() => {
+    getFullInfoStudentByCode(studentCode).then((res) => {
+      setStudentInfo(res);
+    });
+  }, []);
+  console.log('studentInfo là:', studentInfo);
   const [isMenuOpen, setMenuOpen] = useState(false); // Thêm state để quản lý menu
   // show thông tin toàn bộ menu (thông tin hồ sơ,ds giáo viên,thời khoá biểu,các thư mới nhất,bàio học gần đây)
   const [showAllMenu, setShowAllMenu] = useState(true); // Thêm state để quản lý hiển thị toàn bộ menu
@@ -103,21 +112,25 @@ export default function Student() {
             <div className="flex flex-col md:flex-row justify-between">
               <div className="w-full md:w-1/2 text-center">
                 <img
-                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTfjUNC6tqBRQQZonwx0-vsJuTeDLetRoi-fp5Yee6shI1zXVumCeuE4mKye97fxwLgrj0&usqp=CAU"
+                  src={
+                    studentInfo.gender === 'Nam'
+                      ? 'https://cdn-icons-png.flaticon.com/512/4537/4537074.png'
+                      : 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTfjUNC6tqBRQQZonwx0-vsJuTeDLetRoi-fp5Yee6shI1zXVumCeuE4mKye97fxwLgrj0&usqp=CAU'
+                  }
                   alt="Student Profile Picture"
                   className="rounded-full w-24 h-24 mx-auto"
                 />
 
                 <div className="mt-4">
-                  <div className="font-bold">Nguyễn Ngọc Diệu An</div>
+                  <div className="font-bold">{studentInfo.userName}</div>
 
                   <div className="flex flex-col md:flex-row justify-center space-y-2 md:space-y-0 md:space-x-4 break-words md:flex-wrap">
                     <div className="text-gray-600">
-                      Lớp: <b>1A2</b>
+                      Lớp: <b>{studentInfo.className}</b>
                     </div>
 
                     <div className="text-gray-600">
-                      MSHS:<b>20245437</b>
+                      MSHS:<b>{studentInfo.studentCode}</b>
                     </div>
                   </div>
                 </div>
@@ -488,62 +501,75 @@ export default function Student() {
                 </h2>
                 <div className="flex">
                   <div className="w-1/3 text-center">
-                    <img
+                    {/* <img
                       src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTfjUNC6tqBRQQZonwx0-vsJuTeDLetRoi-fp5Yee6shI1zXVumCeuE4mKye97fxwLgrj0&usqp=CAU"
                       alt="Student Profile Picture"
                       className="rounded-full w-50 h-50 mx-auto"
+                    /> */}
+
+                    <img
+                      src={
+                        studentInfo.gender === 'Nam'
+                          ? 'https://cdn-icons-png.flaticon.com/512/4537/4537074.png'
+                          : 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTfjUNC6tqBRQQZonwx0-vsJuTeDLetRoi-fp5Yee6shI1zXVumCeuE4mKye97fxwLgrj0&usqp=CAU'
+                      }
+                      alt="Student Profile Picture"
+                      className="rounded-full mx-auto"
+                      style={{ width: '200', height: '200' }}
                     />
+
                     <p className="font-bold" style={{ color: '#0B6FA1' }}>
-                      Nguyễn Ngọc Diệu An
+                      {studentInfo.userName}
                     </p>
-                    <p style={{ color: '#0B6FA1' }}>Lớp 1A2</p>
+                    {/* <p style={{ color: '#0B6FA1' }}> Năm học :{studentInfo.academicYear}</p> */}
                   </div>
                   <div className="w-2/3">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <strong>Khối:</strong> Khối 6
+                        <strong>Khối:</strong> {studentInfo.grade}
                       </div>
                       <div>
-                        <strong>Tên lớp:</strong> 6A10
+                        <strong>Tên lớp:</strong> {studentInfo.className}
                       </div>
                       <div>
-                        <strong>Mã HS:</strong> 20245437
+                        <strong>Mã HS:</strong> {studentInfo.studentCode}
+                      </div>
+
+                      <div>
+                        <strong>Trạng thái:</strong> {studentInfo.status}
                       </div>
                       <div>
-                        <strong>Hình thức vào trường:</strong> Trúng tuyển
+                        <strong>Họ tên:</strong> {studentInfo.userName}
                       </div>
                       <div>
-                        <strong>Trạng thái:</strong> Đang học
+                        <strong>Giới tính:</strong> {studentInfo.gender}
+                      </div>
+
+                      <div>
+                        <strong>Địa chỉ:</strong> {studentInfo.address}
                       </div>
                       <div>
-                        <strong>Giới tính:</strong> Nữ
+                        <strong>Ngày sinh:</strong> {studentInfo.dateOfBirth}
                       </div>
                       <div>
-                        <strong>Họ tên:</strong> Nguyễn Ngọc Diệu An
+                        <strong>Ngày vào trường:</strong>{' '}
+                        {new Date(studentInfo.dateOfEnrollment).toLocaleDateString('vi-VN', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric',
+                        })}
                       </div>
                       <div>
-                        <strong>Nơi sinh:</strong> Long Mỹ, Hậu Giang
+                        <strong>Năm học:</strong> {studentInfo.academicYear}
                       </div>
                       <div>
-                        <strong>Ngày sinh:</strong> 24/09/2009
-                      </div>
-                      <div>
-                        <strong>Ngày vào trường:</strong> 15/09/2020
-                      </div>
-                      <div>
-                        <strong>Quê quán:</strong> Long Mỹ, Hậu Giang
-                      </div>
-                      <div>
-                        <strong>Thuộc diện:</strong> Bán trú
-                      </div>
-                      <div>
-                        <strong>Xếp loại tốt nghiệp cấp dưới:</strong> Khá
+                        <strong>Dân tộc:</strong> {studentInfo.ethnicGroups}
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-              <div className="border-b-2 border-gray-300 py-4">
+              {/* <div className="border-b-2 border-gray-300 py-4">
                 <div className="flex items-center">
                   <h2 className="text-xl font-bold mb-4" style={{ color: '#0B6FA1' }}>
                     <i className="fas fa-user mr-2" style={{ color: '#0B6FA1' }}></i> THÔNG TIN CÁ NHÂN
@@ -575,7 +601,7 @@ export default function Student() {
                     <strong>Nhóm máu:</strong> Nhóm AB
                   </div>
                 </div>
-              </div>
+              </div> */}
 
               <div className="border-b-2 border-gray-300 py-4">
                 <h2 className="text-xl font-bold mb-4 flex items-center" style={{ color: '#0B6FA1' }}>
@@ -583,36 +609,47 @@ export default function Student() {
                 </h2>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <strong>Họ Tên:</strong> Nguyễn Văn A
+                    <strong>Họ Tên:</strong> {studentInfo.parents[0].userName}
                   </div>
+                  {studentInfo.parents[1] && (
+                    <div>
+                      <strong>Họ Tên:</strong> {studentInfo.parents[1].userName}
+                    </div>
+                  )}
                   <div>
-                    <strong>Mẹ:</strong> Trần Thị B
+                    <strong>Mối Quan Hệ:</strong> {studentInfo.parents[0].relationship}
                   </div>
+                  {studentInfo.parents[1] && (
+                    <div>
+                      <strong>Mối Quan Hệ:</strong> {studentInfo.parents[1].relationship}
+                    </div>
+                  )}
                   <div>
-                    <strong>Mối Quan Hệ:</strong> Cha
+                    <strong>Ngày Sinh: </strong>
+                    {studentInfo.parents[0].dateOfBirth}
                   </div>
+                  {studentInfo.parents[1] && (
+                    <div>
+                      <strong>Ngày Sinh:</strong> {studentInfo.parents[1].dateOfBirth}
+                    </div>
+                  )}
                   <div>
-                    <strong>Mối Quan Hệ:</strong> Mẹ
+                    <strong>Số điện thoại: </strong> {studentInfo.parents[0].phoneNumber}
                   </div>
-                  <div>
-                    <strong>Ngày Sinh:</strong> 08/13/1959
-                  </div>
-                  <div>
-                    <strong>Ngày Sinh:</strong> 13/10/1987
-                  </div>
-                  <div>
-                    <strong>Số điện thoại: </strong> 0718452336
-                  </div>
-                  <div>
-                    <strong>Số điện thoại: </strong> 0386452336
-                  </div>
+                  {studentInfo.parents[1] && (
+                    <div>
+                      <strong>Số điện thoại: </strong> {studentInfo.parents[1].phoneNumber}
+                    </div>
+                  )}
 
                   <div>
-                    <strong>Công việc</strong> Nhân Viên Văn Phòng
+                    <strong>Công việc</strong> {studentInfo.parents[0].job}
                   </div>
-                  <div>
-                    <strong>Công việc</strong> Giảng Viên Đại Học
-                  </div>
+                  {studentInfo.parents[1] && (
+                    <div>
+                      <strong>Công việc</strong> {studentInfo.parents[1].job}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -1170,7 +1207,7 @@ export default function Student() {
                       <h2 className="text-lg font-semibold">Người làm đơn</h2>
                     </div>
                     <p className="ml-6">. Tôi tên là: Lê Quốc Phòng</p>
-                    <p className="ml-6">. Phụ huynh của em: Nguyễn Ngọc Diệu An</p>
+                    <p className="ml-6">. Phụ huynh của em: {studentInfo.userName}</p>
                     <p className="ml-6">. Lớp: 7/3</p>
                   </div>
                   <div className="mb-4">
