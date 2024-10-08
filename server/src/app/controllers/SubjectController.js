@@ -50,9 +50,10 @@ const SubjectController = {
     }
   },
 
-  async read(req, res) {
+  async findAllSubject(req, res) {
     try {
-      const subjects = await Subject.find();
+      // sort by subjectGrade and subjectName
+      const subjects = await Subject.find().sort({ subjectGrade: 1, subjectName: 1 });
 
       return res.status(200).json(subjects);
     } catch (error) {
@@ -60,16 +61,18 @@ const SubjectController = {
     }
   },
 
-  async update(req, res) {
-    const { id } = req.params;
+  async updateSubject(req, res) {
     const { subjectName, subjectCode, subjectDescription, subjectCredits, subjectGrade, subjectType } = req.body;
 
+    console.log(req.body);
+
     try {
-      const subject = await Subject.findById(id);
+      const subject = await Subject.findOne({
+        subjectCode: subjectCode,
+      });
 
       if (subject) {
         subject.subjectName = subjectName;
-        subject.subjectCode = subjectCode;
         subject.subjectDescription = subjectDescription;
         subject.subjectCredits = subjectCredits;
         subject.subjectGrade = subjectGrade;
@@ -78,6 +81,25 @@ const SubjectController = {
         await subject.save();
 
         return res.status(200).json(subject);
+      }
+
+      return res.status(404).json({ error: "Subject not found" });
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  },
+
+  async deleteSubject(req, res) {
+    const { subjectCode } = req.body;
+
+    try {
+      const subject = await Subject.findOne({
+        subjectCode: subjectCode,
+      });
+
+      if (subject) {
+        await subject.deleteOne();
+        return res.status(200).json({ message: "Subject deleted" });
       }
 
       return res.status(404).json({ error: "Subject not found" });
