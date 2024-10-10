@@ -24,7 +24,7 @@ export default function ForgotPassword() {
   useEffect(() => {}, []);
   return (
     <div>
-      <header className="bg-white p-4 border-b border-gray-300 flex justify-between items-center">
+      <header className="bg-white p-4 border-b border-gray-300 flex justify-between items-center mb-16 md: mb-4">
         <Toaster toastOptions={{ duration: 2200 }} />
         <a href="/login">
           <img
@@ -78,7 +78,7 @@ export default function ForgotPassword() {
         )}
       </header>
       <div
-        className={`max-w-lg mx-auto bg-white p-8 border border-gray-300 rounded-lg shadow-md mt-4 ${window.innerWidth <= 768 ? 'w-80' : 'w-full'}`}
+        className={`max-w-lg mx-auto bg-white p-8 border border-gray-300 rounded-lg shadow-md  ${window.innerWidth <= 768 ? 'w-80' : 'w-full'}`}
       >
         <h1 className="text-center text-[#427CAC] text-2xl font-bold mb-6">LẤY LẠI MẬT KHẨU</h1>
         <form>

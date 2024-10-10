@@ -86,6 +86,12 @@ export default function Student() {
         });
     }
   };
+  // 1 state hiển thị lên xuống thười khoá biểu ở màn hình chính
+  const [showTimeTable, setShowTimeTable] = useState(true);
+  // 1 state hiển thị thông báo notice ở màn hình chính
+  const [showNotice, setShowNotice] = useState(true);
+  // 1 state hiển thị thông báo bài học gần đây ở màn hình chính
+  const [showLessonHome, setShowLessonHome] = useState(true);
 
   return (
     <div className="font-sans bg-gray-100 min-h-screen">
@@ -102,7 +108,7 @@ export default function Student() {
           {/* Hiển thị menu cho màn hình desktop */}
           <div className="hidden md:flex items-center space-x-4">
             <span
-              className="flex items-center"
+              className="flex items-center cursor-default hover:cursor-pointer"
               onClick={() =>
                 window.open(
                   'https://mail.google.com/mail/?view=cm&fs=1&to=duct6984@gmail.com&su=Góp ý về website sổ liên lạc điện tử',
@@ -403,161 +409,184 @@ export default function Student() {
           </div>
           <div className="w-full md:w-2/3">
             <div className="bg-white p-4 rounded-lg shadow-lg mb-4 ">
-              <h2 className="text-lg font-bold mb-2" style={{ color: '#0B6FA1' }}>
-                <i className="far fa-calendar-alt mr-2" style={{ color: '#0B6FA1' }}></i>Thời Khóa Biểu
-              </h2>
-              <div className="overflow-x-auto">
-                {' '}
-                {/* Thêm div để tạo khả năng cuộn cho bảng trên thiết bị di động */}
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="bg-[#429AB8] text-white">
-                      <th className="border p-2">Buổi</th>
-                      <th className="border p-2">Tiết</th>
-                      <th className="border p-2">Thứ 2</th>
-                      <th className="border p-2">Thứ 3</th>
-                      <th className="border p-2">Thứ 4</th>
-                      <th className="border p-2">Thứ 5</th>
-                      <th className="border p-2">Thứ 6</th>
-                      <th className="border p-2">Thứ 7</th>
-                      <th className="border p-2">Chủ nhật</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td className="border p-2">Sáng</td>
-                      <td className="border p-2">1</td>
-                      <td className="border p-2">HĐTN</td>
-                      <td className="border p-2">GDTC</td>
-                      <td className="border p-2">Tiếng Việt</td>
-                      <td className="border p-2">Tiếng Việt</td>
-                      <td className="border p-2">Tiếng Việt</td>
+              <div className="flex justify-between items-center">
+                <h2 className="text-lg font-bold mb-2" style={{ color: '#0B6FA1' }}>
+                  <i className="far fa-calendar-alt mr-2" style={{ color: '#0B6FA1' }}></i>Thời Khóa Biểu
+                </h2>
+                <button onClick={() => setShowTimeTable(!showTimeTable)} className="text-blue-500 focus:outline-none">
+                  <i className={`fas fa-chevron-${showTimeTable ? 'up' : 'down'}`}></i>
+                </button>
+              </div>
+              {/* Thời khoá biểu */}
+              {showTimeTable && (
+                <div className="overflow-x-auto">
+                  {' '}
+                  {/* Thêm div để tạo khả năng cuộn cho bảng trên thiết bị di động */}
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="bg-[#429AB8] text-white">
+                        <th className="border p-2">Buổi</th>
+                        <th className="border p-2">Tiết</th>
+                        <th className="border p-2">Thứ 2</th>
+                        <th className="border p-2">Thứ 3</th>
+                        <th className="border p-2">Thứ 4</th>
+                        <th className="border p-2">Thứ 5</th>
+                        <th className="border p-2">Thứ 6</th>
+                        <th className="border p-2">Thứ 7</th>
+                        <th className="border p-2">Chủ nhật</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td className="border p-2">Sáng</td>
+                        <td className="border p-2">1</td>
+                        <td className="border p-2">HĐTN</td>
+                        <td className="border p-2">GDTC</td>
+                        <td className="border p-2">Tiếng Việt</td>
+                        <td className="border p-2">Tiếng Việt</td>
+                        <td className="border p-2">Tiếng Việt</td>
 
-                      <td className="border p-2"></td>
-                      <td className="border p-2"></td>
-                    </tr>
-                    <tr>
-                      <td className="border p-2"></td>
-                      <td className="border p-2">2</td>
-                      <td className="border p-2">Tiếng Việt</td>
-                      <td className="border p-2">Tiếng Việt</td>
-                      <td className="border p-2">Toán</td>
-                      <td className="border p-2">Toán</td>
-                      <td className="border p-2">Toán</td>
-                      <td className="border p-2"></td>
-                      <td className="border p-2"></td>
-                    </tr>
-                    <tr>
-                      <td className="border p-2"></td>
-                      <td className="border p-2">3</td>
-                      <td className="border p-2">Đạo Đức</td>
-                      <td className="border p-2">Toán</td>
-                      <td className="border p-2">Anh Văn</td>
-                      <td className="border p-2">Khoa Học</td>
-                      <td className="border p-2">HĐTN</td>
-                      <td className="border p-2"></td>
-                      <td className="border p-2"></td>
-                    </tr>
-                    <tr>
-                      <td className="border p-2"></td>
-                      <td className="border p-2">4</td>
-                      <td className="border p-2">Toán</td>
-                      <td className="border p-2">Khoa Học</td>
-                      <td className="border p-2">Anh Văn</td>
-                      <td className="border p-2">Lịch Sử & Địa Lý</td>
-                      <td className="border p-2">POKI</td>
+                        <td className="border p-2"></td>
+                        <td className="border p-2"></td>
+                      </tr>
+                      <tr>
+                        <td className="border p-2"></td>
+                        <td className="border p-2">2</td>
+                        <td className="border p-2">Tiếng Việt</td>
+                        <td className="border p-2">Tiếng Việt</td>
+                        <td className="border p-2">Toán</td>
+                        <td className="border p-2">Toán</td>
+                        <td className="border p-2">Toán</td>
+                        <td className="border p-2"></td>
+                        <td className="border p-2"></td>
+                      </tr>
+                      <tr>
+                        <td className="border p-2"></td>
+                        <td className="border p-2">3</td>
+                        <td className="border p-2">Đạo Đức</td>
+                        <td className="border p-2">Toán</td>
+                        <td className="border p-2">Anh Văn</td>
+                        <td className="border p-2">Khoa Học</td>
+                        <td className="border p-2">HĐTN</td>
+                        <td className="border p-2"></td>
+                        <td className="border p-2"></td>
+                      </tr>
+                      <tr>
+                        <td className="border p-2"></td>
+                        <td className="border p-2">4</td>
+                        <td className="border p-2">Toán</td>
+                        <td className="border p-2">Khoa Học</td>
+                        <td className="border p-2">Anh Văn</td>
+                        <td className="border p-2">Lịch Sử & Địa Lý</td>
+                        <td className="border p-2">POKI</td>
 
-                      <td className="border p-2"></td>
-                      <td className="border p-2"></td>
-                    </tr>
+                        <td className="border p-2"></td>
+                        <td className="border p-2"></td>
+                      </tr>
 
-                    <tr>
-                      <td className="border p-2"> Chiều</td>
-                      <td className="border p-2">5</td>
-                      <td className="border p-2">GDTC</td>
-                      <td className="border p-2">Tiếng Việt</td>
-                      <td className="border p-2">Tin Học</td>
-                      <td className="border p-2">Anh Văn</td>
-                      <td className="border p-2"></td>
-                      <td className="border p-2"></td>
-                      <td className="border p-2"></td>
-                    </tr>
-                    <tr>
-                      <td className="border p-2"></td>
-                      <td className="border p-2">6</td>
-                      <td className="border p-2">Công Nghệ</td>
-                      <td className="border p-2">Lịch sử & Địa lý</td>
-                      <td className="border p-2">Mĩ Thuật</td>
-                      <td className="border p-2">Anh Văn</td>
-                      <td className="border p-2"></td>
-                      <td className="border p-2"></td>
-                      <td className="border p-2"></td>
-                    </tr>
-                    <tr>
-                      <td className="border p-2"></td>
-                      <td className="border p-2">7</td>
-                      <td className="border p-2">Âm nhạc</td>
-                      <td className="border p-2">HĐTN</td>
-                      <td className="border p-2">Tiếng Việt</td>
-                      <td className="border p-2">L Tiếng Việt</td>
-                      <td className="border p-2"></td>
-                      <td className="border p-2"></td>
-                      <td className="border p-2"></td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>{' '}
-              {/* Kết thúc div cuộn */}
+                      <tr>
+                        <td className="border p-2"> Chiều</td>
+                        <td className="border p-2">5</td>
+                        <td className="border p-2">GDTC</td>
+                        <td className="border p-2">Tiếng Việt</td>
+                        <td className="border p-2">Tin Học</td>
+                        <td className="border p-2">Anh Văn</td>
+                        <td className="border p-2"></td>
+                        <td className="border p-2"></td>
+                        <td className="border p-2"></td>
+                      </tr>
+                      <tr>
+                        <td className="border p-2"></td>
+                        <td className="border p-2">6</td>
+                        <td className="border p-2">Công Nghệ</td>
+                        <td className="border p-2">Lịch sử & Địa lý</td>
+                        <td className="border p-2">Mĩ Thuật</td>
+                        <td className="border p-2">Anh Văn</td>
+                        <td className="border p-2"></td>
+                        <td className="border p-2"></td>
+                        <td className="border p-2"></td>
+                      </tr>
+                      <tr>
+                        <td className="border p-2"></td>
+                        <td className="border p-2">7</td>
+                        <td className="border p-2">Âm nhạc</td>
+                        <td className="border p-2">HĐTN</td>
+                        <td className="border p-2">Tiếng Việt</td>
+                        <td className="border p-2">L Tiếng Việt</td>
+                        <td className="border p-2"></td>
+                        <td className="border p-2"></td>
+                        <td className="border p-2"></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
             <div className="bg-white p-4 rounded-lg shadow-lg mb-4">
-              <h2 className="text-lg font-bold mb-2" style={{ color: '#0B6FA1' }}>
-                <i className="fas fa-envelope mr-2"></i>Các Thư Mới Nhất
-              </h2>
               <div className="flex justify-between items-center">
-                <div className="flex items-center">
+                <h2 className="text-lg font-bold mb-2" style={{ color: '#0B6FA1' }}>
+                  <i className="fas fa-envelope mr-2"></i>Các Thư Mới Nhất
+                </h2>
+                <button onClick={() => setShowNotice(!showNotice)} className="text-blue-500 focus:outline-none">
+                  <i className={`fas fa-chevron-${showNotice ? 'up' : 'down'}`}></i>
+                </button>
+              </div>
+
+              {showNotice && (
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center">
+                    <span>
+                      Trường tiểu học Nguyễn Bỉnh Khiêm ngày mai 11/10 kính mời PHHS tới lớp 1A2 họp phụ huynh học sinh
+                    </span>
+                  </div>
                   <span>
-                    Trường tiểu học Nguyễn Bỉnh Khiêm ngày mai 11/10 kính mời PHHS tới lớp 1A2 họp phụ huynh học sinh
+                    <a
+                      href="#"
+                      onClick={() => {
+                        setShowStudentProfile(true);
+                        setActiveTab('notice');
+                        setShowAllMenu(false);
+                      }}
+                      className="flex items-center"
+                      onMouseEnter={(e) => e.currentTarget.classList.add('font-bold')}
+                      onMouseLeave={(e) => e.currentTarget.classList.remove('font-bold')}
+                    >
+                      Xem
+                    </a>
                   </span>
                 </div>
-                <span>
-                  <a
-                    href="#"
-                    onClick={() => {
-                      setShowStudentProfile(true);
-                      setActiveTab('notice');
-                      setShowAllMenu(false);
-                    }}
-                    className="flex items-center"
-                    onMouseEnter={(e) => e.currentTarget.classList.add('font-bold')}
-                    onMouseLeave={(e) => e.currentTarget.classList.remove('font-bold')}
-                  >
-                    Xem
-                  </a>
-                </span>
-              </div>
+              )}
             </div>
             <div className="bg-white p-4 rounded-lg shadow-lg">
-              <h2 className="text-lg font-bold mb-2" style={{ color: '#0B6FA1' }}>
-                <i className="fas fa-info-circle mr-2"></i> Bài Học Gần Đây
-              </h2>
-              <div className="flex items-center">
-                <span>Chưa có thông tin về bài học gần đây</span>
-                <span className="ml-auto">
-                  <a
-                    href="#"
-                    onClick={() => {
-                      setShowStudentProfile(true);
-                      setActiveTab('lesson');
-                      setShowAllMenu(false);
-                    }}
-                    className="flex items-center"
-                    onMouseEnter={(e) => e.currentTarget.classList.add('font-bold')}
-                    onMouseLeave={(e) => e.currentTarget.classList.remove('font-bold')}
-                  >
-                    Xem
-                  </a>
-                </span>
+              <div className="flex justify-between items-center">
+                <h2 className="text-lg font-bold mb-2" style={{ color: '#0B6FA1' }}>
+                  <i className="fas fa-info-circle mr-2"></i> Bài Học Gần Đây
+                </h2>
+                <button onClick={() => setShowLessonHome(!showLessonHome)} className="text-blue-500 focus:outline-none">
+                  <i className={`fas fa-chevron-${showLessonHome ? 'up' : 'down'}`}></i>
+                </button>
               </div>
+
+              {showLessonHome && (
+                <div className="flex items-center">
+                  <span>Chưa có thông tin về bài học gần đây</span>
+                  <span className="ml-auto">
+                    <a
+                      href="#"
+                      onClick={() => {
+                        setShowStudentProfile(true);
+                        setActiveTab('lesson');
+                        setShowAllMenu(false);
+                      }}
+                      className="flex items-center"
+                      onMouseEnter={(e) => e.currentTarget.classList.add('font-bold')}
+                      onMouseLeave={(e) => e.currentTarget.classList.remove('font-bold')}
+                    >
+                      Xem
+                    </a>
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>
