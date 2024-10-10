@@ -15,6 +15,7 @@ export default function QuanLyGiaoVien({ functionType }) {
     sdt: '',
     diaChi: '',
     ngayBatDauCongTac: '',
+    boMon: '',
   });
 
   const handleChange = (e) => {
@@ -40,6 +41,7 @@ export default function QuanLyGiaoVien({ functionType }) {
           sdt: '',
           diaChi: '',
           ngayBatDauCongTac: '',
+          boMon: '',
         });
       } catch (error) {
         if (error.response.status === 400) {
@@ -91,6 +93,11 @@ export default function QuanLyGiaoVien({ functionType }) {
 
     if (teacherInfo.ngayBatDauCongTac === '') {
       toast.error('Vui lòng nhập ngày bắt đầu công tác');
+      return false;
+    }
+
+    if (teacherInfo.boMon === '') {
+      toast.error('Vui lòng chọn bộ môn');
       return false;
     }
 
@@ -162,6 +169,21 @@ export default function QuanLyGiaoVien({ functionType }) {
                 <option value="Cử nhân">Cử nhân</option>
                 <option value="Thạc sĩ">Thạc sĩ</option>
                 <option value="Tiến sĩ">Tiến sĩ</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="name4">Tổ bộ môn*</label>
+              <select
+                id="boMon"
+                value={teacherInfo.boMon}
+                onChange={handleChange}
+                className="w-full p-2 border border-gray-300 rounded"
+              >
+                <option value="" selected></option>
+                <option value="Cơ bản">Cơ bản</option>
+                <option value="Năng khiếu">Năng khiếu</option>
+                <option value="Ngoại ngữ">Ngoại ngữ</option>
+                <option value="Thể chất">Thể chất</option>
               </select>
             </div>
 

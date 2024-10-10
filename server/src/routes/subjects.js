@@ -7,5 +7,6 @@ router.post("/addSubject", SubjectController.addSubject);
 router.get("/findAllSubject", SubjectController.findAllSubject);
 router.post("/updateSubject", SubjectController.updateSubject);
 router.post("/deleteSubject", SubjectController.deleteSubject);
+router.post("/getSubjectAssignments", SubjectController.getSubjectAssignments);
 
 module.exports = router;
