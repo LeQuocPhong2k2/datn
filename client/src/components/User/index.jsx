@@ -7,6 +7,7 @@ import { getFullInfoStudentByCode } from '../../api/Student';
 import { changePassword } from '../../api/Accounts';
 import 'react-toastify/dist/ReactToastify.css';
 import { Toaster, toast } from 'react-hot-toast';
+import { createLeaveRequest } from '../../api/LeaveRequest';
 export default function Student() {
   useEffect(() => {
     const student_token = Cookies.get('student_token'); // Lấy token từ cookie
@@ -92,6 +93,87 @@ export default function Student() {
   const [showNotice, setShowNotice] = useState(true);
   // 1 state hiển thị thông báo bài học gần đây ở màn hình chính
   const [showLessonHome, setShowLessonHome] = useState(true);
+
+  // phần state nghĩ học
+  // Add these new state variables
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [selectedSessions, setSelectedSessions] = useState([]);
+  // hàm xử lý tạo ngày nghĩ dựa trên ngày bắt đầu và ngày kết thúc
+  function generateDateRange(start, end) {
+    const dates = [];
+    let currentDate = new Date(start);
+    const endDate = new Date(end);
+
+    while (currentDate <= endDate) {
+      dates.push(new Date(currentDate));
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    return dates;
+  }
+  // format ngày tháng theo việt nam
+  function formatDate(date) {
+    return new Date(date).toLocaleDateString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+  }
+
+  // function handleSessionChange(e) {
+  //   const { value, checked } = e.target;
+  //   setSelectedSessions((prev) => (checked ? [...prev, value] : prev.filter((session) => session !== value)));
+  // }
+  function handleSessionChange(e) {
+    const { value, checked } = e.target;
+
+    // Chuyển đổi giá trị thành chuỗi ISO ngắn (chỉ lấy phần ngày)
+    const dateValue = new Date(value.split('-')[0]).toISOString().split('T')[0];
+
+    setSelectedSessions((prev) =>
+      checked
+        ? [...prev, `${dateValue}-${value.split('-')[1]}`] // Chỉ lấy phần ngày + morning/afternoon
+        : prev.filter((session) => session !== `${dateValue}-${value.split('-')[1]}`)
+    );
+  }
+
+  // tạo biến lưu lý do nghỉ học
+  const [leaveReason, setLeaveReason] = useState('');
+  // xử lý sự kiện khi bấm gửi đơn nghỉ học
+  const handleSubmitLeaveRequest = () => {
+    // Chuyển đổi selectedSessions thành định dạng mong muốn
+    const formattedSessions = generateDateRange(startDate, endDate).map((date) => {
+      const dateString = new Date(date).toISOString().split('T')[0];
+      alert(dateString);
+      return {
+        date: new Date(date).toISOString(),
+        morning: selectedSessions.includes(`${dateString}- Sáng`) ? true : false,
+        afternoon: selectedSessions.includes(`${dateString}- Chiều`) ? true : false,
+      };
+    });
+
+    createLeaveRequest(
+      studentInfo._id,
+      studentInfo.parents[0]._id,
+      studentInfo.homeRoomTeacher_id,
+      studentInfo.class_id,
+      startDate,
+      endDate,
+      leaveReason,
+      formattedSessions
+    )
+      .then((response) => {
+        console.log('Leave request created successfully:', response);
+        alert('Đã gửi đơn nghỉ học thành công');
+        setShowFullInfoLeaveRequest(false);
+        setShowInfoLeaveRequest(true);
+      })
+      .catch((error) => {
+        console.error('Error creating leave request:', error);
+        alert('Đã xảy ra lỗi khi gửi đơn nghỉ học. Vui lòng thử lại sau.' + error);
+      });
+  };
 
   return (
     <div className="font-sans bg-gray-100 min-h-screen">
@@ -191,12 +273,16 @@ export default function Student() {
               <i className="fas fa-lock mr-2" style={{ color: '#429AB8' }}></i>Đổi Mật Khẩu
             </span>
 
-            <a href="/login" className="flex items-center">
-              <i className="fas fa-sign-out-alt mr-2" style={{ color: '#429AB8' }}></i>
-              Đăng Xuất
-            </a>
-            <span className="flex items-center">
-              <i className="fas fa-envelope mr-2" style={{ color: '#429AB8' }}></i>Hộp thư Góp Ý
+            <span
+              className="flex items-center cursor-default hover:cursor-pointer"
+              onClick={() =>
+                window.open(
+                  'https://mail.google.com/mail/?view=cm&fs=1&to=duct6984@gmail.com&su=Góp ý về website sổ liên lạc điện tử',
+                  '_blank'
+                )
+              }
+            >
+              <i className="fas fa-envelope mr-2" style={{ color: '#429AB8' }}></i>Hộp thư góp ý
             </span>
             <span className="flex items-center">
               <i className="fas fa-phone mr-2" style={{ color: '#429AB8' }}></i>SĐT Hỗ Trợ : 0907021954
@@ -205,6 +291,10 @@ export default function Student() {
               <i className="fas fa-school mr-2" style={{ color: '#429AB8' }}></i>
               Trường Tiểu học Nguyễn Bỉnh Khiêm
             </span>
+            <a href="/login" className="flex items-center">
+              <i className="fas fa-sign-out-alt mr-2" style={{ color: '#429AB8' }}></i>
+              Đăng Xuất
+            </a>
           </div>
         )}
         {showChangePassword && ( // form thay đổi mật khẩu
@@ -1267,30 +1357,8 @@ export default function Student() {
                   <div className="flex items-center mb-4">
                     <i className="fas fa-user text-blue-500 mr-2"></i>
                     <span className="text-gray-600">Người làm đơn:</span>
-                    <span className="ml-2 text-blue-500 font-semibold">Lê Quốc Phòng</span>
+                    <span className="ml-2 text-blue-500 font-semibold">{studentInfo.parents[0].userName}</span>
                   </div>
-                  {/* <div className="border-t border-gray-200 pt-4">
-                    <div className="flex items-center mb-2">
-                      <i className="fas fa-calendar-alt text-red-500 mr-2"></i>
-                      <span className="text-gray-600">Thời gian nghỉ</span>
-                    </div>
-                    <div className="ml-6 mb-2 flex items-center">
-                      <span className="text-gray-600">Nghỉ từ: </span>
-                      <input
-                        type="date"
-                        className="ml-2 text-black font-semibold"
-                        min={new Date().toISOString().split('T')[0]}
-                      />
-                    </div>
-                    <div className="ml-6 flex items-center">
-                      <span className="text-gray-600">Đến ngày:</span>
-                      <input
-                        type="date"
-                        className="ml-2 text-black font-semibold"
-                        min={new Date().toISOString().split('T')[0]}
-                      />
-                    </div>
-                  </div> */}
 
                   <div className="border-t border-gray-200 pt-4 mb-4">
                     <div className="flex items-center border-b border-gray-200 mb-4">
@@ -1305,6 +1373,8 @@ export default function Student() {
                           type="date"
                           className="ml-6 text-black  font-bold  w-60" // Adjusted to use full width
                           min={new Date().toISOString().split('T')[0]}
+                          value={startDate}
+                          onChange={(e) => setStartDate(e.target.value)}
                         />
                       </div>
                       <div className="flex items-center">
@@ -1312,7 +1382,9 @@ export default function Student() {
                         <input
                           type="date"
                           className="ml-2 text-black font-bold w-60" // Adjusted to use full width
-                          min={new Date().toISOString().split('T')[0]}
+                          min={startDate}
+                          value={endDate}
+                          onChange={(e) => setEndDate(e.target.value)}
                         />
                       </div>
                     </div>
@@ -1331,24 +1403,78 @@ export default function Student() {
                       </button>
                     </div>
 
-                    {showScheduleLeaveRequest && ( // Hiển thị checkbox nếu showSchedule là true
-                      <>
-                        <div className="flex items-center mb-2">
-                          <span className="text-gray-600">1. 10/09/2021 - Sáng</span>
-                          <input
-                            type="checkbox"
-                            className="form-checkbox h-5 w-5 text-blue-600 transition duration-150 ease-in-out ml-auto"
-                          ></input>
+                    {showScheduleLeaveRequest &&
+                      startDate &&
+                      endDate && ( // Hiển thị checkbox nếu showSchedule là true
+                        <div className="border-t border-gray-200 pt-4">
+                          <div className="flex justify-end mb-2">
+                            <button
+                              className={`${
+                                selectedSessions.length ===
+                                generateDateRange(startDate, endDate).flatMap((date) => [
+                                  `${new Date(date).toISOString().split('T')[0]}-morning`,
+                                  `${new Date(date).toISOString().split('T')[0]}-afternoon`,
+                                ]).length
+                                  ? 'bg-red-500 hover:bg-red-600'
+                                  : 'bg-blue-500 hover:bg-blue-600'
+                              } text-white px-2 py-1 rounded-lg`}
+                              onClick={() => {
+                                const allSessions = generateDateRange(startDate, endDate).flatMap((date) => [
+                                  `${new Date(date).toISOString().split('T')[0]}-morning`,
+                                  `${new Date(date).toISOString().split('T')[0]}-afternoon`,
+                                ]);
+                                if (selectedSessions.length === allSessions.length) {
+                                  setSelectedSessions([]);
+                                } else {
+                                  setSelectedSessions(allSessions);
+                                }
+                              }}
+                            >
+                              {selectedSessions.length ===
+                              generateDateRange(startDate, endDate).flatMap((date) => [
+                                `${new Date(date).toISOString().split('T')[0]}-morning`,
+                                `${new Date(date).toISOString().split('T')[0]}-afternoon`,
+                              ]).length
+                                ? 'Bỏ chọn tất cả'
+                                : 'Chọn tất cả'}
+                            </button>
+                          </div>
+                          {generateDateRange(startDate, endDate).map((date) => (
+                            <div key={date} className="flex justify-between ml-6 mb-2">
+                              <div>
+                                {' '}
+                                <span>Ngày {formatDate(date)}</span>
+                              </div>
+                              <div className="flex items-center">
+                                <label className="inline-flex items-center mr-4">
+                                  <input
+                                    type="checkbox"
+                                    className="form-checkbox h-5 w-5 text-blue-600"
+                                    value={`${new Date(date).toISOString().split('T')[0]}-morning`} // Chuyển đổi date sang chuỗi ISO ngắn
+                                    onChange={handleSessionChange}
+                                    checked={selectedSessions.includes(
+                                      `${new Date(date).toISOString().split('T')[0]}-morning`
+                                    )} // Kiểm tra theo chuỗi ISO ngắn
+                                  />
+                                  <span className="ml-2">Sáng</span>
+                                </label>
+                                <label className="inline-flex items-center">
+                                  <input
+                                    type="checkbox"
+                                    className="form-checkbox h-5 w-5 text-blue-600"
+                                    value={`${new Date(date).toISOString().split('T')[0]}-afternoon`} // Chuyển đổi date sang chuỗi ISO ngắn
+                                    onChange={handleSessionChange}
+                                    checked={selectedSessions.includes(
+                                      `${new Date(date).toISOString().split('T')[0]}-afternoon`
+                                    )} // Kiểm tra theo chuỗi ISO ngắn
+                                  />
+                                  <span className="ml-2">Chiều</span>
+                                </label>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                        <div className="flex items-center mb-4">
-                          <span className="text-gray-600">2. 10/09/2021 - Chiều</span>
-                          <input
-                            type="checkbox"
-                            className="form-checkbox h-5 w-5 text-blue-600 transition duration-150 ease-in-out ml-auto"
-                          ></input>
-                        </div>
-                      </>
-                    )}
+                      )}
                   </div>
                   <div className="border-t border-gray-200 pt-4">
                     <div className="flex items-center mb-2">
@@ -1360,18 +1486,37 @@ export default function Student() {
                         type="text"
                         placeholder="Nhập nội dung..."
                         className="w-full border-b border-gray-300 focus:outline-none focus:border-blue-500"
+                        value={leaveReason}
+                        onChange={(e) => setLeaveReason(e.target.value)}
                       />
                     </div>
                   </div>
                   <div className="flex justify-center mt-4">
                     <button
+                      className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 mr-4"
+                      onClick={() => {
+                        setStartDate('');
+                        setEndDate('');
+                        setSelectedSessions([]);
+                        setLeaveReason('');
+                      }}
+                    >
+                      Nhập lại
+                    </button>
+                    <button
                       className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
                       onClick={() => {
+                        if (selectedSessions.length === 0 || !leaveReason) {
+                          alert('Vui lòng chọn ngày nghỉ và ghi lý do');
+                          return;
+                        }
+                        // alert ra selectedSessions
+                        alert(selectedSessions);
                         setShowFullInfoLeaveRequest(true);
                         setShowInfoLeaveRequest(false);
                       }}
                     >
-                      Xem đầy đủ thông tin
+                      Xác nhận
                     </button>
                   </div>
                 </div>
@@ -1396,42 +1541,72 @@ export default function Student() {
                       <h2 className="text-lg font-semibold">Kính gửi</h2>
                     </div>
                     <p className="ml-6">. Ban giám hiệu nhà trường</p>
-                    <p className="ml-6">. Giáo viên chủ nhiệm lớp 7/3 và các thầy cô bộ môn</p>
+                    <p className="ml-6">. Giáo viên chủ nhiệm lớp {studentInfo.className} và các thầy cô bộ môn</p>
                   </div>
                   <div className="mb-4">
                     <div className="flex items-center mb-2">
                       <i className="fas fa-user-circle text-blue-500 mr-2"></i>
                       <h2 className="text-lg font-semibold">Người làm đơn</h2>
                     </div>
-                    <p className="ml-6">. Tôi tên là: Lê Quốc Phòng</p>
-                    <p className="ml-6">. Phụ huynh của em: {studentInfo.userName}</p>
-                    <p className="ml-6">. Lớp: 7/3</p>
+                    <p className="ml-6">- Tôi tên là: {studentInfo.parents[0].userName} </p>
+                    <p className="ml-6">- Phụ huynh của em: {studentInfo.userName}</p>
+                    <p className="ml-6">- Lớp: {studentInfo.className}</p>
                   </div>
                   <div className="mb-4">
                     <div className="flex items-center mb-2">
                       <i className="fas fa-calendar-alt text-red-500 mr-2"></i>
                       <h2 className="text-lg font-semibold">Thời gian nghỉ</h2>
                     </div>
-                    <p className="ml-6">. Tôi làm đơn này xin phép cho con được nghỉ học trong thời gian sau:</p>
-                    <p className="ml-10">+ 10/09/2021 - Sáng</p>
-                    <p className="ml-10">+ 10/09/2021 - Chiều</p>
+                    <p className="ml-6">- Tôi làm đơn này xin phép cho con được nghỉ học trong thời gian sau:</p>
+                    {generateDateRange(startDate, endDate).map((date) => {
+                      const dateString = new Date(date).toISOString().split('T')[0]; // Lấy ngày dạng ISO ngắn
+                      const isMorningSelected = selectedSessions.includes(`${dateString}-morning`);
+                      const isAfternoonSelected = selectedSessions.includes(`${dateString}-afternoon`);
+
+                      return (
+                        <div key={date}>
+                          {isMorningSelected && (
+                            <p className="ml-10">
+                              + {formatDate(date)} - Sáng ({dateString}-morning)
+                            </p>
+                          )}
+                          {isAfternoonSelected && (
+                            <p className="ml-10">
+                              + {formatDate(date)} - Chiều ({dateString}-afternoon)
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                   <div className="mb-4">
                     <div className="flex items-center mb-2">
                       <i className="fas fa-comment-dots text-yellow-500 mr-2"></i>
                       <h2 className="text-lg font-semibold">Lý do</h2>
                     </div>
-                    <p className="ml-6">. xin phép cháu bị ốm</p>
-                    <p className="ml-6">. Kính mong quý thầy cô xem xét, giúp đỡ.</p>
-                    <p className="ml-6">. Tôi sẽ nhắc nhở cháu học bài và làm bài tập đầy đủ.</p>
+                    <p className="ml-6">- {leaveReason}</p>
+                    <p className="ml-6">- Kính mong quý thầy cô xem xét, giúp đỡ.</p>
+                    <p className="ml-6">- Tôi sẽ nhắc nhở cháu học bài và làm bài tập đầy đủ.</p>
                   </div>
                   <div className="text-right mb-4">
                     <p>Xin chân thành cảm ơn</p>
-                    <p>Ngày: 10/09/2021</p>
-                    <p> Lê Quốc Phòng</p>
+                    <p>Ngày: {new Date().toLocaleDateString('vi-VN')}</p>
+                    <p>{studentInfo.parents[0].userName}</p>
                   </div>
                   <div className="text-center">
-                    <button className="bg-blue-500 text-white px-4 py-2 rounded">Gửi</button>
+                    <button
+                      className="bg-blue-500 text-white px-4 py-2 rounded"
+                      onClick={() => {
+                        handleSubmitLeaveRequest();
+                        // sau khi gửi thì reset lại form nội dung đã nhập
+                        setStartDate('');
+                        setEndDate('');
+                        setSelectedSessions([]);
+                        setLeaveReason('');
+                      }}
+                    >
+                      Gửi
+                    </button>
                   </div>
                 </div>
               )}

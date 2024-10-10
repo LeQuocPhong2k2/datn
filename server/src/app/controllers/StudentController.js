@@ -93,22 +93,27 @@ const StudentController = {
       // Tìm thông tin lớp học
       const classInfo = await Class.findOne({
         studentList: student._id,
-      }).select('academicYear grade className homeRoomTeacher maxStudents')
+      }).select('_id academicYear grade className homeRoomTeacher maxStudents')
 
       // Lấy tên giáo viên chủ nhiệm
       let homeRoomTeacherName = ''
+      let homeRoomTeacher_id = ''
       if (classInfo && classInfo.homeRoomTeacher) {
         const teacher = await Teacher.findById(classInfo.homeRoomTeacher)
         homeRoomTeacherName = teacher ? teacher.userName : 'Không có thông tin'
+        homeRoomTeacher_id = teacher ? teacher._id : 'N/A'
       }
 
       // Tạo đối tượng kết quả
       const result = {
         ...student.toObject(), // Chuyển đổi student thành đối tượng
+
         academicYear: classInfo ? classInfo.academicYear : 'N/A',
         grade: classInfo ? classInfo.grade : 'N/A',
+        class_id: classInfo ? classInfo._id : 'N/A',
         className: classInfo ? classInfo.className : 'N/A',
         homeRoomTeacherName: homeRoomTeacherName,
+        homeRoomTeacher_id: homeRoomTeacher_id,
         maxStudents: classInfo ? classInfo.maxStudents : 'N/A',
       }
 
@@ -204,12 +209,10 @@ const StudentController = {
       })
 
       if (checkStudentByPhoneNumberAndName) {
-        return res
-          .status(402)
-          .json({
-            message: 'Số điện thoại đã được đăng ký cho tên này',
-            student: req.body,
-          })
+        return res.status(402).json({
+          message: 'Số điện thoại đã được đăng ký cho tên này',
+          student: req.body,
+        })
       }
 
       /**

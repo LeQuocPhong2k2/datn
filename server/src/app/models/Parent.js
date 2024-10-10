@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
-const Schema = mongoose.Schema;
+const mongoose = require('mongoose')
+const Schema = mongoose.Schema
 
 const ParentSchema = new Schema(
   {
@@ -9,9 +9,9 @@ const ParentSchema = new Schema(
     job: String,
     relationship: String,
   },
-  { collection: "Parent" }
-);
+  { collection: 'Parent' }
+)
 
-const Parent = mongoose.model("Parent", ParentSchema);
+const Parent = mongoose.model('Parent', ParentSchema)
 
-module.exports = Parent;
+module.exports = Parent

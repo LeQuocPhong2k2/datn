@@ -15,6 +15,7 @@ export default function ForgotPassword() {
   const handleForgotPassword = () => {
     // kiểm tra xử lý rỗng
     if (mshs === '' || fullname === '' || phoneNumber === '') {
+      toast.dismiss();
       toast.error('Vui lòng nhập đầy đủ thông tin');
       return;
     } else {
