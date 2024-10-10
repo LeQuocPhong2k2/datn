@@ -120,23 +120,29 @@ export default function Student() {
       year: 'numeric',
     });
   }
-
-  // function handleSessionChange(e) {
-  //   const { value, checked } = e.target;
-  //   setSelectedSessions((prev) => (checked ? [...prev, value] : prev.filter((session) => session !== value)));
-  // }
   function handleSessionChange(e) {
     const { value, checked } = e.target;
 
-    // Chuyển đổi giá trị thành chuỗi ISO ngắn (chỉ lấy phần ngày)
-    const dateValue = new Date(value.split('-')[0]).toISOString().split('T')[0];
-
-    setSelectedSessions((prev) =>
-      checked
-        ? [...prev, `${dateValue}-${value.split('-')[1]}`] // Chỉ lấy phần ngày + morning/afternoon
-        : prev.filter((session) => session !== `${dateValue}-${value.split('-')[1]}`)
+    setSelectedSessions(
+      (prev) =>
+        checked
+          ? [...prev, value] // Thêm session vào mảng khi được chọn
+          : prev.filter((session) => session !== value) // Loại bỏ session khỏi mảng khi bỏ chọn
     );
   }
+
+  // function handleSessionChange(e) {
+  //   const { value, checked } = e.target;
+
+  //   // Chuyển đổi giá trị thành chuỗi ISO ngắn (chỉ lấy phần ngày)
+  //   const dateValue = new Date(value.split('-')[0]).toISOString().split('T')[0];
+
+  //   setSelectedSessions((prev) =>
+  //     checked
+  //       ? [...prev, `${dateValue}-${value.split('-')[1]}`] // Chỉ lấy phần ngày + morning/afternoon
+  //       : prev.filter((session) => session !== `${dateValue}-${value.split('-')[1]}`)
+  //   );
+  // }
 
   // tạo biến lưu lý do nghỉ học
   const [leaveReason, setLeaveReason] = useState('');
@@ -145,11 +151,10 @@ export default function Student() {
     // Chuyển đổi selectedSessions thành định dạng mong muốn
     const formattedSessions = generateDateRange(startDate, endDate).map((date) => {
       const dateString = new Date(date).toISOString().split('T')[0];
-      alert(dateString);
       return {
         date: new Date(date).toISOString(),
-        morning: selectedSessions.includes(`${dateString}- Sáng`) ? true : false,
-        afternoon: selectedSessions.includes(`${dateString}- Chiều`) ? true : false,
+        morning: selectedSessions.includes(`${dateString}-morning`) ? true : false,
+        afternoon: selectedSessions.includes(`${dateString}-afternoon`) ? true : false,
       };
     });
 
@@ -1445,16 +1450,17 @@ export default function Student() {
                                 {' '}
                                 <span>Ngày {formatDate(date)}</span>
                               </div>
+
                               <div className="flex items-center">
                                 <label className="inline-flex items-center mr-4">
                                   <input
                                     type="checkbox"
                                     className="form-checkbox h-5 w-5 text-blue-600"
-                                    value={`${new Date(date).toISOString().split('T')[0]}-morning`} // Chuyển đổi date sang chuỗi ISO ngắn
+                                    value={`${new Date(date).toISOString().split('T')[0]}-morning`}
                                     onChange={handleSessionChange}
                                     checked={selectedSessions.includes(
                                       `${new Date(date).toISOString().split('T')[0]}-morning`
-                                    )} // Kiểm tra theo chuỗi ISO ngắn
+                                    )}
                                   />
                                   <span className="ml-2">Sáng</span>
                                 </label>
@@ -1462,11 +1468,11 @@ export default function Student() {
                                   <input
                                     type="checkbox"
                                     className="form-checkbox h-5 w-5 text-blue-600"
-                                    value={`${new Date(date).toISOString().split('T')[0]}-afternoon`} // Chuyển đổi date sang chuỗi ISO ngắn
+                                    value={`${new Date(date).toISOString().split('T')[0]}-afternoon`}
                                     onChange={handleSessionChange}
                                     checked={selectedSessions.includes(
                                       `${new Date(date).toISOString().split('T')[0]}-afternoon`
-                                    )} // Kiểm tra theo chuỗi ISO ngắn
+                                    )}
                                   />
                                   <span className="ml-2">Chiều</span>
                                 </label>
@@ -1567,12 +1573,14 @@ export default function Student() {
                         <div key={date}>
                           {isMorningSelected && (
                             <p className="ml-10">
-                              + {formatDate(date)} - Sáng ({dateString}-morning)
+                              + {formatDate(date)} - Sáng
+                              {/* ({dateString}-morning) */}
                             </p>
                           )}
                           {isAfternoonSelected && (
                             <p className="ml-10">
-                              + {formatDate(date)} - Chiều ({dateString}-afternoon)
+                              + {formatDate(date)} - Chiều
+                              {/* ({dateString}-afternoon) */}
                             </p>
                           )}
                         </div>
