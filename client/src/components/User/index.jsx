@@ -4,7 +4,9 @@ import Cookies from 'js-cookie'; // Thêm import để sử dụng Cookies
 // import { jwtDecode } from 'jwt-decode';
 import { useState } from 'react'; // Thêm import useState
 import { getFullInfoStudentByCode } from '../../api/Student';
-
+import { changePassword } from '../../api/Accounts';
+import 'react-toastify/dist/ReactToastify.css';
+import { Toaster, toast } from 'react-hot-toast';
 export default function Student() {
   useEffect(() => {
     const student_token = Cookies.get('student_token'); // Lấy token từ cookie
@@ -20,7 +22,7 @@ export default function Student() {
       setStudentInfo(res);
     });
   }, []);
-  console.log('studentInfo là:', studentInfo);
+  // console.log('studentInfo là:', studentInfo);
   const [isMenuOpen, setMenuOpen] = useState(false); // Thêm state để quản lý menu
   // show thông tin toàn bộ menu (thông tin hồ sơ,ds giáo viên,thời khoá biểu,các thư mới nhất,bàio học gần đây)
   const [showAllMenu, setShowAllMenu] = useState(true); // Thêm state để quản lý hiển thị toàn bộ menu
@@ -48,9 +50,47 @@ export default function Student() {
   // chi tiết buổi học
   const [showDetailLesson, setShowDetailLesson] = useState(false);
 
+  // 1 state quản lý khi bấm vào họ tên trên góc tay phải hiển thị mục là thông tin cá nhân,đổi mật khẩu,đăng xuất
+  const [showProfile, setShowProfile] = useState(false);
+  // 1 state h iển thị form thay đổi mật khẩu
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [oldPassword, setOldPassword] = useState();
+  const [newPassword, setNewPassword] = useState();
+  const [confirmPassword, setConfirmPassword] = useState();
+
+  // sự kiện khi bấm nút lưu mật khẩu
+  const handleChangePassword = () => {
+    // kiểm tra có nhập đủ thông tin không
+
+    if (!oldPassword || !newPassword || !confirmPassword) {
+      toast.dismiss();
+      toast.error('Vui lòng nhập đầy đủ thông tin');
+      return;
+    }
+
+    // so sánh mật khẩu mới và mật khẩu xác nhận có giống nhau không
+    else if (newPassword !== confirmPassword) {
+      toast.dismiss();
+      toast.error('Mật khẩu xác nhận không đúng');
+      return;
+    } else {
+      // gọi tới api changePassword do userName trong studentInfo là tên còn trong account là mã học sinh nên ở đây truyền mã học sinh
+      changePassword(studentInfo.studentCode, oldPassword, newPassword)
+        .then((res) => {
+          toast.dismiss();
+          toast.success(res.data.message);
+          setShowChangePassword(false);
+        })
+        .catch((error) => {
+          alert(error);
+        });
+    }
+  };
+
   return (
     <div className="font-sans bg-gray-100 min-h-screen">
       <header className="bg-white p-4 border-b border-gray-300 flex justify-between items-center">
+        <Toaster toastOptions={{ duration: 2200 }} />
         <a href="/student">
           <img
             src="https://i.imgur.com/jRMcFwo_d.png?maxwidth=520&shape=thumb&fidelity=high"
@@ -81,38 +121,153 @@ export default function Student() {
               Trường Tiểu học Nguyễn Bỉnh Khiêm
             </span>
 
-            <a href="/login" className="flex items-center">
-              <i className="fas fa-sign-out-alt mr-2" style={{ color: '#429AB8' }}></i>
-              Đăng Xuất
-            </a>
+            <div className="relative">
+              <a href="#" className="flex items-center" onClick={() => setShowProfile(!showProfile)}>
+                <i className="fas fa-user-circle mr-2" style={{ color: '#429AB8' }}></i>
+                {studentInfo.userName}
+              </a>
+              {showProfile && (
+                <div className="absolute mt-2 w-48 bg-white border rounded shadow-lg">
+                  <a
+                    href="#"
+                    onClick={() => {
+                      setShowStudentProfile(true);
+                      setShowAllMenu(false);
+                      setShowProfile(false);
+                    }}
+                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                  >
+                    Thông tin cá nhân
+                  </a>
+                  <a
+                    href="#"
+                    onClick={() => {
+                      setShowChangePassword(true);
+                      setShowProfile(false);
+                    }}
+                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                  >
+                    Đổi mật khẩu
+                  </a>
+
+                  <a href="/login" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                    Đăng xuất
+                  </a>
+                </div>
+              )}
+            </div>
           </div>
-          {/* Hiện menu cho màn hình điện thoại */}
+          {/* Hiện menu cho màn hình điện thoại */}{' '}
           <button onClick={() => setMenuOpen(!isMenuOpen)} className="md:hidden">
             <i className="fas fa-bars" style={{ color: '#429AB8' }}></i> {/* Dấu ba gạch */}
           </button>
         </div>
-        {isMenuOpen && ( // Hiện menu khi isMenuOpen là true
-          <div className="absolute left-0 bg-white shadow-lg p-4 md:hidden">
+        {isMenuOpen && ( // đây là menu cho responsive mobile hiện
+          <div className="absolute left-0 bg-white shadow-lg p-4 md:hidden" style={{ top: '0px' }}>
+            <span
+              className="flex items-center"
+              onClick={() => {
+                setShowStudentProfile(true);
+                setMenuOpen(false);
+                setShowAllMenu(false);
+                setShowProfile(false);
+              }}
+            >
+              <i className="fas fa-user mr-2" style={{ color: '#429AB8' }}></i>Thông Tin Cá Nhân
+            </span>
+            <span
+              className="flex items-center"
+              onClick={() => {
+                setShowChangePassword(true);
+                setMenuOpen(false);
+              }}
+            >
+              <i className="fas fa-lock mr-2" style={{ color: '#429AB8' }}></i>Đổi Mật Khẩu
+            </span>
+
+            <a href="/login" className="flex items-center">
+              <i className="fas fa-sign-out-alt mr-2" style={{ color: '#429AB8' }}></i>
+              Đăng Xuất
+            </a>
             <span className="flex items-center">
-              <i className="fas fa-envelope mr-2" style={{ color: '#429AB8' }}></i>Hộp thư
+              <i className="fas fa-envelope mr-2" style={{ color: '#429AB8' }}></i>Hộp thư Góp Ý
             </span>
             <span className="flex items-center">
-              <i className="fas fa-phone mr-2" style={{ color: '#429AB8' }}></i>0907021954
+              <i className="fas fa-phone mr-2" style={{ color: '#429AB8' }}></i>SĐT Hỗ Trợ : 0907021954
             </span>
             <span className="flex items-center">
               <i className="fas fa-school mr-2" style={{ color: '#429AB8' }}></i>
               Trường Tiểu học Nguyễn Bỉnh Khiêm
             </span>
-            <a href="/login" className="flex items-center">
-              <i className="fas fa-sign-out-alt mr-2" style={{ color: '#429AB8' }}></i>
-              Đăng Xuất
-            </a>
+          </div>
+        )}
+        {showChangePassword && ( // form thay đổi mật khẩu
+          <div
+            className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+            onClick={() => setShowChangePassword(false)}
+          >
+            <div
+              className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md mx-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-end">
+                <button
+                  className="text-blue-500"
+                  onClick={() => setShowChangePassword(false)} // Close the modal
+                >
+                  <i className="fas fa-times"></i>
+                </button>
+              </div>
+              <form>
+                <div className="mb-4">
+                  <label className="block text-gray-700 text-sm font-bold mb-2">
+                    Mật khẩu cũ <span className="text-red-500">(*)</span>
+                  </label>
+                  <input
+                    type="password"
+                    placeholder="Nhập mật khẩu cũ"
+                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    onChange={(e) => setOldPassword(e.target.value)}
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-gray-700 text-sm font-bold mb-2">
+                    Mật khẩu mới <span className="text-red-500">(*)</span>
+                  </label>
+                  <input
+                    type="password"
+                    placeholder="Nhập mật khẩu mới"
+                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    onChange={(e) => setNewPassword(e.target.value)}
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-gray-700 text-sm font-bold mb-2">
+                    Xác nhận mật khẩu <span className="text-red-500">(*)</span>
+                  </label>
+                  <input
+                    type="password"
+                    placeholder="Xác nhận lại mật khẩu"
+                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                  />
+                </div>
+                <div className="flex items-center justify-end">
+                  <button
+                    onClick={handleChangePassword}
+                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                  >
+                    Lưu
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         )}
       </header>
       {/* Hiển thị menu chính */}
-      {showAllMenu && ( // Hiển thị toàn bộ menu nếu showAllMenu là true}
-        <div className="container mx-auto py-8 px-4 md:px-16 flex flex-col md:flex-row">
+      {showAllMenu && ( // hiển thị thông tin toàn bộ bên dưới menu
+        <div className="container mx-auto py-8 px-4 md:px-32 flex flex-col md:flex-row">
           <div className="w-full md:w-1/3 bg-white p-4 rounded-lg shadow-lg mb-4 md:mr-4">
             <h2 className="text-lg font-bold mb-2 " style={{ color: '#0B6FA1' }}>
               <i className="fas fa-info-circle mr-2" style={{ color: '#0B6FA1' }}></i>Thông Tin Hồ Sơ
@@ -211,7 +366,7 @@ export default function Student() {
                   onMouseLeave={(e) => e.currentTarget.querySelector('div').classList.remove('font-bold')}
                 >
                   <i className="fas fa-user mr-2" style={{ color: '#429AB8' }}></i>
-                  <div className="text-gray-600">GVCN: Hồ Kim Oanh</div>
+                  <div className="text-gray-600">GVCN: {studentInfo.homeRoomTeacherName}</div>
                 </div>
                 {/* Thêm thông tin quá trình học tập ở đây */}
               </div>
@@ -408,7 +563,7 @@ export default function Student() {
         </div>
       )}
 
-      {showStudentProfile && ( // Hiển thị nội dung hồ sơ học sinh nếu showStudentProfile là true
+      {showStudentProfile && ( // phần dưới body
         <div className={`max-w-4xl mx-auto bg-white p-6 rounded shadow ${window.innerWidth > 768 ? 'mt-4' : 'mt-0'}`}>
           <div className="flex space-x-2 mb-4 md:space-x-4 ">
             <div

@@ -103,6 +103,20 @@ async function deleteStudent(studentCode) {
   );
   return response;
 }
+// changePassword cho trang student
+async function changePassword(userName, oldPassword, newPassword) {
+  const response = await axios.post(
+    `${API_URL}/accounts/changePassword`,
+    { userName, oldPassword, newPassword },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+  return response;
+}
+
 export {
   addStudent,
   getAllStudents,
@@ -112,4 +126,5 @@ export {
   editStudent,
   deleteStudent,
   getStudentByNameAndAcademicYearAndGradeAndClassName,
+  changePassword,
 };
