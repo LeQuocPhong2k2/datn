@@ -33,12 +33,19 @@ export default function Student() {
   const [activeTabAcademic, setactiveTabAcademic] = useState('tongket');
 
   const [showContent, setShowContent] = useState(false);
+  const [showContent1, setShowContent1] = useState(false);
   const senderName = 'Admin01'; // Thay thế bằng tên người gửi thực tế
   const createdAt = '2024-09-07T00:00:00.000Z'; // Thay thế bằng thời gian gửi thực tế
   const content = {
     text: 'Nhân dịp Lễ Giáng Sinh 2024 Chúc các thầy cô và các em học sinh có một kỳ nghỉ lễ vui vẻ và hạnh phúc bên gia đình và người thân. Chúc các em học sinh sẽ có một kỳ học mới đầy nhiệt huyết và hứng khởi. Merry Christmas and Happy New Year 2024!',
     link: 'https://www.youtube.com/watch?v=4YBGRGBj7_w',
     image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRVLAlmZuyO7OQx5a9lyBLhl_t1gwimPhrMhw&s',
+  };
+  const content1 = {
+    // hãy viết text về họp phụ huynh
+    text: ' Kính mời quý phụ huynh tham dự buổi họp phụ huynh học sinh vào lúc 7h30 ngày 10/10/2024 tại trường Tiểu học Nguyễn Bỉnh Khiêm. Đây là cơ hội để quý phụ huynh gặp gỡ và trò chuyện với giáo viên, cũng như nhận thông tin về quá trình học tập của con em mình. Hẹn gặp lại quý phụ huynh!',
+    link: 'https://www.youtube.com/watch?v=4YBGRGBj7_w',
+    image: 'https://toplist.vn/images/800px/phai-that-tu-tin-truoc-phu-huynh-921478.jpg',
   };
   // biến quản lý thông tin nhập vào đơn nghĩ học
   const [showInfoLeaveRequest, setShowInfoLeaveRequest] = useState(true);
@@ -50,6 +57,7 @@ export default function Student() {
   const [showLesson, setShowLesson] = useState(true);
   // chi tiết buổi học
   const [showDetailLesson, setShowDetailLesson] = useState(false);
+  const [showDetailLesson1, setShowDetailLesson1] = useState(false);
 
   // 1 state quản lý khi bấm vào họ tên trên góc tay phải hiển thị mục là thông tin cá nhân,đổi mật khẩu,đăng xuất
   const [showProfile, setShowProfile] = useState(false);
@@ -205,8 +213,10 @@ export default function Student() {
             >
               <i className="fas fa-envelope mr-2" style={{ color: '#429AB8' }}></i>Hộp thư góp ý
             </span>
-            <span className="flex items-center">
-              <i className="fas fa-phone mr-2" style={{ color: '#429AB8' }}></i>0907021954
+            <span className="flex items-center cursor-pointer">
+              <a href="tel:0907021954" style={{ textDecoration: 'none' }}>
+                <i className="fas fa-phone mr-2" style={{ color: '#429AB8' }}></i>0907021954
+              </a>
             </span>
             <span className="flex items-center">
               <i className="fas fa-school mr-2" style={{ color: '#429AB8' }}></i>
@@ -214,13 +224,13 @@ export default function Student() {
               Trường Tiểu học Nguyễn Bỉnh Khiêm
             </span>
 
-            <div className="relative">
+            <div className="relative ">
               <a href="#" className="flex items-center" onClick={() => setShowProfile(!showProfile)}>
                 <i className="fas fa-user-circle mr-2" style={{ color: '#429AB8' }}></i>
                 {studentInfo.userName}
               </a>
               {showProfile && (
-                <div className="absolute mt-2 w-48 bg-white border rounded shadow-lg">
+                <div className="absolute mt-2 w-48 bg-white border rounded shadow-lg" style={{ left: '-10px' }}>
                   <a
                     href="#"
                     onClick={() => {
@@ -256,7 +266,7 @@ export default function Student() {
           </button>
         </div>
         {isMenuOpen && ( // đây là menu cho responsive mobile hiện
-          <div className="absolute left-0 bg-white shadow-lg p-4 md:hidden" style={{ top: '0px' }}>
+          <div className="absolute left-0 bg-white shadow-lg p-4  md:hidden" style={{ top: '0px' }}>
             <span
               className="flex items-center"
               onClick={() => {
@@ -631,7 +641,8 @@ export default function Student() {
                 <div className="flex justify-between items-center">
                   <div className="flex items-center">
                     <span>
-                      Trường tiểu học Nguyễn Bỉnh Khiêm ngày mai 11/10 kính mời PHHS tới lớp 1A2 họp phụ huynh học sinh
+                      Trường tiểu học Nguyễn Bỉnh Khiêm ngày mai 11/10 kính mời PHHS tới lớp {studentInfo.className} họp
+                      phụ huynh học sinh
                     </span>
                   </div>
                   <span>
@@ -1253,19 +1264,64 @@ export default function Student() {
             <div>
               {showLesson && (
                 <div className="container mx-auto p-4">
-                  {/* First Card */}
+                  {/*  Card 1*/}
                   <div className="flex border-b pb-4 mb-4">
                     {/* Image Section */}
                     <div className="w-1/3">
                       <img
-                        src="https://kids.hoc247.vn/storage-files/docs/2022/20220928/744x420/633423014a0a8.webp"
+                        src="https://kids.hoc247.vn/storage-files/docs/2022/20220928/744x420/63451d69eb2bc.webp"
                         alt="App Edu.One"
                         className="object-cover w-full h-full rounded-md"
                       />
                     </div>
                     {/* Text Section */}
                     <div className="w-2/3 pl-4">
-                      <h2 className="text-xl font-bold">Em ôn lại những gì đã học </h2>
+                      <h2 className="text-xl font-bold">
+                        Bài 2: Hình vuông - Hình tròn - Hình tam giác - Hình chữ nhật SGK Cánh diều{' '}
+                      </h2>
+                      <div className="mt-2 p-4 bg-gray-100 rounded">
+                        <span>
+                          Trong bài học Hình vuông - Hình tròn - Hình tam giác - Hình chữ nhật, học sinh sẽ được học về
+                          các hình học cơ bản như hình vuông, hình tròn, hình tam giác, hình chữ nhật. Học sinh sẽ được
+                          học cách nhận biết và phân biệt các hình học cơ bản này.
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-500">
+                        11/10/2024 |{' '}
+                        <a
+                          href="#"
+                          className="text-blue-500"
+                          onClick={() => {
+                            setShowLesson(false);
+                            setShowDetailLesson1(true);
+                          }}
+                        >
+                          Xem Chi Tiết
+                        </a>
+                      </p>
+                    </div>
+                  </div>
+
+                  {/*  Card 1*/}
+                  <div className="flex border-b pb-4 mb-4">
+                    {/* Image Section */}
+                    <div className="w-1/3">
+                      <img
+                        src="https://d3.violet.vn//uploads/previews/present/4/635/947/images/Slide1.JPG"
+                        alt="App Edu.One"
+                        className="object-cover w-full h-full rounded-md"
+                      />
+                    </div>
+                    {/* Text Section */}
+                    <div className="w-2/3 pl-4">
+                      <h2 className="text-xl font-bold">Bài 1 Trên - dưới. Phải - trái. Trước sau. Ở giữa </h2>
+                      <div className="mt-2 p-4 bg-gray-100 rounded">
+                        <span>
+                          Trong bài học này, học sinh sẽ được học về các từ ngữ chỉ vị trí trong không gian như trên,
+                          dưới, phải, trái, trước, sau, ở giữa. Học sinh sẽ được học cách sử dụng các từ ngữ này để mô
+                          tả vị trí của các vật trong không gian.
+                        </span>
+                      </div>
                       <p className="text-sm text-gray-500">
                         08/10/2024 |{' '}
                         <a
@@ -1282,35 +1338,386 @@ export default function Student() {
                     </div>
                   </div>
 
-                  {/* Second Card */}
+                  {/*  Card 2 */}
                   <div className="flex flex-col border-t pt-4">
                     <h2 className="text-xl font-bold">
                       Hướng dẫn học sinh sử dụng MS Teams tham gia lớp học trực tuyến
                     </h2>
                     <p className="text-sm text-gray-500">
-                      25/3/2020 |{' '}
-                      <a href="#" className="text-blue-500">
+                      25/09/2024 |{' '}
+                      <a
+                        href="https://docs.google.com/document/d/1DheW41WHB6UD4NCyPGu5gcVSo6HOyaCNqEqOOLeaiF8/edit?tab=t.0"
+                        className="text-blue-500"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
                         Hướng dẫn
                       </a>
                     </p>
-                    <a href="/path/to/file" className="text-red-500 text-sm mt-2">
+                    <a
+                      href="https://docs.google.com/document/d/1DheW41WHB6UD4NCyPGu5gcVSo6HOyaCNqEqOOLeaiF8/export?format=pdf"
+                      className="text-red-500 text-sm mt-2"
+                      rel="noopener noreferrer"
+                    >
                       <i className="fas fa-download"></i> Tải File đính kèm
                     </a>
                   </div>
                 </div>
               )}
               {showDetailLesson && (
-                <div>
+                <div class="container mx-auto p-4">
+                  <div className="flex justify-between items-center">
+                    <button
+                      onClick={() => {
+                        setShowLesson(true);
+                        setShowDetailLesson(false);
+                      }}
+                      className="mr-2"
+                    >
+                      <i className="fas fa-arrow-left text-blue-500"></i> {/* Nút mũi tên quay về */}
+                      <span>
+                        <strong>Quay lại</strong>
+                      </span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setShowLesson(false);
+                        setShowDetailLesson(false);
+                        setShowDetailLesson1(true);
+                      }}
+                      className="ml-2"
+                    >
+                      <span>
+                        <strong>Bài tiếp theo</strong>
+                      </span>
+                      <i className="fas fa-arrow-right text-blue-500"></i> {/* Nút mũi tên chuyển tiếp */}
+                    </button>
+                  </div>
+                  <div class="text-center">
+                    <img
+                      alt="Banner with rainbow, clouds, and a kite"
+                      class="mx-auto mb-4"
+                      height="300"
+                      src="https://kids.hoc247.vn/storage-files/docs/2022/20220928/744x420/6334029ec9e0d.webp"
+                      width="1200"
+                    />
+                    <h1 class="text-3xl font-bold text-red-600">
+                      BÀI 1: TRÊN - DƯỚI, TRÁI - PHẢI, TRƯỚC - SAU, Ở GIỮA
+                    </h1>
+                    <h2 class="text-xl italic">(Cánh diều)</h2>
+                  </div>
+                  <p class="text-center mt-2">
+                    Giải Toán lớp 1 Bài 1: Trên - dưới. Phải - trái. Trước - sau. Ở giữa SGK Cánh diều
+                  </p>
+                  <h2 class="text-2xl font-bold mt-6">1. Tóm tắt lý thuyết</h2>
+                  <div class="flex justify-center mt-4">
+                    <p className="text-center">
+                      <img
+                        alt="Trên - dưới. Phải - trái. Trước sau"
+                        src="https://image1.hoc247.vn/upload/2022/20220928/images/toan-1-bai-1-CD.JPG"
+                        className="w-[500px] h-[181px]"
+                      />
+                    </p>
+                  </div>
+                  <div class="flex justify-center mt-2">
+                    <span class="mx-2">Trên - Dưới</span>
+                    <span class="mx-2">Phải - Trái, Ở giữa</span>
+                    <span class="mx-2">Trước - Sau</span>
+                  </div>
+                  <ul class="list-disc list-inside mt-4">
+                    <li>
+                      Các em nhận biết được phải trái, trên - dưới, phải - trái, trước - sau, ở giữa thông qua hình ảnh
+                      và các đồ vật.
+                    </li>
+                    <li>Các em phân biệt được bên phải, bên trái trên cơ thể mình.</li>
+                    <li>Quan sát đồ vật xung quanh em.</li>
+                    <li>Biết xác định vị trí của đồ vật và con người xung quanh em.</li>
+                  </ul>
+                  <h2 class="text-2xl font-bold mt-6">2. Bài tập minh họa</h2>
+                  <p class="mt-2">Câu 1: Em hãy nhìn vào bức tranh và điền các từ thích hợp vào chỗ chấm:</p>
+                  <img
+                    alt="Dog, cat, and mouse around a dog house"
+                    class="mx-auto my-4"
+                    height="200"
+                    src="https://hoc247.net/fckeditorimg/upload/images/bai-tap-minh-hoa-bai-1-toan-1-Canh-dieu.jpg"
+                    width="300"
+                  />
+                  <ol class="list-decimal list-inside">
+                    <li>Chú chó đang nằm ở bên ... ngôi nhà.</li>
+                    <li>Chú mèo Tom đang đứng phía ... chú chó.</li>
+                    <li>Chú chuột Jerry đang nằm phía ... ngôi nhà.</li>
+                  </ol>
+                  <p class="font-bold mt-2">Hướng dẫn giải</p>
+                  <ol class="list-decimal list-inside">
+                    <li>Chú chó đang nằm ở bên phải ngôi nhà.</li>
+                    <li>Chú mèo Tom đang đứng phía sau chú chó.</li>
+                    <li>Chú chuột Jerry đang nằm phía trước ngôi nhà.</li>
+                  </ol>
+                  <p class="mt-4">Câu 2: Em hãy xem bức tranh dưới đây và khoanh vào câu đúng:</p>
+                  <img
+                    alt="Group of children standing together"
+                    class="mx-auto my-4"
+                    height="200"
+                    src="https://hoc247.net/fckeditorimg/upload/images/bai-tap-minh-hoa-bai1-1-toan-1-Canh-dieu.jpg"
+                    width="300"
+                  />
+                  <ol class="list-decimal list-inside">
+                    <li>Bên phải bạn Xuka là bạn Nobita.</li>
+                    <li>Mẹ Nobita đứng phía trước mẹ máy Doraemon.</li>
+                    <li>Bên trái bạn Xêkô là bạn Chaiko.</li>
+                    <li>Bố Nobita đứng phía sau bạn Xêkô và Chaiko.</li>
+                    <li>Bạn Chaiko đứng phía sau bạn Doraemon và Doremi.</li>
+                    <li>Bên trái bạn Đêkhi là bạn Xuka.</li>
+                  </ol>
+                  <p class="font-bold mt-2">Hướng dẫn giải</p>
+                  <p>Những câu đúng là: 1, 4, 5.</p>
+                  <h2 class="text-2xl font-bold mt-6">3. Bài tập SGK</h2>
+                  <h3 class="text-xl font-bold mt-4">3.1. Giải câu 1 trang 7 SGK Toán 1 CD</h3>
+                  <p>Dùng các từ: trên, dưới, phải, trái, trước, sau, ở giữa để nói về bức tranh sau.</p>
+                  <img
+                    alt="Girl sitting at a desk with books"
+                    class="mx-auto my-4"
+                    height="200"
+                    src="https://image1.hoc247.vn/upload/2022/20220928/images/Luyen-tap-thuc-hanh-cau-1-trang-7-sgk-toan-1-canh-dieu.jpg"
+                    width="300"
+                  />
+                  <p class="font-bold">Phương pháp giải:</p>
+                  <p>Quan sát tranh và dùng các từ trên để nói về các đồ vật.</p>
+                  <p class="font-bold">Lời giải chi tiết:</p>
+                  <ul class="list-disc list-inside">
+                    <li>Quan sát bức tranh ta thấy:</li>
+                    <li>- Cặp sách và cái giá đựng được để dưới cái bàn.</li>
+                    <li>- Hộp bút, quyển sách, thước kẻ thì đặt ở trên cái bàn.</li>
+                    <li>- Cục tẩy và giáy quấn sách thì sách bên trái cục tẩy, thước thì ở bên phải cục tẩy.</li>
+                    <li>- Hộp bút ở trước quyển sách, quyển sách ở sau hộp bút.</li>
+                    <li>- Quyển sách ở trước mặt bạn nhỏ.</li>
+                  </ul>
+                  <h3 class="text-xl font-bold mt-4">3.2. Giải câu 2 trang 7 SGK Toán 1 CD</h3>
+                  <p>
+                    Em nhớ trong bức tranh muốn đến trường thì phải đi sang bên nào? Muốn đến bưu điện thì đi sang bên
+                    nào?
+                  </p>
+                  <img
+                    alt="Child standing at a crossroads with school and post office"
+                    class="mx-auto my-4"
+                    height="200"
+                    src="https://image1.hoc247.vn/upload/2022/20220928/images/Luyen-tap-thuc-hanh-cau-2-trang-7-sgk-toan-1-canh-dieu.jpg"
+                    width="300"
+                  />
+                  <p class="font-bold">Phương pháp giải:</p>
+                  <p>Quan sát tranh để trả lời câu hỏi.</p>
+                  <p class="font-bold">Lời giải chi tiết:</p>
+                  <ul class="list-disc list-inside">
+                    <li>Quan sát bức tranh ta thấy:</li>
+                    <li>- Trường tiểu học ở bên phải bạn nhỏ, bưu điện ở bên trái bạn nhỏ.</li>
+                    <li>Vậy bạn nhỏ muốn đến trường phải đi phải. Bạn nhỏ muốn đến bưu điện phải đi trái.</li>
+                  </ul>
+                  <h3 class="text-xl font-bold mt-4">3.3. Giải câu 3 trang 7 SGK Toán 1 CD</h3>
+                  <p>a) Thực hiện động tác theo hướng dẫn:</p>
+                  <ul class="list-disc list-inside">
+                    <li>- Giơ tay phải.</li>
+                    <li>- Giơ tay trái.</li>
+                    <li>- Vỗ tay trái vào vai phải.</li>
+                    <li>- Vỗ tay phải vào vai trái.</li>
+                  </ul>
+                  <p>b) Trả lời câu hỏi: Phía trước, phía sau, bên phải, bên trái em là bạn nào?</p>
+                  <p class="font-bold">Phương pháp giải:</p>
+                  <p>Thực hiện động tác theo hướng dẫn.</p>
+                  <p>b) Quan sát xung quanh và trả lời câu hỏi.</p>
+                  <p class="font-bold">Lời giải chi tiết:</p>
+                  <p>Học sinh tự thực hiện.</p>
+                  <p class="text-right mt-4">Ngày: 14:45 09/10/2024 - Chia sẻ bởi: Thầy Cao Xuân Chiến</p>
+                </div>
+              )}
+              {showDetailLesson1 && (
+                <div className="p-4">
                   <button
                     onClick={() => {
                       setShowLesson(true);
                       setShowDetailLesson(false);
+                      setShowDetailLesson1(false);
                     }}
                     className="mr-2"
                   >
                     <i className="fas fa-arrow-left text-blue-500"></i> {/* Nút mũi tên quay về */}
+                    <span>
+                      <strong>Quay lại</strong>
+                    </span>
                   </button>
-                  <h2>Chi tiết bài học</h2>
+                  <div className="text-center mb-8">
+                    <img
+                      src="https://kids.hoc247.vn/storage-files/docs/2022/20220928/744x420/63451d69eb2bc.webp"
+                      alt="Banner with children, a bus, and a kite"
+                      className="mx-auto"
+                      width="800"
+                      height="300"
+                    />
+                    <h1 class="text-3xl font-bold text-red-600">
+                      BÀI 2: Hình vuông - Hình tròn - Hình tam giác - Hình chữ nhật
+                    </h1>
+                  </div>
+                  <p class="text-center mt-2">
+                    Giải Toán lớp 1 Bài 2: Hình vuông - Hình tròn - Hình tam giác - Hình chữ nhật
+                  </p>
+                  <div className="mb-8">
+                    <h1 className="text-2xl font-bold mb-4">1. Tóm tắt lý thuyết</h1>
+                    <p className="mb-4">
+                      - Nhận biết và phân biệt được hình tròn, hình tam giác, hình vuông, hình chữ nhật
+                    </p>
+                    <p className="mb-4">- Đọc đúng tên với hình tương ứng.</p>
+                    <div className="flex justify-center mb-4">
+                      <img
+                        src="https://image1.hoc247.vn/upload/2022/20220928/images/toan-1-bai-2-CD.JPG"
+                        alt="Various shapes: square, circle, triangle, rectangle"
+                        width="600"
+                        height="200"
+                      />
+                    </div>
+                    <p className="mb-4">
+                      - Xác định được hình tròn, hình tam giác, hình vuông, hình chữ nhật trong thực tế
+                    </p>
+                    <p className="mb-4">
+                      - Sử dụng các hình tròn, hình tam giác, hình vuông, hình chữ nhật để ghép thành hình khác như:
+                      hình chiếc xe, ngôi nhà, con cá,....
+                    </p>
+                    <div className="flex justify-center">
+                      <img
+                        src="https://storage.googleapis.com/a1aa/image/0qAf1M04RX0WESUeWzLue3UzKei0j91sVafaxaUzUZZyqBucC.jpg"
+                        alt="Fish made of various shapes"
+                        width="200"
+                        height="200"
+                      />
+                    </div>
+                  </div>
+                  <div className="mb-8">
+                    <h1 className="text-2xl font-bold mb-4">2. Bài tập minh họa</h1>
+                    <p className="mb-4">
+                      <strong>Câu 1:</strong> Gọi tên các đồ vật có hình tam giác:
+                    </p>
+                    <div className="flex justify-center mb-4">
+                      <img
+                        src="https://hoc247.net/fckeditorimg/upload/images/bai-tap-minh-hoa-bai-2-toan-1-Canh-dieu(1).jpg"
+                        alt="Various objects with triangular shapes"
+                        width="200"
+                        height="400"
+                      />
+                    </div>
+                    <p className="mb-4">
+                      <strong>Hướng dẫn giải:</strong>
+                    </p>
+                    <p className="mb-4">Các đồ vật có hình tam giác là: bánh pizza, thước kẻ, cây thông và quả dâu.</p>
+                    <p className="mb-4">
+                      <strong>Câu 2:</strong> Cho biết có bao nhiêu ảnh về có dạng hình hình tròn?
+                    </p>
+                    <div className="flex justify-center mb-4">
+                      <img
+                        src="https://hoc247.net/fckeditorimg/upload/images/tim-hinh-tron.PNG"
+                        alt="Various objects with circular shapes"
+                        width="200"
+                        height="200"
+                      />
+                    </div>
+                    <p className="mb-4">
+                      <strong>Hướng dẫn giải:</strong>
+                    </p>
+                    <p className="mb-4">Đáp án có 4 hình tròn</p>
+                    <div className="flex justify-center mb-4">
+                      <img
+                        src="https://hoc247.net/fckeditorimg/upload/images/dap-an-bai-tap-minh-hoa-cau-1.PNG"
+                        alt="Various objects with circular shapes"
+                        width="200"
+                        height="200"
+                      />
+                    </div>
+                  </div>
+                  <div className="mb-8">
+                    <h1 className="text-2xl font-bold mb-4">3. Bài tập SGK</h1>
+                    <h2 className="text-xl font-bold mb-4">3.1. Giải câu 1 trang 9 SGK Toán 1 CD</h2>
+                    <p className="mb-4">
+                      Kể tên đồ vật trong hình vẽ có dạng: hình vuông, hình tròn, hình tam giác, hình chữ nhật.
+                    </p>
+                    <div className="flex justify-center mb-4">
+                      <img
+                        src="https://image1.hoc247.vn/upload/2022/20220928/images/Luyen-tap-thuc-hanh-cau-1-trang-9-sgk-toan-1-canh-dieu.jpg"
+                        alt="Various objects with different shapes"
+                        width="600"
+                        height="200"
+                      />
+                    </div>
+                    <p className="mb-4">
+                      <strong>Phương pháp giải:</strong>
+                    </p>
+                    <p className="mb-4">
+                      Quan sát tranh và kể tên đồ vật trong hình vẽ có dạng: hình vuông, hình tròn, hình tam giác, hình
+                      chữ nhật.
+                    </p>
+                    <p className="mb-4">
+                      <strong>Lời giải chi tiết:</strong>
+                    </p>
+                    <p className="mb-4">- Đồ vật có dạng hình vuông: Bức tranh</p>
+                    <p className="mb-4">- Đồ vật có dạng hình tròn: Đĩa nhạc, biển báo cấm ô tô</p>
+                    <p className="mb-4">- Đồ vật có dạng hình tam giác: Biển báo dành cho người đi bộ</p>
+                    <p className="mb-4">- Đồ vật có dạng hình chữ nhật: Phong thư</p>
+                    <h2 className="text-xl font-bold mb-4">3.2. Giải câu 2 trang 9 SGK Toán 1 CD</h2>
+                    <p className="mb-4">Hình tam giác có màu gì? Hình vuông có màu gì? Gọi tên các hình có màu đó.</p>
+                    <div className="flex justify-center mb-4">
+                      <img
+                        src="https://image1.hoc247.vn/upload/2022/20220928/images/Luyen-tap-thuc-hanh-cau-2-trang-9-sgk-toan-1-canh-dieu.jpg"
+                        alt="Various shapes with different colors"
+                        width="600"
+                        height="200"
+                      />
+                    </div>
+                    <p className="mb-4">
+                      <strong>Phương pháp giải:</strong>
+                    </p>
+                    <p className="mb-4">Quan sát hình vẽ để trả lời câu hỏi.</p>
+                    <h2 className="text-xl font-bold mb-4">3.3. Giải câu 3 trang 9 SGK Toán 1 CD</h2>
+                    <p className="mb-4">Ghép hình em thích:</p>
+                    <div className="flex justify-center mb-4">
+                      <img
+                        src="https://image1.hoc247.vn/upload/2022/20220928/images/Luyen-tap-thuc-hanh-cau-3-trang-9-sgk-toan-1-canh-dieu.jpg"
+                        alt="Various objects made of different shapes"
+                        width="600"
+                        height="200"
+                      />
+                    </div>
+                    <p className="mb-4">
+                      <strong>Phương pháp giải:</strong>
+                    </p>
+                    <p className="mb-4">Học sinh tự thực hiện.</p>
+                    <p className="mb-4">
+                      <strong>Lời giải chi tiết:</strong>
+                    </p>
+                    <p className="mb-4">Học sinh tự thực hiện.</p>
+                    <h2 className="text-xl font-bold mb-4">3.4. Giải câu 4 trang 9 SGK Toán 1 CD</h2>
+                    <p className="mb-4">
+                      Kể tên các đồ vật trong thực tế có dạng: hình vuông, hình tròn, hình tam giác, hình chữ nhật.
+                    </p>
+                    <p className="mb-4">
+                      <strong>Phương pháp giải:</strong>
+                    </p>
+                    <p className="mb-4">
+                      HS quan sát và kể tên các đồ vật trong thực tế có dạng: hình vuông, hình tròn, hình tam giác, hình
+                      chữ nhật.
+                    </p>
+                    <p className="mb-4">
+                      <strong>Lời giải chi tiết:</strong>
+                    </p>
+                    <p className="mb-4">
+                      - Các đồ vật có dạng hình vuông như: khăn mùi xoa, gạch lát sàn, ô cửa sổ, ....
+                    </p>
+                    <p className="mb-4">- Các đồ vật có dạng hình tròn như: bánh xe, cái đĩa, cái nấm, ....</p>
+                    <p className="mb-4">
+                      - Các đồ vật có dạng hình tam giác như: khăn quàng đỏ, cờ thi đua, cái kẻ, ....
+                    </p>
+                    <p className="mb-4">- Các đồ vật có dạng hình chữ nhật như: quyển vở, hộp bút, bảng viết, ....</p>
+                  </div>
+                  <div className="text-center text-gray-500 text-sm">
+                    <p>Ngày 11/10/2024</p>
+                    <p>Chia sẻ bởi: Thầy Nguyễn Đức Trí</p>
+                  </div>
                 </div>
               )}
             </div>
@@ -1319,10 +1726,40 @@ export default function Student() {
             <div>
               {/* Nội dung cho Thông báo */}
               <h2 className="text-xl font-bold mb-4">Thông Báo</h2>
+              {/* Thông báo họp phụ huynh */}
               <div className="bg-white p-4 rounded-lg shadow-md mb-4">
                 <div className="flex justify-between items-center">
                   <div>
-                    <strong>Người gửi:</strong>
+                    <strong>Người gửi: </strong>
+
+                    {senderName}
+                  </div>
+                  <div>
+                    <strong>Thời gian: </strong>
+                    {new Date(createdAt).toLocaleString()} {/* Thay createdAt bằng thời gian gửi */}
+                  </div>
+                </div>
+                <h3
+                  className="text-lg font-semibold mt-2 cursor-pointer text-blue-500"
+                  onClick={() => setShowContent1(!showContent1)}
+                >
+                  Thông báo họp phụ huynh {/* Tiêu đề thông báo */}
+                </h3>
+                {showContent1 && ( // Hiển thị nội dung khi nhấp vào tiêu đề
+                  <div className="mt-2">
+                    <p>{content1.text}</p> {/* Nội dung thông báo */}
+                    {content1.image && (
+                      <div className="mt-2 flex justify-center">
+                        <img src={content1.image} alt="Thông báo" className="w-200 h-200 object-cover" />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              <div className="bg-white p-4 rounded-lg shadow-md mb-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <strong>Người gửi: </strong>
 
                     {senderName}
                   </div>
@@ -1517,7 +1954,7 @@ export default function Student() {
                           return;
                         }
                         // alert ra selectedSessions
-                        alert(selectedSessions);
+
                         setShowFullInfoLeaveRequest(true);
                         setShowInfoLeaveRequest(false);
                       }}
