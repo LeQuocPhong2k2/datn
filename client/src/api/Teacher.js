@@ -1,5 +1,7 @@
 import axios from 'axios';
 
+const HOST = process.env.HOST_SERVER;
+
 async function addGiaoVien(giaoVien) {
   try {
     const response = await axios.post('http://localhost:3000/teachers/addGiaoVien', giaoVien, {
@@ -48,4 +50,23 @@ async function getGiaoVienChuaPhanCongChuNhiem(namHoc) {
   }
 }
 
-export { addGiaoVien, getAllGiaoViens, getGiaoVienChuaPhanCongChuNhiem };
+async function getGiaoVienByDepartment(department) {
+  try {
+    console.log('Getting teachers by department...', department);
+    const response = await axios.post(
+      `${HOST}/teachers/getGiaoVienByDepartment`,
+      { department },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Get teachers by department error:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+}
+
+export { addGiaoVien, getAllGiaoViens, getGiaoVienChuaPhanCongChuNhiem, getGiaoVienByDepartment };

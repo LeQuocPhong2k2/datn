@@ -80,4 +80,21 @@ async function deleteSubject(subjectCode) {
   }
 }
 
-export { addSubject, findAllSubject, updateSubject, deleteSubject };
+async function getSubjectAssignments(subjectName) {
+  try {
+    const response = await axios.post(
+      'http://localhost:3000/subjects/getSubjectAssignments',
+      { subjectName },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Get subject assignments error:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+}
+export { addSubject, findAllSubject, updateSubject, deleteSubject, getSubjectAssignments };

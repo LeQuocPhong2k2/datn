@@ -1,11 +1,11 @@
-const mongoose = require('mongoose')
-const Schema = mongoose.Schema
+const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
 
 const GiaoVienSchema = new Schema(
   {
     account: {
       type: Schema.Types.ObjectId,
-      ref: 'Account',
+      ref: "Account",
     },
     userName: String,
     dateOfBirth: String,
@@ -14,12 +14,13 @@ const GiaoVienSchema = new Schema(
     levelOfExpertise: String,
     address: String,
     dateOfEnrollment: Date,
+    department: String,
     role: String,
     isDeleted: { type: Boolean, default: false }, // Thêm trường xoá teacher mặc định là false
   },
-  { collection: 'Teacher' }
-)
+  { collection: "Teacher" }
+);
 
-const GiaoVien = mongoose.model('Teacher', GiaoVienSchema)
+const GiaoVien = mongoose.model("Teacher", GiaoVienSchema);
 
-module.exports = GiaoVien
+module.exports = GiaoVien;

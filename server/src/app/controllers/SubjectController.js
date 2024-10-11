@@ -1,5 +1,6 @@
 require("dotenv").config({ path: "../../../../.env" });
 const Subject = require("../models/Subject");
+const Teacher = require("../models/Teacher");
 
 const SubjectController = {
   async addSubject(req, res) {
@@ -102,6 +103,48 @@ const SubjectController = {
         return res.status(200).json({ message: "Subject deleted" });
       }
 
+      return res.status(404).json({ error: "Subject not found" });
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  },
+
+  async getSubjectAssignments(req, res) {
+    const { subjectName } = req.body;
+    try {
+      const subject = await Subject.aggregate([
+        {
+          $match: {
+            subjectName: subjectName,
+          },
+        },
+        {
+          $lookup: {
+            from: "Teacher",
+            localField: "subjectType",
+            foreignField: "department",
+            as: "teachers",
+          },
+        },
+        {
+          $project: {
+            subjectName: 1,
+            subjectCode: 1,
+            subjectDescription: 1,
+            subjectCredits: 1,
+            subjectGrade: 1,
+            subjectType: 1,
+            teachers: {
+              _id: 1,
+              userName: 1,
+            },
+          },
+        },
+      ]);
+
+      if (subject) {
+        return res.status(200).json(subject);
+      }
       return res.status(404).json({ error: "Subject not found" });
     } catch (error) {
       return res.status(500).json({ error: error.message });
