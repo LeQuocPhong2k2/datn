@@ -3,7 +3,11 @@ import { useEffect } from 'react';
 import Cookies from 'js-cookie'; // Thêm import để sử dụng Cookies
 // import { jwtDecode } from 'jwt-decode';
 import { useState } from 'react'; // Thêm import useState
-
+import { getFullInfoStudentByCode } from '../../api/Student';
+import { changePassword } from '../../api/Accounts';
+import 'react-toastify/dist/ReactToastify.css';
+import { Toaster, toast } from 'react-hot-toast';
+import { createLeaveRequest } from '../../api/LeaveRequest';
 export default function Student() {
   useEffect(() => {
     const student_token = Cookies.get('student_token'); // Lấy token từ cookie
@@ -11,6 +15,15 @@ export default function Student() {
       window.location.href = '/login'; // Nếu không có token, chuyển hướng về trang login
     }
   }, []);
+  // gọi tới apiu getFullInfoStudentByCode đựa trên studentCode ở trong cookie
+  const studentCode = Cookies.get('studentCode');
+  const [studentInfo, setStudentInfo] = useState({});
+  useEffect(() => {
+    getFullInfoStudentByCode(studentCode).then((res) => {
+      setStudentInfo(res);
+    });
+  }, []);
+  // console.log('studentInfo là:', studentInfo);
   const [isMenuOpen, setMenuOpen] = useState(false); // Thêm state để quản lý menu
   // show thông tin toàn bộ menu (thông tin hồ sơ,ds giáo viên,thời khoá biểu,các thư mới nhất,bàio học gần đây)
   const [showAllMenu, setShowAllMenu] = useState(true); // Thêm state để quản lý hiển thị toàn bộ menu
@@ -38,9 +51,139 @@ export default function Student() {
   // chi tiết buổi học
   const [showDetailLesson, setShowDetailLesson] = useState(false);
 
+  // 1 state quản lý khi bấm vào họ tên trên góc tay phải hiển thị mục là thông tin cá nhân,đổi mật khẩu,đăng xuất
+  const [showProfile, setShowProfile] = useState(false);
+  // 1 state h iển thị form thay đổi mật khẩu
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [oldPassword, setOldPassword] = useState();
+  const [newPassword, setNewPassword] = useState();
+  const [confirmPassword, setConfirmPassword] = useState();
+
+  // sự kiện khi bấm nút lưu mật khẩu
+  const handleChangePassword = () => {
+    // kiểm tra có nhập đủ thông tin không
+
+    if (!oldPassword || !newPassword || !confirmPassword) {
+      toast.dismiss();
+      toast.error('Vui lòng nhập đầy đủ thông tin');
+      return;
+    }
+
+    // so sánh mật khẩu mới và mật khẩu xác nhận có giống nhau không
+    else if (newPassword !== confirmPassword) {
+      toast.dismiss();
+      toast.error('Mật khẩu xác nhận không đúng');
+      return;
+    } else {
+      // gọi tới api changePassword do userName trong studentInfo là tên còn trong account là mã học sinh nên ở đây truyền mã học sinh
+      changePassword(studentInfo.studentCode, oldPassword, newPassword)
+        .then((res) => {
+          toast.dismiss();
+          toast.success(res.data.message);
+          setShowChangePassword(false);
+        })
+        .catch((error) => {
+          alert(error);
+        });
+    }
+  };
+  // 1 state hiển thị lên xuống thười khoá biểu ở màn hình chính
+  const [showTimeTable, setShowTimeTable] = useState(true);
+  // 1 state hiển thị thông báo notice ở màn hình chính
+  const [showNotice, setShowNotice] = useState(true);
+  // 1 state hiển thị thông báo bài học gần đây ở màn hình chính
+  const [showLessonHome, setShowLessonHome] = useState(true);
+
+  // phần state nghĩ học
+  // Add these new state variables
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [selectedSessions, setSelectedSessions] = useState([]);
+  // hàm xử lý tạo ngày nghĩ dựa trên ngày bắt đầu và ngày kết thúc
+  function generateDateRange(start, end) {
+    const dates = [];
+    let currentDate = new Date(start);
+    const endDate = new Date(end);
+
+    while (currentDate <= endDate) {
+      dates.push(new Date(currentDate));
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    return dates;
+  }
+  // format ngày tháng theo việt nam
+  function formatDate(date) {
+    return new Date(date).toLocaleDateString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+  }
+  function handleSessionChange(e) {
+    const { value, checked } = e.target;
+
+    setSelectedSessions(
+      (prev) =>
+        checked
+          ? [...prev, value] // Thêm session vào mảng khi được chọn
+          : prev.filter((session) => session !== value) // Loại bỏ session khỏi mảng khi bỏ chọn
+    );
+  }
+
+  // function handleSessionChange(e) {
+  //   const { value, checked } = e.target;
+
+  //   // Chuyển đổi giá trị thành chuỗi ISO ngắn (chỉ lấy phần ngày)
+  //   const dateValue = new Date(value.split('-')[0]).toISOString().split('T')[0];
+
+  //   setSelectedSessions((prev) =>
+  //     checked
+  //       ? [...prev, `${dateValue}-${value.split('-')[1]}`] // Chỉ lấy phần ngày + morning/afternoon
+  //       : prev.filter((session) => session !== `${dateValue}-${value.split('-')[1]}`)
+  //   );
+  // }
+
+  // tạo biến lưu lý do nghỉ học
+  const [leaveReason, setLeaveReason] = useState('');
+  // xử lý sự kiện khi bấm gửi đơn nghỉ học
+  const handleSubmitLeaveRequest = () => {
+    // Chuyển đổi selectedSessions thành định dạng mong muốn
+    const formattedSessions = generateDateRange(startDate, endDate).map((date) => {
+      const dateString = new Date(date).toISOString().split('T')[0];
+      return {
+        date: new Date(date).toISOString(),
+        morning: selectedSessions.includes(`${dateString}-morning`) ? true : false,
+        afternoon: selectedSessions.includes(`${dateString}-afternoon`) ? true : false,
+      };
+    });
+
+    createLeaveRequest(
+      studentInfo._id,
+      studentInfo.parents[0]._id,
+      studentInfo.homeRoomTeacher_id,
+      studentInfo.class_id,
+      startDate,
+      endDate,
+      leaveReason,
+      formattedSessions
+    )
+      .then((response) => {
+        console.log('Leave request created successfully:', response);
+        alert('Đã gửi đơn nghỉ học thành công');
+        setShowFullInfoLeaveRequest(false);
+        setShowInfoLeaveRequest(true);
+      })
+      .catch((error) => {
+        console.error('Error creating leave request:', error);
+        alert('Đã xảy ra lỗi khi gửi đơn nghỉ học. Vui lòng thử lại sau.' + error);
+      });
+  };
+
   return (
     <div className="font-sans bg-gray-100 min-h-screen">
       <header className="bg-white p-4 border-b border-gray-300 flex justify-between items-center">
+        <Toaster toastOptions={{ duration: 2200 }} />
         <a href="/student">
           <img
             src="https://i.imgur.com/jRMcFwo_d.png?maxwidth=520&shape=thumb&fidelity=high"
@@ -52,7 +195,7 @@ export default function Student() {
           {/* Hiển thị menu cho màn hình desktop */}
           <div className="hidden md:flex items-center space-x-4">
             <span
-              className="flex items-center"
+              className="flex items-center cursor-default hover:cursor-pointer"
               onClick={() =>
                 window.open(
                   'https://mail.google.com/mail/?view=cm&fs=1&to=duct6984@gmail.com&su=Góp ý về website sổ liên lạc điện tử',
@@ -70,30 +213,162 @@ export default function Student() {
               {/* Thêm biểu tượng trường học với màu xanh dạng #429AB8 */}
               Trường Tiểu học Nguyễn Bỉnh Khiêm
             </span>
+
+            <div className="relative">
+              <a href="#" className="flex items-center" onClick={() => setShowProfile(!showProfile)}>
+                <i className="fas fa-user-circle mr-2" style={{ color: '#429AB8' }}></i>
+                {studentInfo.userName}
+              </a>
+              {showProfile && (
+                <div className="absolute mt-2 w-48 bg-white border rounded shadow-lg">
+                  <a
+                    href="#"
+                    onClick={() => {
+                      setShowStudentProfile(true);
+                      setShowAllMenu(false);
+                      setShowProfile(false);
+                    }}
+                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                  >
+                    Thông tin cá nhân
+                  </a>
+                  <a
+                    href="#"
+                    onClick={() => {
+                      setShowChangePassword(true);
+                      setShowProfile(false);
+                    }}
+                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                  >
+                    Đổi mật khẩu
+                  </a>
+
+                  <a href="/login" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                    Đăng xuất
+                  </a>
+                </div>
+              )}
+            </div>
           </div>
-          {/* Hiện menu cho màn hình điện thoại */}
+          {/* Hiện menu cho màn hình điện thoại */}{' '}
           <button onClick={() => setMenuOpen(!isMenuOpen)} className="md:hidden">
             <i className="fas fa-bars" style={{ color: '#429AB8' }}></i> {/* Dấu ba gạch */}
           </button>
         </div>
-        {isMenuOpen && ( // Hiện menu khi isMenuOpen là true
-          <div className="absolute left-0 bg-white shadow-lg p-4 md:hidden">
-            <span className="flex items-center">
-              <i className="fas fa-envelope mr-2" style={{ color: '#429AB8' }}></i>Hộp thư
+        {isMenuOpen && ( // đây là menu cho responsive mobile hiện
+          <div className="absolute left-0 bg-white shadow-lg p-4 md:hidden" style={{ top: '0px' }}>
+            <span
+              className="flex items-center"
+              onClick={() => {
+                setShowStudentProfile(true);
+                setMenuOpen(false);
+                setShowAllMenu(false);
+                setShowProfile(false);
+              }}
+            >
+              <i className="fas fa-user mr-2" style={{ color: '#429AB8' }}></i>Thông Tin Cá Nhân
+            </span>
+            <span
+              className="flex items-center"
+              onClick={() => {
+                setShowChangePassword(true);
+                setMenuOpen(false);
+              }}
+            >
+              <i className="fas fa-lock mr-2" style={{ color: '#429AB8' }}></i>Đổi Mật Khẩu
+            </span>
+
+            <span
+              className="flex items-center cursor-default hover:cursor-pointer"
+              onClick={() =>
+                window.open(
+                  'https://mail.google.com/mail/?view=cm&fs=1&to=duct6984@gmail.com&su=Góp ý về website sổ liên lạc điện tử',
+                  '_blank'
+                )
+              }
+            >
+              <i className="fas fa-envelope mr-2" style={{ color: '#429AB8' }}></i>Hộp thư góp ý
             </span>
             <span className="flex items-center">
-              <i className="fas fa-phone mr-2" style={{ color: '#429AB8' }}></i>0907021954
+              <i className="fas fa-phone mr-2" style={{ color: '#429AB8' }}></i>SĐT Hỗ Trợ : 0907021954
             </span>
             <span className="flex items-center">
               <i className="fas fa-school mr-2" style={{ color: '#429AB8' }}></i>
               Trường Tiểu học Nguyễn Bỉnh Khiêm
             </span>
+            <a href="/login" className="flex items-center">
+              <i className="fas fa-sign-out-alt mr-2" style={{ color: '#429AB8' }}></i>
+              Đăng Xuất
+            </a>
+          </div>
+        )}
+        {showChangePassword && ( // form thay đổi mật khẩu
+          <div
+            className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+            onClick={() => setShowChangePassword(false)}
+          >
+            <div
+              className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md mx-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-end">
+                <button
+                  className="text-blue-500"
+                  onClick={() => setShowChangePassword(false)} // Close the modal
+                >
+                  <i className="fas fa-times"></i>
+                </button>
+              </div>
+              <form>
+                <div className="mb-4">
+                  <label className="block text-gray-700 text-sm font-bold mb-2">
+                    Mật khẩu cũ <span className="text-red-500">(*)</span>
+                  </label>
+                  <input
+                    type="password"
+                    placeholder="Nhập mật khẩu cũ"
+                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    onChange={(e) => setOldPassword(e.target.value)}
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-gray-700 text-sm font-bold mb-2">
+                    Mật khẩu mới <span className="text-red-500">(*)</span>
+                  </label>
+                  <input
+                    type="password"
+                    placeholder="Nhập mật khẩu mới"
+                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    onChange={(e) => setNewPassword(e.target.value)}
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-gray-700 text-sm font-bold mb-2">
+                    Xác nhận mật khẩu <span className="text-red-500">(*)</span>
+                  </label>
+                  <input
+                    type="password"
+                    placeholder="Xác nhận lại mật khẩu"
+                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                  />
+                </div>
+                <div className="flex items-center justify-end">
+                  <button
+                    onClick={handleChangePassword}
+                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                  >
+                    Lưu
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         )}
       </header>
       {/* Hiển thị menu chính */}
-      {showAllMenu && ( // Hiển thị toàn bộ menu nếu showAllMenu là true}
-        <div className="container mx-auto py-8 px-4 md:px-16 flex flex-col md:flex-row">
+      {showAllMenu && ( // hiển thị thông tin toàn bộ bên dưới menu
+        <div className="container mx-auto py-8 px-4 md:px-32 flex flex-col md:flex-row">
           <div className="w-full md:w-1/3 bg-white p-4 rounded-lg shadow-lg mb-4 md:mr-4">
             <h2 className="text-lg font-bold mb-2 " style={{ color: '#0B6FA1' }}>
               <i className="fas fa-info-circle mr-2" style={{ color: '#0B6FA1' }}></i>Thông Tin Hồ Sơ
@@ -103,22 +378,25 @@ export default function Student() {
             <div className="flex flex-col md:flex-row justify-between">
               <div className="w-full md:w-1/2 text-center">
                 <img
-                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTfjUNC6tqBRQQZonwx0-vsJuTeDLetRoi-fp5Yee6shI1zXVumCeuE4mKye97fxwLgrj0&usqp=CAU"
+                  src={
+                    studentInfo.gender === 'Nam'
+                      ? 'https://cdn-icons-png.flaticon.com/512/4537/4537074.png'
+                      : 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTfjUNC6tqBRQQZonwx0-vsJuTeDLetRoi-fp5Yee6shI1zXVumCeuE4mKye97fxwLgrj0&usqp=CAU'
+                  }
                   alt="Student Profile Picture"
                   className="rounded-full w-24 h-24 mx-auto"
                 />
 
                 <div className="mt-4">
-                  <div className="font-bold">Nguyễn Ngọc Diệu An</div>
-                  {/* <div className="text-gray-600">Lớp 1A2</div>
-                <div className="text-gray-600">MSHS : 20245437</div> */}
-                  <div className=" flex justify-center space-x-4">
-                    <div className="text-gray-600 ">
-                      Lớp: <b>1A2</b>
+                  <div className="font-bold">{studentInfo.userName}</div>
+
+                  <div className="flex flex-col md:flex-row justify-center space-y-2 md:space-y-0 md:space-x-4 break-words md:flex-wrap">
+                    <div className="text-gray-600">
+                      Lớp: <b>{studentInfo.className}</b>
                     </div>
 
-                    <div className="text-gray-600 ">
-                      MSHS:<b>20245437</b>
+                    <div className="text-gray-600">
+                      MSHS:<b>{studentInfo.studentCode}</b>
                     </div>
                   </div>
                 </div>
@@ -189,7 +467,7 @@ export default function Student() {
                   onMouseLeave={(e) => e.currentTarget.querySelector('div').classList.remove('font-bold')}
                 >
                   <i className="fas fa-user mr-2" style={{ color: '#429AB8' }}></i>
-                  <div className="text-gray-600">GVCN: Hồ Kim Oanh</div>
+                  <div className="text-gray-600">GVCN: {studentInfo.homeRoomTeacherName}</div>
                 </div>
                 {/* Thêm thông tin quá trình học tập ở đây */}
               </div>
@@ -226,142 +504,190 @@ export default function Student() {
           </div>
           <div className="w-full md:w-2/3">
             <div className="bg-white p-4 rounded-lg shadow-lg mb-4 ">
-              <h2 className="text-lg font-bold mb-2" style={{ color: '#0B6FA1' }}>
-                <i className="far fa-calendar-alt mr-2" style={{ color: '#0B6FA1' }}></i>Thời Khóa Biểu
-              </h2>
-              <div className="overflow-x-auto">
-                {' '}
-                {/* Thêm div để tạo khả năng cuộn cho bảng trên thiết bị di động */}
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="bg-[#429AB8] text-white">
-                      <th className="border p-2">Buổi</th>
-                      <th className="border p-2">Tiết</th>
-                      <th className="border p-2">Thứ 2</th>
-                      <th className="border p-2">Thứ 3</th>
-                      <th className="border p-2">Thứ 4</th>
-                      <th className="border p-2">Thứ 5</th>
-                      <th className="border p-2">Thứ 6</th>
-                      <th className="border p-2">Thứ 7</th>
-                      <th className="border p-2">Chủ nhật</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td className="border p-2">Sáng</td>
-                      <td className="border p-2">1</td>
-                      <td className="border p-2">Chào cờ</td>
-                      <td className="border p-2">Sinh hoạt lớp</td>
-                      <td className="border p-2">Sinh học</td>
-                      <td className="border p-2">Thể dục</td>
-                      <td className="border p-2">GDCD</td>
-                      <td className="border p-2"></td>
-                      <td className="border p-2"></td>
-                    </tr>
-                    <tr>
-                      <td className="border p-2"></td>
-                      <td className="border p-2">2</td>
-                      <td className="border p-2">Sinh hoạt lớp</td>
-                      <td className="border p-2">Sinh học</td>
-                      <td className="border p-2">Địa lí</td>
-                      <td className="border p-2">Công nghệ</td>
-                      <td className="border p-2">Mĩ Thuật</td>
-                      <td className="border p-2"></td>
-                      <td className="border p-2"></td>
-                    </tr>
-                    <tr>
-                      <td className="border p-2"></td>
-                      <td className="border p-2">3</td>
-                      <td className="border p-2">Âm nhạc</td>
-                      <td className="border p-2">Ngữ Văn</td>
-                      <td className="border p-2">GDCD</td>
-                      <td className="border p-2">Tin học</td>
-                      <td className="border p-2">Thể dục</td>
-                      <td className="border p-2"></td>
-                      <td className="border p-2"></td>
-                    </tr>
-                    <tr>
-                      <td className="border p-2"></td>
-                      <td className="border p-2">4</td>
-                      <td className="border p-2">Công nghệ</td>
-                      <td className="border p-2">Tin học</td>
-                      <td className="border p-2">Toán</td>
-                      <td className="border p-2">Thể dục</td>
-                      <td className="border p-2">Toán</td>
-                      <td className="border p-2"></td>
-                      <td className="border p-2"></td>
-                    </tr>
-                    <tr>
-                      <td className="border p-2"></td>
-                      <td className="border p-2">5</td>
-                      <td className="border p-2">Địa lí</td>
-                      <td className="border p-2">Tin học</td>
-                      <td className="border p-2">Vật lí</td>
-                      <td className="border p-2">Ngữ Văn</td>
-                      <td className="border p-2">Ngữ Văn</td>
-                      <td className="border p-2"></td>
-                      <td className="border p-2"></td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>{' '}
-              {/* Kết thúc div cuộn */}
+              <div className="flex justify-between items-center">
+                <h2 className="text-lg font-bold mb-2" style={{ color: '#0B6FA1' }}>
+                  <i className="far fa-calendar-alt mr-2" style={{ color: '#0B6FA1' }}></i>Thời Khóa Biểu
+                </h2>
+                <button onClick={() => setShowTimeTable(!showTimeTable)} className="text-blue-500 focus:outline-none">
+                  <i className={`fas fa-chevron-${showTimeTable ? 'up' : 'down'}`}></i>
+                </button>
+              </div>
+              {/* Thời khoá biểu */}
+              {showTimeTable && (
+                <div className="overflow-x-auto">
+                  {' '}
+                  {/* Thêm div để tạo khả năng cuộn cho bảng trên thiết bị di động */}
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="bg-[#429AB8] text-white">
+                        <th className="border p-2">Buổi</th>
+                        <th className="border p-2">Tiết</th>
+                        <th className="border p-2">Thứ 2</th>
+                        <th className="border p-2">Thứ 3</th>
+                        <th className="border p-2">Thứ 4</th>
+                        <th className="border p-2">Thứ 5</th>
+                        <th className="border p-2">Thứ 6</th>
+                        <th className="border p-2">Thứ 7</th>
+                        <th className="border p-2">Chủ nhật</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td className="border p-2">Sáng</td>
+                        <td className="border p-2">1</td>
+                        <td className="border p-2">HĐTN</td>
+                        <td className="border p-2">GDTC</td>
+                        <td className="border p-2">Tiếng Việt</td>
+                        <td className="border p-2">Tiếng Việt</td>
+                        <td className="border p-2">Tiếng Việt</td>
+
+                        <td className="border p-2"></td>
+                        <td className="border p-2"></td>
+                      </tr>
+                      <tr>
+                        <td className="border p-2"></td>
+                        <td className="border p-2">2</td>
+                        <td className="border p-2">Tiếng Việt</td>
+                        <td className="border p-2">Tiếng Việt</td>
+                        <td className="border p-2">Toán</td>
+                        <td className="border p-2">Toán</td>
+                        <td className="border p-2">Toán</td>
+                        <td className="border p-2"></td>
+                        <td className="border p-2"></td>
+                      </tr>
+                      <tr>
+                        <td className="border p-2"></td>
+                        <td className="border p-2">3</td>
+                        <td className="border p-2">Đạo Đức</td>
+                        <td className="border p-2">Toán</td>
+                        <td className="border p-2">Anh Văn</td>
+                        <td className="border p-2">Khoa Học</td>
+                        <td className="border p-2">HĐTN</td>
+                        <td className="border p-2"></td>
+                        <td className="border p-2"></td>
+                      </tr>
+                      <tr>
+                        <td className="border p-2"></td>
+                        <td className="border p-2">4</td>
+                        <td className="border p-2">Toán</td>
+                        <td className="border p-2">Khoa Học</td>
+                        <td className="border p-2">Anh Văn</td>
+                        <td className="border p-2">Lịch Sử & Địa Lý</td>
+                        <td className="border p-2">POKI</td>
+
+                        <td className="border p-2"></td>
+                        <td className="border p-2"></td>
+                      </tr>
+
+                      <tr>
+                        <td className="border p-2"> Chiều</td>
+                        <td className="border p-2">5</td>
+                        <td className="border p-2">GDTC</td>
+                        <td className="border p-2">Tiếng Việt</td>
+                        <td className="border p-2">Tin Học</td>
+                        <td className="border p-2">Anh Văn</td>
+                        <td className="border p-2"></td>
+                        <td className="border p-2"></td>
+                        <td className="border p-2"></td>
+                      </tr>
+                      <tr>
+                        <td className="border p-2"></td>
+                        <td className="border p-2">6</td>
+                        <td className="border p-2">Công Nghệ</td>
+                        <td className="border p-2">Lịch sử & Địa lý</td>
+                        <td className="border p-2">Mĩ Thuật</td>
+                        <td className="border p-2">Anh Văn</td>
+                        <td className="border p-2"></td>
+                        <td className="border p-2"></td>
+                        <td className="border p-2"></td>
+                      </tr>
+                      <tr>
+                        <td className="border p-2"></td>
+                        <td className="border p-2">7</td>
+                        <td className="border p-2">Âm nhạc</td>
+                        <td className="border p-2">HĐTN</td>
+                        <td className="border p-2">Tiếng Việt</td>
+                        <td className="border p-2">L Tiếng Việt</td>
+                        <td className="border p-2"></td>
+                        <td className="border p-2"></td>
+                        <td className="border p-2"></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
             <div className="bg-white p-4 rounded-lg shadow-lg mb-4">
-              <h2 className="text-lg font-bold mb-2" style={{ color: '#0B6FA1' }}>
-                <i className="fas fa-envelope mr-2"></i>Các Thư Mới Nhất
-              </h2>
               <div className="flex justify-between items-center">
-                <div className="flex items-center">
+                <h2 className="text-lg font-bold mb-2" style={{ color: '#0B6FA1' }}>
+                  <i className="fas fa-envelope mr-2"></i>Các Thư Mới Nhất
+                </h2>
+                <button onClick={() => setShowNotice(!showNotice)} className="text-blue-500 focus:outline-none">
+                  <i className={`fas fa-chevron-${showNotice ? 'up' : 'down'}`}></i>
+                </button>
+              </div>
+
+              {showNotice && (
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center">
+                    <span>
+                      Trường tiểu học Nguyễn Bỉnh Khiêm ngày mai 11/10 kính mời PHHS tới lớp 1A2 họp phụ huynh học sinh
+                    </span>
+                  </div>
                   <span>
-                    Trường tiểu học Nguyễn Bỉnh Khiêm ngày mai 11/10 kính mời PHHS tới lớp 1A2 họp phụ huynh học sinh
+                    <a
+                      href="#"
+                      onClick={() => {
+                        setShowStudentProfile(true);
+                        setActiveTab('notice');
+                        setShowAllMenu(false);
+                      }}
+                      className="flex items-center"
+                      onMouseEnter={(e) => e.currentTarget.classList.add('font-bold')}
+                      onMouseLeave={(e) => e.currentTarget.classList.remove('font-bold')}
+                    >
+                      Xem
+                    </a>
                   </span>
                 </div>
-                <span>
-                  <a
-                    href="#"
-                    onClick={() => {
-                      setShowStudentProfile(true);
-                      setActiveTab('notice');
-                      setShowAllMenu(false);
-                    }}
-                    className="flex items-center"
-                    onMouseEnter={(e) => e.currentTarget.classList.add('font-bold')}
-                    onMouseLeave={(e) => e.currentTarget.classList.remove('font-bold')}
-                  >
-                    Xem
-                  </a>
-                </span>
-              </div>
+              )}
             </div>
             <div className="bg-white p-4 rounded-lg shadow-lg">
-              <h2 className="text-lg font-bold mb-2" style={{ color: '#0B6FA1' }}>
-                <i className="fas fa-info-circle mr-2"></i> Bài Học Gần Đây
-              </h2>
-              <div className="flex items-center">
-                <span>Chưa có thông tin về bài học gần đây</span>
-                <span className="ml-auto">
-                  <a
-                    href="#"
-                    onClick={() => {
-                      setShowStudentProfile(true);
-                      setActiveTab('lesson');
-                      setShowAllMenu(false);
-                    }}
-                    className="flex items-center"
-                    onMouseEnter={(e) => e.currentTarget.classList.add('font-bold')}
-                    onMouseLeave={(e) => e.currentTarget.classList.remove('font-bold')}
-                  >
-                    Xem
-                  </a>
-                </span>
+              <div className="flex justify-between items-center">
+                <h2 className="text-lg font-bold mb-2" style={{ color: '#0B6FA1' }}>
+                  <i className="fas fa-info-circle mr-2"></i> Bài Học Gần Đây
+                </h2>
+                <button onClick={() => setShowLessonHome(!showLessonHome)} className="text-blue-500 focus:outline-none">
+                  <i className={`fas fa-chevron-${showLessonHome ? 'up' : 'down'}`}></i>
+                </button>
               </div>
+
+              {showLessonHome && (
+                <div className="flex items-center">
+                  <span>Chưa có thông tin về bài học gần đây</span>
+                  <span className="ml-auto">
+                    <a
+                      href="#"
+                      onClick={() => {
+                        setShowStudentProfile(true);
+                        setActiveTab('lesson');
+                        setShowAllMenu(false);
+                      }}
+                      className="flex items-center"
+                      onMouseEnter={(e) => e.currentTarget.classList.add('font-bold')}
+                      onMouseLeave={(e) => e.currentTarget.classList.remove('font-bold')}
+                    >
+                      Xem
+                    </a>
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>
       )}
 
-      {showStudentProfile && ( // Hiển thị nội dung hồ sơ học sinh nếu showStudentProfile là true
+      {showStudentProfile && ( // phần dưới body
         <div className={`max-w-4xl mx-auto bg-white p-6 rounded shadow ${window.innerWidth > 768 ? 'mt-4' : 'mt-0'}`}>
           <div className="flex space-x-2 mb-4 md:space-x-4 ">
             <div
@@ -464,62 +790,78 @@ export default function Student() {
                 </h2>
                 <div className="flex">
                   <div className="w-1/3 text-center">
-                    <img
+                    {/* <img
                       src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTfjUNC6tqBRQQZonwx0-vsJuTeDLetRoi-fp5Yee6shI1zXVumCeuE4mKye97fxwLgrj0&usqp=CAU"
                       alt="Student Profile Picture"
                       className="rounded-full w-50 h-50 mx-auto"
+                    /> */}
+
+                    <img
+                      src={
+                        studentInfo.gender === 'Nam'
+                          ? 'https://cdn-icons-png.flaticon.com/512/4537/4537074.png'
+                          : 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTfjUNC6tqBRQQZonwx0-vsJuTeDLetRoi-fp5Yee6shI1zXVumCeuE4mKye97fxwLgrj0&usqp=CAU'
+                      }
+                      alt="Student Profile Picture"
+                      className="rounded-full mx-auto"
+                      style={{ width: '200px', height: '200px' }}
                     />
+
                     <p className="font-bold" style={{ color: '#0B6FA1' }}>
-                      Nguyễn Ngọc Diệu An
+                      {studentInfo.userName}
                     </p>
-                    <p style={{ color: '#0B6FA1' }}>Lớp 1A2</p>
+                    {/* <p style={{ color: '#0B6FA1' }}> Năm học :{studentInfo.academicYear}</p> */}
                   </div>
                   <div className="w-2/3">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <strong>Khối:</strong> Khối 6
+                        <strong>Khối:</strong> {studentInfo.grade}
                       </div>
                       <div>
-                        <strong>Tên lớp:</strong> 6A10
+                        <strong>Tên lớp:</strong> {studentInfo.className}
                       </div>
                       <div>
-                        <strong>Mã HS:</strong> 20245437
+                        <strong>Mã HS:</strong> {studentInfo.studentCode}
+                      </div>
+
+                      <div>
+                        <strong>Trạng thái:</strong> {studentInfo.status}
                       </div>
                       <div>
-                        <strong>Hình thức vào trường:</strong> Trúng tuyển
+                        <strong>Họ tên:</strong> {studentInfo.userName}
                       </div>
                       <div>
-                        <strong>Trạng thái:</strong> Đang học
+                        <strong>Giới tính:</strong> {studentInfo.gender}
+                      </div>
+
+                      <div>
+                        <strong>Địa chỉ:</strong> {studentInfo.address}
                       </div>
                       <div>
-                        <strong>Giới tính:</strong> Nữ
+                        <strong>Ngày sinh:</strong> {studentInfo.dateOfBirth}
                       </div>
                       <div>
-                        <strong>Họ tên:</strong> Nguyễn Ngọc Diệu An
+                        <strong>Ngày vào trường:</strong>{' '}
+                        {new Date(studentInfo.dateOfEnrollment).toLocaleDateString('vi-VN', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric',
+                        })}
                       </div>
                       <div>
-                        <strong>Nơi sinh:</strong> Long Mỹ, Hậu Giang
+                        <strong>Năm học:</strong> {studentInfo.academicYear}
                       </div>
                       <div>
-                        <strong>Ngày sinh:</strong> 24/09/2009
+                        <strong>Dân tộc:</strong> {studentInfo.ethnicGroups}
                       </div>
                       <div>
-                        <strong>Ngày vào trường:</strong> 15/09/2020
-                      </div>
-                      <div>
-                        <strong>Quê quán:</strong> Long Mỹ, Hậu Giang
-                      </div>
-                      <div>
-                        <strong>Thuộc diện:</strong> Bán trú
-                      </div>
-                      <div>
-                        <strong>Xếp loại tốt nghiệp cấp dưới:</strong> Khá
+                        <strong>GVCN:</strong> {studentInfo.homeRoomTeacherName}
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-              <div className="border-b-2 border-gray-300 py-4">
+              {/* <div className="border-b-2 border-gray-300 py-4">
                 <div className="flex items-center">
                   <h2 className="text-xl font-bold mb-4" style={{ color: '#0B6FA1' }}>
                     <i className="fas fa-user mr-2" style={{ color: '#0B6FA1' }}></i> THÔNG TIN CÁ NHÂN
@@ -551,7 +893,7 @@ export default function Student() {
                     <strong>Nhóm máu:</strong> Nhóm AB
                   </div>
                 </div>
-              </div>
+              </div> */}
 
               <div className="border-b-2 border-gray-300 py-4">
                 <h2 className="text-xl font-bold mb-4 flex items-center" style={{ color: '#0B6FA1' }}>
@@ -559,36 +901,47 @@ export default function Student() {
                 </h2>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <strong>Họ Tên:</strong> Nguyễn Văn A
+                    <strong>Họ Tên:</strong> {studentInfo.parents[0].userName}
                   </div>
+                  {studentInfo.parents[1] && (
+                    <div>
+                      <strong>Họ Tên:</strong> {studentInfo.parents[1].userName}
+                    </div>
+                  )}
                   <div>
-                    <strong>Mẹ:</strong> Trần Thị B
+                    <strong>Mối Quan Hệ:</strong> {studentInfo.parents[0].relationship}
                   </div>
+                  {studentInfo.parents[1] && (
+                    <div>
+                      <strong>Mối Quan Hệ:</strong> {studentInfo.parents[1].relationship}
+                    </div>
+                  )}
                   <div>
-                    <strong>Mối Quan Hệ:</strong> Cha
+                    <strong>Ngày Sinh: </strong>
+                    {studentInfo.parents[0].dateOfBirth}
                   </div>
+                  {studentInfo.parents[1] && (
+                    <div>
+                      <strong>Ngày Sinh:</strong> {studentInfo.parents[1].dateOfBirth}
+                    </div>
+                  )}
                   <div>
-                    <strong>Mối Quan Hệ:</strong> Mẹ
+                    <strong>Số điện thoại: </strong> {studentInfo.parents[0].phoneNumber}
                   </div>
-                  <div>
-                    <strong>Ngày Sinh:</strong> 08/13/1959
-                  </div>
-                  <div>
-                    <strong>Ngày Sinh:</strong> 13/10/1987
-                  </div>
-                  <div>
-                    <strong>Số điện thoại: </strong> 0718452336
-                  </div>
-                  <div>
-                    <strong>Số điện thoại: </strong> 0386452336
-                  </div>
+                  {studentInfo.parents[1] && (
+                    <div>
+                      <strong>Số điện thoại: </strong> {studentInfo.parents[1].phoneNumber}
+                    </div>
+                  )}
 
                   <div>
-                    <strong>Công việc</strong> Nhân Viên Văn Phòng
+                    <strong>Công việc</strong> {studentInfo.parents[0].job}
                   </div>
-                  <div>
-                    <strong>Công việc</strong> Giảng Viên Đại Học
-                  </div>
+                  {studentInfo.parents[1] && (
+                    <div>
+                      <strong>Công việc</strong> {studentInfo.parents[1].job}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -1009,30 +1362,8 @@ export default function Student() {
                   <div className="flex items-center mb-4">
                     <i className="fas fa-user text-blue-500 mr-2"></i>
                     <span className="text-gray-600">Người làm đơn:</span>
-                    <span className="ml-2 text-blue-500 font-semibold">Lê Quốc Phòng</span>
+                    <span className="ml-2 text-blue-500 font-semibold">{studentInfo.parents[0].userName}</span>
                   </div>
-                  {/* <div className="border-t border-gray-200 pt-4">
-                    <div className="flex items-center mb-2">
-                      <i className="fas fa-calendar-alt text-red-500 mr-2"></i>
-                      <span className="text-gray-600">Thời gian nghỉ</span>
-                    </div>
-                    <div className="ml-6 mb-2 flex items-center">
-                      <span className="text-gray-600">Nghỉ từ: </span>
-                      <input
-                        type="date"
-                        className="ml-2 text-black font-semibold"
-                        min={new Date().toISOString().split('T')[0]}
-                      />
-                    </div>
-                    <div className="ml-6 flex items-center">
-                      <span className="text-gray-600">Đến ngày:</span>
-                      <input
-                        type="date"
-                        className="ml-2 text-black font-semibold"
-                        min={new Date().toISOString().split('T')[0]}
-                      />
-                    </div>
-                  </div> */}
 
                   <div className="border-t border-gray-200 pt-4 mb-4">
                     <div className="flex items-center border-b border-gray-200 mb-4">
@@ -1047,6 +1378,8 @@ export default function Student() {
                           type="date"
                           className="ml-6 text-black  font-bold  w-60" // Adjusted to use full width
                           min={new Date().toISOString().split('T')[0]}
+                          value={startDate}
+                          onChange={(e) => setStartDate(e.target.value)}
                         />
                       </div>
                       <div className="flex items-center">
@@ -1054,7 +1387,9 @@ export default function Student() {
                         <input
                           type="date"
                           className="ml-2 text-black font-bold w-60" // Adjusted to use full width
-                          min={new Date().toISOString().split('T')[0]}
+                          min={startDate}
+                          value={endDate}
+                          onChange={(e) => setEndDate(e.target.value)}
                         />
                       </div>
                     </div>
@@ -1073,24 +1408,79 @@ export default function Student() {
                       </button>
                     </div>
 
-                    {showScheduleLeaveRequest && ( // Hiển thị checkbox nếu showSchedule là true
-                      <>
-                        <div className="flex items-center mb-2">
-                          <span className="text-gray-600">1. 10/09/2021 - Sáng</span>
-                          <input
-                            type="checkbox"
-                            className="form-checkbox h-5 w-5 text-blue-600 transition duration-150 ease-in-out ml-auto"
-                          ></input>
+                    {showScheduleLeaveRequest &&
+                      startDate &&
+                      endDate && ( // Hiển thị checkbox nếu showSchedule là true
+                        <div className="border-t border-gray-200 pt-4">
+                          <div className="flex justify-end mb-2">
+                            <button
+                              className={`${
+                                selectedSessions.length ===
+                                generateDateRange(startDate, endDate).flatMap((date) => [
+                                  `${new Date(date).toISOString().split('T')[0]}-morning`,
+                                  `${new Date(date).toISOString().split('T')[0]}-afternoon`,
+                                ]).length
+                                  ? 'bg-red-500 hover:bg-red-600'
+                                  : 'bg-blue-500 hover:bg-blue-600'
+                              } text-white px-2 py-1 rounded-lg`}
+                              onClick={() => {
+                                const allSessions = generateDateRange(startDate, endDate).flatMap((date) => [
+                                  `${new Date(date).toISOString().split('T')[0]}-morning`,
+                                  `${new Date(date).toISOString().split('T')[0]}-afternoon`,
+                                ]);
+                                if (selectedSessions.length === allSessions.length) {
+                                  setSelectedSessions([]);
+                                } else {
+                                  setSelectedSessions(allSessions);
+                                }
+                              }}
+                            >
+                              {selectedSessions.length ===
+                              generateDateRange(startDate, endDate).flatMap((date) => [
+                                `${new Date(date).toISOString().split('T')[0]}-morning`,
+                                `${new Date(date).toISOString().split('T')[0]}-afternoon`,
+                              ]).length
+                                ? 'Bỏ chọn tất cả'
+                                : 'Chọn tất cả'}
+                            </button>
+                          </div>
+                          {generateDateRange(startDate, endDate).map((date) => (
+                            <div key={date} className="flex justify-between ml-6 mb-2">
+                              <div>
+                                {' '}
+                                <span>Ngày {formatDate(date)}</span>
+                              </div>
+
+                              <div className="flex items-center">
+                                <label className="inline-flex items-center mr-4">
+                                  <input
+                                    type="checkbox"
+                                    className="form-checkbox h-5 w-5 text-blue-600"
+                                    value={`${new Date(date).toISOString().split('T')[0]}-morning`}
+                                    onChange={handleSessionChange}
+                                    checked={selectedSessions.includes(
+                                      `${new Date(date).toISOString().split('T')[0]}-morning`
+                                    )}
+                                  />
+                                  <span className="ml-2">Sáng</span>
+                                </label>
+                                <label className="inline-flex items-center">
+                                  <input
+                                    type="checkbox"
+                                    className="form-checkbox h-5 w-5 text-blue-600"
+                                    value={`${new Date(date).toISOString().split('T')[0]}-afternoon`}
+                                    onChange={handleSessionChange}
+                                    checked={selectedSessions.includes(
+                                      `${new Date(date).toISOString().split('T')[0]}-afternoon`
+                                    )}
+                                  />
+                                  <span className="ml-2">Chiều</span>
+                                </label>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                        <div className="flex items-center mb-4">
-                          <span className="text-gray-600">2. 10/09/2021 - Chiều</span>
-                          <input
-                            type="checkbox"
-                            className="form-checkbox h-5 w-5 text-blue-600 transition duration-150 ease-in-out ml-auto"
-                          ></input>
-                        </div>
-                      </>
-                    )}
+                      )}
                   </div>
                   <div className="border-t border-gray-200 pt-4">
                     <div className="flex items-center mb-2">
@@ -1102,18 +1492,37 @@ export default function Student() {
                         type="text"
                         placeholder="Nhập nội dung..."
                         className="w-full border-b border-gray-300 focus:outline-none focus:border-blue-500"
+                        value={leaveReason}
+                        onChange={(e) => setLeaveReason(e.target.value)}
                       />
                     </div>
                   </div>
                   <div className="flex justify-center mt-4">
                     <button
+                      className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 mr-4"
+                      onClick={() => {
+                        setStartDate('');
+                        setEndDate('');
+                        setSelectedSessions([]);
+                        setLeaveReason('');
+                      }}
+                    >
+                      Nhập lại
+                    </button>
+                    <button
                       className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
                       onClick={() => {
+                        if (selectedSessions.length === 0 || !leaveReason) {
+                          alert('Vui lòng chọn ngày nghỉ và ghi lý do');
+                          return;
+                        }
+                        // alert ra selectedSessions
+                        alert(selectedSessions);
                         setShowFullInfoLeaveRequest(true);
                         setShowInfoLeaveRequest(false);
                       }}
                     >
-                      Xem đầy đủ thông tin
+                      Xác nhận
                     </button>
                   </div>
                 </div>
@@ -1138,42 +1547,74 @@ export default function Student() {
                       <h2 className="text-lg font-semibold">Kính gửi</h2>
                     </div>
                     <p className="ml-6">. Ban giám hiệu nhà trường</p>
-                    <p className="ml-6">. Giáo viên chủ nhiệm lớp 7/3 và các thầy cô bộ môn</p>
+                    <p className="ml-6">. Giáo viên chủ nhiệm lớp {studentInfo.className} và các thầy cô bộ môn</p>
                   </div>
                   <div className="mb-4">
                     <div className="flex items-center mb-2">
                       <i className="fas fa-user-circle text-blue-500 mr-2"></i>
                       <h2 className="text-lg font-semibold">Người làm đơn</h2>
                     </div>
-                    <p className="ml-6">. Tôi tên là: Lê Quốc Phòng</p>
-                    <p className="ml-6">. Phụ huynh của em: Nguyễn Ngọc Diệu An</p>
-                    <p className="ml-6">. Lớp: 7/3</p>
+                    <p className="ml-6">- Tôi tên là: {studentInfo.parents[0].userName} </p>
+                    <p className="ml-6">- Phụ huynh của em: {studentInfo.userName}</p>
+                    <p className="ml-6">- Lớp: {studentInfo.className}</p>
                   </div>
                   <div className="mb-4">
                     <div className="flex items-center mb-2">
                       <i className="fas fa-calendar-alt text-red-500 mr-2"></i>
                       <h2 className="text-lg font-semibold">Thời gian nghỉ</h2>
                     </div>
-                    <p className="ml-6">. Tôi làm đơn này xin phép cho con được nghỉ học trong thời gian sau:</p>
-                    <p className="ml-10">+ 10/09/2021 - Sáng</p>
-                    <p className="ml-10">+ 10/09/2021 - Chiều</p>
+                    <p className="ml-6">- Tôi làm đơn này xin phép cho con được nghỉ học trong thời gian sau:</p>
+                    {generateDateRange(startDate, endDate).map((date) => {
+                      const dateString = new Date(date).toISOString().split('T')[0]; // Lấy ngày dạng ISO ngắn
+                      const isMorningSelected = selectedSessions.includes(`${dateString}-morning`);
+                      const isAfternoonSelected = selectedSessions.includes(`${dateString}-afternoon`);
+
+                      return (
+                        <div key={date}>
+                          {isMorningSelected && (
+                            <p className="ml-10">
+                              + {formatDate(date)} - Sáng
+                              {/* ({dateString}-morning) */}
+                            </p>
+                          )}
+                          {isAfternoonSelected && (
+                            <p className="ml-10">
+                              + {formatDate(date)} - Chiều
+                              {/* ({dateString}-afternoon) */}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                   <div className="mb-4">
                     <div className="flex items-center mb-2">
                       <i className="fas fa-comment-dots text-yellow-500 mr-2"></i>
                       <h2 className="text-lg font-semibold">Lý do</h2>
                     </div>
-                    <p className="ml-6">. xin phép cháu bị ốm</p>
-                    <p className="ml-6">. Kính mong quý thầy cô xem xét, giúp đỡ.</p>
-                    <p className="ml-6">. Tôi sẽ nhắc nhở cháu học bài và làm bài tập đầy đủ.</p>
+                    <p className="ml-6">- {leaveReason}</p>
+                    <p className="ml-6">- Kính mong quý thầy cô xem xét, giúp đỡ.</p>
+                    <p className="ml-6">- Tôi sẽ nhắc nhở cháu học bài và làm bài tập đầy đủ.</p>
                   </div>
                   <div className="text-right mb-4">
                     <p>Xin chân thành cảm ơn</p>
-                    <p>Ngày: 10/09/2021</p>
-                    <p> Lê Quốc Phòng</p>
+                    <p>Ngày: {new Date().toLocaleDateString('vi-VN')}</p>
+                    <p>{studentInfo.parents[0].userName}</p>
                   </div>
                   <div className="text-center">
-                    <button className="bg-blue-500 text-white px-4 py-2 rounded">Gửi</button>
+                    <button
+                      className="bg-blue-500 text-white px-4 py-2 rounded"
+                      onClick={() => {
+                        handleSubmitLeaveRequest();
+                        // sau khi gửi thì reset lại form nội dung đã nhập
+                        setStartDate('');
+                        setEndDate('');
+                        setSelectedSessions([]);
+                        setLeaveReason('');
+                      }}
+                    >
+                      Gửi
+                    </button>
                   </div>
                 </div>
               )}

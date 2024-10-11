@@ -1,5 +1,7 @@
 import axios from 'axios';
 
+const API_URL = process.env.REACT_APP_API_URL; // Lấy URL từ biến môi trường giá tị của nó là http://localhost:3000
+
 async function addStudent(student) {
   const response = await axios.post('http://localhost:3000/students/addStudent', student, {
     headers: {
@@ -48,7 +50,7 @@ async function getStudentByNameAndAcademicYearAndGradeAndClassName(userName) {
 
 async function searchStudents(studentCode) {
   const response = await axios.post(
-    'http://localhost:3000/students/searchStudents',
+    `${API_URL}/students/searchStudents`,
     {
       grade: studentCode.grade,
       className: studentCode.className,
@@ -70,7 +72,7 @@ async function searchStudents(studentCode) {
 // getFullInfoStudentByCode cho trang sửa hồ sơ học sinh
 async function getFullInfoStudentByCode(studentCode) {
   const response = await axios.post(
-    'http://localhost:3000/students/getFullInfoStudentByCode',
+    `${API_URL}/students/getFullInfoStudentByCode`,
     { studentCode },
     {
       headers: {
@@ -82,7 +84,7 @@ async function getFullInfoStudentByCode(studentCode) {
 }
 // editStudent cho trang sửa hồ sơ học sinh
 async function editStudent(student) {
-  const response = await axios.post('http://localhost:3000/students/editStudent', student, {
+  const response = await axios.post(`${API_URL}/students/editStudent`, student, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -91,7 +93,7 @@ async function editStudent(student) {
 }
 async function deleteStudent(studentCode) {
   const response = await axios.post(
-    'http://localhost:3000/students/deleteStudent',
+    `${API_URL}/students/deleteStudent`,
     { studentCode },
     {
       headers: {
@@ -101,6 +103,20 @@ async function deleteStudent(studentCode) {
   );
   return response;
 }
+// changePassword cho trang student
+async function changePassword(userName, oldPassword, newPassword) {
+  const response = await axios.post(
+    `${API_URL}/accounts/changePassword`,
+    { userName, oldPassword, newPassword },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+  return response;
+}
+
 export {
   addStudent,
   getAllStudents,
@@ -110,4 +126,5 @@ export {
   editStudent,
   deleteStudent,
   getStudentByNameAndAcademicYearAndGradeAndClassName,
+  changePassword,
 };

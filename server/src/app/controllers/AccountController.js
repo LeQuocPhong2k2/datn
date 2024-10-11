@@ -70,6 +70,31 @@ const AccountController = {
       res.status(500).json({ error: 'Internal server error' })
     }
   },
+  changePassword: async (req, res) => {
+    const { oldPassword, newPassword } = req.body
+    const { userName } = req.body // Assuming req.user is available from middleware or authentication
+
+    try {
+      const account = await Account.findOne({ userName })
+      if (!account) {
+        return res.status(404).json({ error: 'Tài khoản không tồn tại' })
+      }
+
+      // Kiểm tra mật khẩu cũ có đúng không
+      if (account.password !== oldPassword) {
+        return res.status(401).json({ error: 'Mật khẩu cũ không chính xác' })
+      }
+
+      // Đổi mật khẩu mới
+      account.password = newPassword
+      await account.save()
+
+      res.status(200).json({ message: 'Mật khẩu đã được đổi thành công' })
+    } catch (error) {
+      console.error('Lỗi khi đổi mật khẩu:', error)
+      res.status(500).json({ error: 'Internal server error' })
+    }
+  },
 
   findAccountById: async (req, res) => {
     const { account_id } = req.body
