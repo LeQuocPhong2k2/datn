@@ -4,4 +4,8 @@ const LeaveRequestController = require('../app/controllers/LeaveRequestControlle
 
 router.post('/createLeaveRequest', LeaveRequestController.createLeaveRequest)
 router.post('/getAllLeaveRequests', LeaveRequestController.getAllLeaveRequests)
+router.post(
+  '/getLeaveRequestsByStudentId',
+  LeaveRequestController.getLeaveRequestsByStudentId
+)
 module.exports = router

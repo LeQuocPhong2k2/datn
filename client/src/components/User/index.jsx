@@ -7,7 +7,10 @@ import { getFullInfoStudentByCode } from '../../api/Student';
 import { changePassword } from '../../api/Accounts';
 import 'react-toastify/dist/ReactToastify.css';
 import { Toaster, toast } from 'react-hot-toast';
-import { createLeaveRequest } from '../../api/LeaveRequest';
+import { createLeaveRequest, getLeaveRequestsByStudentId } from '../../api/LeaveRequest';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+
 export default function Student() {
   useEffect(() => {
     const student_token = Cookies.get('student_token'); // Lấy token từ cookie
@@ -23,7 +26,9 @@ export default function Student() {
       setStudentInfo(res);
     });
   }, []);
-  // console.log('studentInfo là:', studentInfo);
+
+  // HÃY TẠO console.log về studentInfo để xem thông tin học sinh
+  // console.log('setStudentInfo');
   const [isMenuOpen, setMenuOpen] = useState(false); // Thêm state để quản lý menu
   // show thông tin toàn bộ menu (thông tin hồ sơ,ds giáo viên,thời khoá biểu,các thư mới nhất,bàio học gần đây)
   const [showAllMenu, setShowAllMenu] = useState(true); // Thêm state để quản lý hiển thị toàn bộ menu
@@ -36,8 +41,9 @@ export default function Student() {
   const [showContent1, setShowContent1] = useState(false);
   const senderName = 'Admin01'; // Thay thế bằng tên người gửi thực tế
   const createdAt = '2024-09-07T00:00:00.000Z'; // Thay thế bằng thời gian gửi thực tế
+  const createdAt1 = '2023-12-24T00:00:00.000Z'; // Thay thế bằng thời gian gửi thực tế
   const content = {
-    text: 'Nhân dịp Lễ Giáng Sinh 2024 Chúc các thầy cô và các em học sinh có một kỳ nghỉ lễ vui vẻ và hạnh phúc bên gia đình và người thân. Chúc các em học sinh sẽ có một kỳ học mới đầy nhiệt huyết và hứng khởi. Merry Christmas and Happy New Year 2024!',
+    text: 'Nhân dịp Lễ Giáng Sinh 2023 Chúc các thầy cô và các em học sinh có một kỳ nghỉ lễ vui vẻ và hạnh phúc bên gia đình và người thân. Chúc các em học sinh sẽ có một kỳ học mới đầy nhiệt huyết và hứng khởi. Merry Christmas and Happy New Year 2024!',
     link: 'https://www.youtube.com/watch?v=4YBGRGBj7_w',
     image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRVLAlmZuyO7OQx5a9lyBLhl_t1gwimPhrMhw&s',
   };
@@ -45,14 +51,45 @@ export default function Student() {
     // hãy viết text về họp phụ huynh
     text: ' Kính mời quý phụ huynh tham dự buổi họp phụ huynh học sinh vào lúc 7h30 ngày 10/10/2024 tại trường Tiểu học Nguyễn Bỉnh Khiêm. Đây là cơ hội để quý phụ huynh gặp gỡ và trò chuyện với giáo viên, cũng như nhận thông tin về quá trình học tập của con em mình. Hẹn gặp lại quý phụ huynh!',
     link: 'https://www.youtube.com/watch?v=4YBGRGBj7_w',
-    image: 'https://toplist.vn/images/800px/phai-that-tu-tin-truoc-phu-huynh-921478.jpg',
+    image:
+      'https://www.canva.com/design/DAGTWH_JYfw/_ZLoUqEYAJgTzgSi6WQ3wQ/view?utm_content=DAGTWH_JYfw&utm_campaign=designshare&utm_medium=link&utm_source=editor',
   };
+  // data mẫu đơn nghĩ học
+  const [leaveRequests, setLeaveRequests] = useState([]);
+  // lưu trữ đơn nghỉ học được chọn
+  const [selectedLeaveRequest, setSelectedLeaveRequest] = useState(null);
+
+  // useEffect để lấy tất cả đơn nghĩ học
+
+  useEffect(() => {
+    if (studentInfo._id) {
+      getLeaveRequestsByStudentId(studentInfo._id).then((res) => {
+        console.log('Leave Requests:', res.data);
+        setLeaveRequests(res.data);
+      });
+    }
+  }, []);
+  // Sự kiện show đơn đã gửi
+  const handleShowInfoLeaveRequestSent = () => {
+    if (studentInfo._id) {
+      getLeaveRequestsByStudentId(studentInfo._id).then((res) => {
+        console.log('Leave Requests:', res.data);
+        setLeaveRequests(res.data);
+      });
+    }
+    // setShowInfoLeaveRequest(false);
+    // setShowLeaveRequestSent(true);
+  };
+
   // biến quản lý thông tin nhập vào đơn nghĩ học
   const [showInfoLeaveRequest, setShowInfoLeaveRequest] = useState(true);
   // sau khi nhập có biến quản lý all thooong tin nhập
   const [showFullInfoLeaveRequest, setShowFullInfoLeaveRequest] = useState(false);
+  const [showFullInfoLeaveRequestSent, setShowFullInfoLeaveRequestSent] = useState(false);
   // biến quản lý chọn lịch nghĩ học
   const [showScheduleLeaveRequest, setShowScheduleLeaveRequest] = useState(false);
+  // biến quản lý xem đơn nghĩ học đã gửi
+  const [showLeaveRequestSent, setShowLeaveRequestSent] = useState(false);
   // biến quản lý bên ngoài tổng của nội dung buổi học
   const [showLesson, setShowLesson] = useState(true);
   // chi tiết buổi học
@@ -105,7 +142,10 @@ export default function Student() {
   // phần state nghĩ học
   // Add these new state variables
   const [startDate, setStartDate] = useState('');
+
   const [endDate, setEndDate] = useState('');
+  // định dạng DD/MM/YYYY
+
   const [selectedSessions, setSelectedSessions] = useState([]);
   // hàm xử lý tạo ngày nghĩ dựa trên ngày bắt đầu và ngày kết thúc
   function generateDateRange(start, end) {
@@ -138,19 +178,6 @@ export default function Student() {
           : prev.filter((session) => session !== value) // Loại bỏ session khỏi mảng khi bỏ chọn
     );
   }
-
-  // function handleSessionChange(e) {
-  //   const { value, checked } = e.target;
-
-  //   // Chuyển đổi giá trị thành chuỗi ISO ngắn (chỉ lấy phần ngày)
-  //   const dateValue = new Date(value.split('-')[0]).toISOString().split('T')[0];
-
-  //   setSelectedSessions((prev) =>
-  //     checked
-  //       ? [...prev, `${dateValue}-${value.split('-')[1]}`] // Chỉ lấy phần ngày + morning/afternoon
-  //       : prev.filter((session) => session !== `${dateValue}-${value.split('-')[1]}`)
-  //   );
-  // }
 
   // tạo biến lưu lý do nghỉ học
   const [leaveReason, setLeaveReason] = useState('');
@@ -188,6 +215,29 @@ export default function Student() {
       });
   };
 
+  // // 1 state quản lý hiên main của thông báo xổ xuống khi bấm vào thông báo
+  // const [showMainNotice, setShowMainNotice] = useState(false);
+  // // 1 state quản lý hiện all thông báo
+  // const [showAllMainNotice, setShowAllMainNotice] = useState(false);
+  // // Giả lập danh sách thông báo (thay thế bằng dữ liệu thực tế khi có API)
+  // const notifications = [
+  //   'Thông báo 1',
+  //   'Thông báo 2',
+  //   'Thông báo 3',
+  //   'Thông báo 4',
+  //   'Thông báo 5',
+  //   'Thông báo 6',
+  //   'Thông báo 7',
+  //   'Thông báo 8',
+  //   'Thông báo 9',
+  //   'Thông báo 10',
+  //   'Thông báo 11',
+  //   'Thông báo 12',
+  // ];
+
+  // // Hiển thị thông báo mặc định 5 cái
+  // const displayedNotifications = showAllMainNotice ? notifications : notifications.slice(0, 5);
+
   return (
     <div className="font-sans bg-gray-100 min-h-screen">
       <header className="bg-white p-4 border-b border-gray-300 flex justify-between items-center">
@@ -211,19 +261,26 @@ export default function Student() {
                 )
               }
             >
-              <i className="fas fa-envelope mr-2" style={{ color: '#429AB8' }}></i>Hộp thư góp ý
+              <i className="fas fa-envelope mr-2" style={{ color: '#f6a9a7' }}></i>Hộp thư góp ý
             </span>
             <span className="flex items-center cursor-pointer">
               <a href="tel:0907021954" style={{ textDecoration: 'none' }}>
-                <i className="fas fa-phone mr-2" style={{ color: '#429AB8' }}></i>0907021954
+                <i className="fas fa-phone mr-2" style={{ color: '#77ac2f' }}></i>0907021954
               </a>
             </span>
-            <span className="flex items-center">
-              <i className="fas fa-school mr-2" style={{ color: '#429AB8' }}></i>
-              {/* Thêm biểu tượng trường học với màu xanh dạng #429AB8 */}
-              Trường Tiểu học Nguyễn Bỉnh Khiêm
-            </span>
-
+            <div className="relative ">
+              <span
+                className="flex items-center cursor-pointer"
+                onClick={() => {
+                  setShowStudentProfile(true);
+                  setActiveTab('notice');
+                  setShowAllMenu(false);
+                }}
+              >
+                <i className="fas fa-bell mr-2" style={{ color: '#d55557' }}></i>
+                Thông báo
+              </span>
+            </div>
             <div className="relative ">
               <a href="#" className="flex items-center" onClick={() => setShowProfile(!showProfile)}>
                 <i className="fas fa-user-circle mr-2" style={{ color: '#429AB8' }}></i>
@@ -235,6 +292,7 @@ export default function Student() {
                     href="#"
                     onClick={() => {
                       setShowStudentProfile(true);
+                      setActiveTab('profile');
                       setShowAllMenu(false);
                       setShowProfile(false);
                     }}
@@ -271,6 +329,7 @@ export default function Student() {
               className="flex items-center"
               onClick={() => {
                 setShowStudentProfile(true);
+                setActiveTab('profile');
                 setMenuOpen(false);
                 setShowAllMenu(false);
                 setShowProfile(false);
@@ -300,11 +359,16 @@ export default function Student() {
               <i className="fas fa-envelope mr-2" style={{ color: '#429AB8' }}></i>Hộp thư góp ý
             </span>
             <span className="flex items-center">
-              <i className="fas fa-phone mr-2" style={{ color: '#429AB8' }}></i>SĐT Hỗ Trợ : 0907021954
+              {/* <i className="fas fa-phone mr-2" style={{ color: '#429AB8' }}></i>SĐT Hỗ Trợ : 0907021954 */}
+              <a href="tel:0907021954" style={{ textDecoration: 'none' }}>
+                <i className="fas fa-phone mr-2" style={{ color: '#429AB8' }}></i>0907021954
+              </a>
             </span>
             <span className="flex items-center">
-              <i className="fas fa-school mr-2" style={{ color: '#429AB8' }}></i>
-              Trường Tiểu học Nguyễn Bỉnh Khiêm
+              {/* <i className="fas fa-bell mr-2" style={{ color: '#429AB8' }}></i> */}
+              {/*Tạo logo thông báo bằng thẻ i*/}
+              <i className="fas fa-bell mr-2" style={{ color: '#429AB8' }}></i>
+              Thông báo
             </span>
             <a href="/login" className="flex items-center">
               <i className="fas fa-sign-out-alt mr-2" style={{ color: '#429AB8' }}></i>
@@ -425,7 +489,7 @@ export default function Student() {
                 >
                   {' '}
                   {/* Thay đổi href thành "#" và thêm onClick */}
-                  <i className="fas fa-file-alt mr-2" style={{ color: '#429AB8' }}></i>
+                  <i className="fas fa-file-alt mr-2" style={{ color: '#ffb448' }}></i>
                   <div className="text-gray-600">Hồ Sơ Học Sinh</div>
                 </a>
                 <a
@@ -439,7 +503,7 @@ export default function Student() {
                   onMouseEnter={(e) => e.currentTarget.querySelector('div').classList.add('font-bold')}
                   onMouseLeave={(e) => e.currentTarget.querySelector('div').classList.remove('font-bold')}
                 >
-                  <i className="fas fa-book mr-2" style={{ color: '#429AB8' }}></i>
+                  <i className="fas fa-book mr-2" style={{ color: '#545885' }}></i>
                   <div className="text-gray-600">Quá Trình Học Tập</div>
                 </a>
                 <a
@@ -453,7 +517,7 @@ export default function Student() {
                   onMouseEnter={(e) => e.currentTarget.querySelector('div').classList.add('font-bold')}
                   onMouseLeave={(e) => e.currentTarget.querySelector('div').classList.remove('font-bold')}
                 >
-                  <i className="fas fa-chalkboard mr-2" style={{ color: '#429AB8' }}></i>
+                  <i className="fas fa-chalkboard mr-2" style={{ color: '#e89175' }}></i>
                   <div className="text-gray-600">Bài Học Trên Lớp</div>
                 </a>
 
@@ -468,15 +532,15 @@ export default function Student() {
                   onMouseEnter={(e) => e.currentTarget.querySelector('div').classList.add('font-bold')}
                   onMouseLeave={(e) => e.currentTarget.querySelector('div').classList.remove('font-bold')}
                 >
-                  <i className="fas fa-file-alt mr-2" style={{ color: '#429AB8' }}></i>
-                  <div className="text-gray-600">Tạo đơn xin nghĩ học</div>
+                  <i className="fas fa-file-alt mr-2" style={{ color: '#f8c9be' }}></i>
+                  <div className="text-gray-600">Tạo Đơn Xin Nghĩ Học </div>
                 </a>
                 <div
                   className="flex items-center"
                   onMouseEnter={(e) => e.currentTarget.querySelector('div').classList.add('font-bold')}
                   onMouseLeave={(e) => e.currentTarget.querySelector('div').classList.remove('font-bold')}
                 >
-                  <i className="fas fa-user mr-2" style={{ color: '#429AB8' }}></i>
+                  <i className="fas fa-user mr-2" style={{ color: '#af4d62' }}></i>
                   <div className="text-gray-600">GVCN: {studentInfo.homeRoomTeacherName}</div>
                 </div>
                 {/* Thêm thông tin quá trình học tập ở đây */}
@@ -537,8 +601,8 @@ export default function Student() {
                         <th className="border p-2">Thứ 4</th>
                         <th className="border p-2">Thứ 5</th>
                         <th className="border p-2">Thứ 6</th>
-                        <th className="border p-2">Thứ 7</th>
-                        <th className="border p-2">Chủ nhật</th>
+                        {/* <th className="border p-2">Thứ 7</th>
+                        <th className="border p-2">Chủ nhật</th> */}
                       </tr>
                     </thead>
                     <tbody>
@@ -551,8 +615,8 @@ export default function Student() {
                         <td className="border p-2">Tiếng Việt</td>
                         <td className="border p-2">Tiếng Việt</td>
 
-                        <td className="border p-2"></td>
-                        <td className="border p-2"></td>
+                        {/* <td className="border p-2"></td>
+                        <td className="border p-2"></td> */}
                       </tr>
                       <tr>
                         <td className="border p-2"></td>
@@ -562,8 +626,8 @@ export default function Student() {
                         <td className="border p-2">Toán</td>
                         <td className="border p-2">Toán</td>
                         <td className="border p-2">Toán</td>
-                        <td className="border p-2"></td>
-                        <td className="border p-2"></td>
+                        {/* <td className="border p-2"></td>
+                        <td className="border p-2"></td> */}
                       </tr>
                       <tr>
                         <td className="border p-2"></td>
@@ -573,8 +637,8 @@ export default function Student() {
                         <td className="border p-2">Anh Văn</td>
                         <td className="border p-2">Khoa Học</td>
                         <td className="border p-2">HĐTN</td>
-                        <td className="border p-2"></td>
-                        <td className="border p-2"></td>
+                        {/* <td className="border p-2"></td>
+                        <td className="border p-2"></td> */}
                       </tr>
                       <tr>
                         <td className="border p-2"></td>
@@ -583,10 +647,10 @@ export default function Student() {
                         <td className="border p-2">Khoa Học</td>
                         <td className="border p-2">Anh Văn</td>
                         <td className="border p-2">Lịch Sử & Địa Lý</td>
-                        <td className="border p-2">POKI</td>
+                        <td className="border p-2">Poki</td>
 
-                        <td className="border p-2"></td>
-                        <td className="border p-2"></td>
+                        {/* <td className="border p-2"></td>
+                        <td className="border p-2"></td> */}
                       </tr>
 
                       <tr>
@@ -597,8 +661,8 @@ export default function Student() {
                         <td className="border p-2">Tin Học</td>
                         <td className="border p-2">Anh Văn</td>
                         <td className="border p-2"></td>
-                        <td className="border p-2"></td>
-                        <td className="border p-2"></td>
+                        {/* <td className="border p-2"></td>
+                        <td className="border p-2"></td> */}
                       </tr>
                       <tr>
                         <td className="border p-2"></td>
@@ -607,9 +671,9 @@ export default function Student() {
                         <td className="border p-2">Lịch sử & Địa lý</td>
                         <td className="border p-2">Mĩ Thuật</td>
                         <td className="border p-2">Anh Văn</td>
-                        <td className="border p-2"></td>
-                        <td className="border p-2"></td>
-                        <td className="border p-2"></td>
+                        <td className="border p-2">Nghĩ</td>
+                        {/* <td className="border p-2"></td>
+                        <td className="border p-2"></td> */}
                       </tr>
                       <tr>
                         <td className="border p-2"></td>
@@ -617,10 +681,10 @@ export default function Student() {
                         <td className="border p-2">Âm nhạc</td>
                         <td className="border p-2">HĐTN</td>
                         <td className="border p-2">Tiếng Việt</td>
-                        <td className="border p-2">L Tiếng Việt</td>
+                        <td className="border p-2">Tiếng Việt</td>
                         <td className="border p-2"></td>
-                        <td className="border p-2"></td>
-                        <td className="border p-2"></td>
+                        {/* <td className="border p-2"></td>
+                        <td className="border p-2"></td> */}
                       </tr>
                     </tbody>
                   </table>
@@ -675,7 +739,7 @@ export default function Student() {
 
               {showLessonHome && (
                 <div className="flex items-center">
-                  <span>Chưa có thông tin về bài học gần đây</span>
+                  <span>Ôn Tập bài 2: Hình vuông - Hình tròn - Hình tam giác - Hình chữ nhật SGK Cánh diều</span>
                   <span className="ml-auto">
                     <a
                       href="#"
@@ -1265,19 +1329,20 @@ export default function Student() {
               {showLesson && (
                 <div className="container mx-auto p-4">
                   {/*  Card 1*/}
-                  <div className="flex border-b pb-4 mb-4">
+                  <div className="flex flex-col md:flex-row border-b pb-4 mb-4">
                     {/* Image Section */}
-                    <div className="w-1/3">
+                    <div className="w-full md:w-1/3 mb-4 md:mb-0">
                       <img
                         src="https://kids.hoc247.vn/storage-files/docs/2022/20220928/744x420/63451d69eb2bc.webp"
                         alt="App Edu.One"
                         className="object-cover w-full h-full rounded-md"
                       />
                     </div>
+
                     {/* Text Section */}
-                    <div className="w-2/3 pl-4">
-                      <h2 className="text-xl font-bold">
-                        Bài 2: Hình vuông - Hình tròn - Hình tam giác - Hình chữ nhật SGK Cánh diều{' '}
+                    <div className="w-full md:w-2/3 md:pl-4">
+                      <h2 className="text-lg md:text-xl font-bold">
+                        Bài 2: Hình vuông - Hình tròn - Hình tam giác - Hình chữ nhật SGK Cánh diều
                       </h2>
                       <div className="mt-2 p-4 bg-gray-100 rounded">
                         <span>
@@ -1286,7 +1351,7 @@ export default function Student() {
                           học cách nhận biết và phân biệt các hình học cơ bản này.
                         </span>
                       </div>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 mt-2">
                         11/10/2024 |{' '}
                         <a
                           href="#"
@@ -1302,27 +1367,24 @@ export default function Student() {
                     </div>
                   </div>
 
-                  {/*  Card 1*/}
-                  <div className="flex border-b pb-4 mb-4">
+                  {/* Card 1 */}
+                  <div className="flex flex-col md:flex-row border-b pb-4 mb-4">
                     {/* Image Section */}
-                    <div className="w-1/3">
+                    <div className="w-full md:w-1/3 mb-4 md:mb-0">
                       <img
-                        src="https://d3.violet.vn//uploads/previews/present/4/635/947/images/Slide1.JPG"
+                        src="https://i.imgur.com/3sxrx5Q_d.png?maxwidth=520&shape=thumb&fidelity=high"
                         alt="App Edu.One"
                         className="object-cover w-full h-full rounded-md"
                       />
                     </div>
+
                     {/* Text Section */}
-                    <div className="w-2/3 pl-4">
-                      <h2 className="text-xl font-bold">Bài 1 Trên - dưới. Phải - trái. Trước sau. Ở giữa </h2>
+                    <div className="w-full md:w-2/3 md:pl-4">
+                      <h2 className="text-lg md:text-xl font-bold">Báo bài ngày 12 tháng 10 năm 2024 – Lớp 1A</h2>
                       <div className="mt-2 p-4 bg-gray-100 rounded">
-                        <span>
-                          Trong bài học này, học sinh sẽ được học về các từ ngữ chỉ vị trí trong không gian như trên,
-                          dưới, phải, trái, trước, sau, ở giữa. Học sinh sẽ được học cách sử dụng các từ ngữ này để mô
-                          tả vị trí của các vật trong không gian.
-                        </span>
+                        <span>Thông báo bài học ngày 12 tháng 10 năm 2024 của lớp 1A.</span>
                       </div>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 mt-2">
                         08/10/2024 |{' '}
                         <a
                           href="#"
@@ -1365,7 +1427,7 @@ export default function Student() {
                 </div>
               )}
               {showDetailLesson && (
-                <div class="container mx-auto p-4">
+                <div className="container mx-auto p-4">
                   <div className="flex justify-between items-center">
                     <button
                       onClick={() => {
@@ -1394,142 +1456,51 @@ export default function Student() {
                       <i className="fas fa-arrow-right text-blue-500"></i> {/* Nút mũi tên chuyển tiếp */}
                     </button>
                   </div>
-                  <div class="text-center">
-                    <img
-                      alt="Banner with rainbow, clouds, and a kite"
-                      class="mx-auto mb-4"
-                      height="300"
-                      src="https://kids.hoc247.vn/storage-files/docs/2022/20220928/744x420/6334029ec9e0d.webp"
-                      width="1200"
-                    />
-                    <h1 class="text-3xl font-bold text-red-600">
-                      BÀI 1: TRÊN - DƯỚI, TRÁI - PHẢI, TRƯỚC - SAU, Ở GIỮA
-                    </h1>
-                    <h2 class="text-xl italic">(Cánh diều)</h2>
-                  </div>
-                  <p class="text-center mt-2">
-                    Giải Toán lớp 1 Bài 1: Trên - dưới. Phải - trái. Trước - sau. Ở giữa SGK Cánh diều
-                  </p>
-                  <h2 class="text-2xl font-bold mt-6">1. Tóm tắt lý thuyết</h2>
-                  <div class="flex justify-center mt-4">
-                    <p className="text-center">
-                      <img
-                        alt="Trên - dưới. Phải - trái. Trước sau"
-                        src="https://image1.hoc247.vn/upload/2022/20220928/images/toan-1-bai-1-CD.JPG"
-                        className="w-[500px] h-[181px]"
-                      />
-                    </p>
-                  </div>
-                  <div class="flex justify-center mt-2">
-                    <span class="mx-2">Trên - Dưới</span>
-                    <span class="mx-2">Phải - Trái, Ở giữa</span>
-                    <span class="mx-2">Trước - Sau</span>
-                  </div>
-                  <ul class="list-disc list-inside mt-4">
+                  <h3 className=" mt-2">
+                    <strong>Xin chào quý phụ huynh và các em học sinh,</strong>
+                  </h3>
+
+                  <h3 className=" mt-4">
+                    <strong>Hôm nay, lớp 1A đã học các nội dung sau đây:</strong>
+                  </h3>
+
+                  <ul className="list-disc list-inside mt-4">
                     <li>
-                      Các em nhận biết được phải trái, trên - dưới, phải - trái, trước - sau, ở giữa thông qua hình ảnh
-                      và các đồ vật.
+                      <strong>Môn Tiếng Việt:</strong> Học bài "Vần A, O" và luyện viết các từ có chứa vần này. Các em
+                      đã luyện đọc và viết các từ cơ bản như "ba", "bò", "cá", "cô".
                     </li>
-                    <li>Các em phân biệt được bên phải, bên trái trên cơ thể mình.</li>
-                    <li>Quan sát đồ vật xung quanh em.</li>
-                    <li>Biết xác định vị trí của đồ vật và con người xung quanh em.</li>
+                    <li>
+                      <strong>Môn Toán:</strong> Ôn lại các số từ 1 đến 10 và học cách đếm số lượng vật thể. Các em cũng
+                      đã làm bài tập đếm số con vật trong tranh.
+                    </li>
+                    <li>
+                      <strong>Môn Đạo Đức:</strong> Học bài "Chào hỏi lễ phép". Các em đã thực hành cách chào hỏi khi
+                      gặp người lớn, thầy cô và bạn bè.
+                    </li>
                   </ul>
-                  <h2 class="text-2xl font-bold mt-6">2. Bài tập minh họa</h2>
-                  <p class="mt-2">Câu 1: Em hãy nhìn vào bức tranh và điền các từ thích hợp vào chỗ chấm:</p>
-                  <img
-                    alt="Dog, cat, and mouse around a dog house"
-                    class="mx-auto my-4"
-                    height="200"
-                    src="https://hoc247.net/fckeditorimg/upload/images/bai-tap-minh-hoa-bai-1-toan-1-Canh-dieu.jpg"
-                    width="300"
-                  />
-                  <ol class="list-decimal list-inside">
-                    <li>Chú chó đang nằm ở bên ... ngôi nhà.</li>
-                    <li>Chú mèo Tom đang đứng phía ... chú chó.</li>
-                    <li>Chú chuột Jerry đang nằm phía ... ngôi nhà.</li>
-                  </ol>
-                  <p class="font-bold mt-2">Hướng dẫn giải</p>
-                  <ol class="list-decimal list-inside">
-                    <li>Chú chó đang nằm ở bên phải ngôi nhà.</li>
-                    <li>Chú mèo Tom đang đứng phía sau chú chó.</li>
-                    <li>Chú chuột Jerry đang nằm phía trước ngôi nhà.</li>
-                  </ol>
-                  <p class="mt-4">Câu 2: Em hãy xem bức tranh dưới đây và khoanh vào câu đúng:</p>
-                  <img
-                    alt="Group of children standing together"
-                    class="mx-auto my-4"
-                    height="200"
-                    src="https://hoc247.net/fckeditorimg/upload/images/bai-tap-minh-hoa-bai1-1-toan-1-Canh-dieu.jpg"
-                    width="300"
-                  />
-                  <ol class="list-decimal list-inside">
-                    <li>Bên phải bạn Xuka là bạn Nobita.</li>
-                    <li>Mẹ Nobita đứng phía trước mẹ máy Doraemon.</li>
-                    <li>Bên trái bạn Xêkô là bạn Chaiko.</li>
-                    <li>Bố Nobita đứng phía sau bạn Xêkô và Chaiko.</li>
-                    <li>Bạn Chaiko đứng phía sau bạn Doraemon và Doremi.</li>
-                    <li>Bên trái bạn Đêkhi là bạn Xuka.</li>
-                  </ol>
-                  <p class="font-bold mt-2">Hướng dẫn giải</p>
-                  <p>Những câu đúng là: 1, 4, 5.</p>
-                  <h2 class="text-2xl font-bold mt-6">3. Bài tập SGK</h2>
-                  <h3 class="text-xl font-bold mt-4">3.1. Giải câu 1 trang 7 SGK Toán 1 CD</h3>
-                  <p>Dùng các từ: trên, dưới, phải, trái, trước, sau, ở giữa để nói về bức tranh sau.</p>
-                  <img
-                    alt="Girl sitting at a desk with books"
-                    class="mx-auto my-4"
-                    height="200"
-                    src="https://image1.hoc247.vn/upload/2022/20220928/images/Luyen-tap-thuc-hanh-cau-1-trang-7-sgk-toan-1-canh-dieu.jpg"
-                    width="300"
-                  />
-                  <p class="font-bold">Phương pháp giải:</p>
-                  <p>Quan sát tranh và dùng các từ trên để nói về các đồ vật.</p>
-                  <p class="font-bold">Lời giải chi tiết:</p>
-                  <ul class="list-disc list-inside">
-                    <li>Quan sát bức tranh ta thấy:</li>
-                    <li>- Cặp sách và cái giá đựng được để dưới cái bàn.</li>
-                    <li>- Hộp bút, quyển sách, thước kẻ thì đặt ở trên cái bàn.</li>
-                    <li>- Cục tẩy và giáy quấn sách thì sách bên trái cục tẩy, thước thì ở bên phải cục tẩy.</li>
-                    <li>- Hộp bút ở trước quyển sách, quyển sách ở sau hộp bút.</li>
-                    <li>- Quyển sách ở trước mặt bạn nhỏ.</li>
-                  </ul>
-                  <h3 class="text-xl font-bold mt-4">3.2. Giải câu 2 trang 7 SGK Toán 1 CD</h3>
-                  <p>
-                    Em nhớ trong bức tranh muốn đến trường thì phải đi sang bên nào? Muốn đến bưu điện thì đi sang bên
-                    nào?
+
+                  <h3 className=" mt-6">
+                    <strong>Tình hình làm bài tập về nhà:</strong>
+                  </h3>
+                  <p className="mt-4">
+                    Nhiều em đã hoàn thành tốt bài tập về nhà, tuy nhiên vẫn còn một số bạn chưa hoàn thành hết hoặc cần
+                    hỗ trợ thêm về cách làm. Những em hoàn thành bài tập sẽ được khen ngợi trước lớp, còn các em chưa
+                    làm xong sẽ có thêm thời gian để ôn lại.
                   </p>
-                  <img
-                    alt="Child standing at a crossroads with school and post office"
-                    class="mx-auto my-4"
-                    height="200"
-                    src="https://image1.hoc247.vn/upload/2022/20220928/images/Luyen-tap-thuc-hanh-cau-2-trang-7-sgk-toan-1-canh-dieu.jpg"
-                    width="300"
-                  />
-                  <p class="font-bold">Phương pháp giải:</p>
-                  <p>Quan sát tranh để trả lời câu hỏi.</p>
-                  <p class="font-bold">Lời giải chi tiết:</p>
-                  <ul class="list-disc list-inside">
-                    <li>Quan sát bức tranh ta thấy:</li>
-                    <li>- Trường tiểu học ở bên phải bạn nhỏ, bưu điện ở bên trái bạn nhỏ.</li>
-                    <li>Vậy bạn nhỏ muốn đến trường phải đi phải. Bạn nhỏ muốn đến bưu điện phải đi trái.</li>
+
+                  <h3 className="mt-6">
+                    <strong>Ghi chú cho phụ huynh:</strong>
+                  </h3>
+                  <p className="mt-4">Ngày mai các em sẽ có bài tập về nhà gồm:</p>
+                  <ul className="list-disc list-inside">
+                    <li>Luyện viết 5 từ có vần "A, O" trong vở ô ly.</li>
+                    <li>Đếm và vẽ lại 5 đồ vật trong nhà.</li>
                   </ul>
-                  <h3 class="text-xl font-bold mt-4">3.3. Giải câu 3 trang 7 SGK Toán 1 CD</h3>
-                  <p>a) Thực hiện động tác theo hướng dẫn:</p>
-                  <ul class="list-disc list-inside">
-                    <li>- Giơ tay phải.</li>
-                    <li>- Giơ tay trái.</li>
-                    <li>- Vỗ tay trái vào vai phải.</li>
-                    <li>- Vỗ tay phải vào vai trái.</li>
-                  </ul>
-                  <p>b) Trả lời câu hỏi: Phía trước, phía sau, bên phải, bên trái em là bạn nào?</p>
-                  <p class="font-bold">Phương pháp giải:</p>
-                  <p>Thực hiện động tác theo hướng dẫn.</p>
-                  <p>b) Quan sát xung quanh và trả lời câu hỏi.</p>
-                  <p class="font-bold">Lời giải chi tiết:</p>
-                  <p>Học sinh tự thực hiện.</p>
-                  <p class="text-right mt-4">Ngày: 14:45 09/10/2024 - Chia sẻ bởi: Thầy Cao Xuân Chiến</p>
+
+                  <p className="text-center font-bold mt-4">Chân thành cảm ơn quý phụ huynh đã quan tâm theo dõi!</p>
                 </div>
               )}
+
               {showDetailLesson1 && (
                 <div className="p-4">
                   <button
@@ -1765,14 +1736,14 @@ export default function Student() {
                   </div>
                   <div>
                     <strong>Thời gian: </strong>
-                    {new Date(createdAt).toLocaleString()} {/* Thay createdAt bằng thời gian gửi */}
+                    {new Date(createdAt1).toLocaleString()} {/* Thay createdAt bằng thời gian gửi */}
                   </div>
                 </div>
                 <h3
                   className="text-lg font-semibold mt-2 cursor-pointer text-blue-500"
                   onClick={() => setShowContent(!showContent)}
                 >
-                  Chúc mừng lễ Giáng Sinh 2024 {/* Tiêu đề thông báo */}
+                  Chúc mừng lễ Giáng Sinh 2023 {/* Tiêu đề thông báo */}
                 </h3>
                 {showContent && ( // Hiển thị nội dung khi nhấp vào tiêu đề
                   <div className="mt-2">
@@ -1794,6 +1765,104 @@ export default function Student() {
           )}
           {activeTab === 'leaveRequest' && (
             <div>
+              <div className="flex space-x-4 mb-4 justify-center">
+                <button
+                  className="bg-indigo-500 text-white px-4 py-2 rounded"
+                  onClick={() => {
+                    setShowInfoLeaveRequest(false);
+                    setShowLeaveRequestSent(true);
+                    handleShowInfoLeaveRequestSent();
+                  }}
+                >
+                  Xem đơn đã gửi
+                </button>
+                <button
+                  className="bg-green-500 text-white px-4 py-2 rounded"
+                  onClick={() => {
+                    setShowInfoLeaveRequest(true);
+                    setShowLeaveRequestSent(false);
+                  }}
+                >
+                  Tạo mới đơn nghỉ học
+                </button>
+              </div>
+              {/* màn hình cho tất cả đơn dã gửi  */}
+
+              {showLeaveRequestSent && (
+                <div className="max-w-4xl mx-auto bg-white border shadow-md rounded-lg p-6">
+                  <h3 className="text-center text-xl font-bold mb-4">Tất cả đơn nghỉ học đã gửi</h3>
+
+                  {leaveRequests.length === 0 ? (
+                    <p className="text-center text-gray-600">Bạn chưa gửi đơn nghỉ học nào.</p>
+                  ) : (
+                    <div className="space-y-4">
+                      {leaveRequests.map((request, index) => (
+                        <div key={request._id} className="bg-gray-100 p-4 rounded-md border shadow-sm">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <span className="font-semibold text-gray-700">Từ ngày:</span>{' '}
+                              {new Date(request.start_date).toLocaleDateString()} {/* Chỉnh lại start_date */}
+                              <span className="ml-4 font-semibold text-gray-700">Đến ngày:</span>{' '}
+                              {new Date(request.end_date).toLocaleDateString()} {/* Chỉnh lại end_date */}
+                            </div>
+                            <div>
+                              <span
+                                className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-sm whitespace-nowrap ${
+                                  request.status === 'pending'
+                                    ? 'bg-yellow-500 text-white'
+                                    : request.status === 'approved'
+                                      ? 'bg-green-500 text-white'
+                                      : 'bg-red-500 text-white'
+                                }`}
+                                style={{ minWidth: '80px' }} // Đảm bảo phần tử có kích thước tối thiểu để không quá hẹp
+                              >
+                                {request.status === 'pending'
+                                  ? 'Chờ duyệt'
+                                  : request.status === 'approved'
+                                    ? 'Đã duyệt'
+                                    : 'Bị từ chối'}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="mt-2">
+                            <p>
+                              <span className="font-semibold text-gray-700">Lý do nghỉ:</span> {request.reason}
+                            </p>
+                            <div className="mt-2">
+                              <span className="font-semibold text-gray-700">Danh sách buổi nghỉ:</span>
+                              <ul className="list-disc list-inside ml-4">
+                                {request.sessions.map((session) => (
+                                  <li key={session._id}>
+                                    {new Date(session.date).toLocaleDateString('en-GB')}: {/* Chỉnh lại session.date */}
+                                    {session.morning && 'Sáng'} {session.afternoon && 'Chiều'}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+
+                          <div className="flex justify-end mt-4">
+                            <button
+                              className="bg-blue-500 text-white px-4 py-2 rounded"
+                              onClick={() => {
+                                setShowFullInfoLeaveRequestSent(true);
+                                setShowLeaveRequestSent(false);
+                                setSelectedLeaveRequest(request); // Lưu đơn được chọn
+                              }}
+                            >
+                              Xem chi tiết
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* màn hình tạo đơn xin nghỉ học  */}
+
               {showInfoLeaveRequest && (
                 <div className="max-w-md mx-auto bg-white border shadow-md rounded-lg p-4">
                   <div className="flex items-center mb-4">
@@ -1809,24 +1878,51 @@ export default function Student() {
                     </div>
 
                     <div className="grid grid-cols-1 gap-2">
-                      <div className="flex items-center">
-                        <span className="text-gray-600 whitespace-nowrap">Nghỉ từ:</span>
-                        <input
+                      <div
+                        className="flex items-center"
+                        style={{
+                          overflowX: 'hidden',
+                          maxWidth: '100%',
+                        }}
+                      >
+                        <span className="text-gray-600 whitespace-nowrap" style={{ marginRight: '22px' }}>
+                          Nghỉ từ:
+                        </span>
+                        {/* <input
                           type="date"
                           className="ml-6 text-black  font-bold  w-60" // Adjusted to use full width
                           min={new Date().toISOString().split('T')[0]}
                           value={startDate}
                           onChange={(e) => setStartDate(e.target.value)}
+                        /> */}
+
+                        <DatePicker
+                          selected={startDate}
+                          minDate={new Date()}
+                          onChange={(date) => setStartDate(date)}
+                          dateFormat="dd/MM/yyyy" // Định dạng hiển thị
+                          placeholderText="DD/MM/YYYY" // Placeholder hiển thị
+                          className="  text-black font-bold w-full sm:max-w-xs md:max-w-sm lg:max-w-md xl:max-w-lg" // Thiết lập max-width theo từng màn hình
                         />
                       </div>
                       <div className="flex items-center">
-                        <span className="text-gray-600 whitespace-nowrap">Đến ngày:</span>
-                        <input
+                        <span className="text-gray-600 whitespace-nowrap" style={{ marginRight: '10px' }}>
+                          Đến ngày:
+                        </span>
+                        {/* <input
                           type="date"
                           className="ml-2 text-black font-bold w-60" // Adjusted to use full width
                           min={startDate}
                           value={endDate}
                           onChange={(e) => setEndDate(e.target.value)}
+                        /> */}
+                        <DatePicker
+                          selected={endDate}
+                          minDate={startDate}
+                          onChange={(date) => setEndDate(date)}
+                          dateFormat="dd/MM/yyyy" // Định dạng hiển thị
+                          placeholderText="DD/MM/YYYY"
+                          className=" text-black font-bold w-full sm:max-w-xs md:max-w-sm lg:max-w-md xl:max-w-lg" // Thiết lập max-width theo từng màn hình
                         />
                       </div>
                     </div>
@@ -1964,6 +2060,7 @@ export default function Student() {
                   </div>
                 </div>
               )}
+              {/* màn hình show full thông tin sau khi đơn xin nghỉ học  */}
               {showFullInfoLeaveRequest && (
                 <div className="max-w-md mx-auto border bg-white shadow-md rounded-lg p-4 mt-6">
                   <div className="flex items-center mb-4 justify-between">
@@ -2051,6 +2148,79 @@ export default function Student() {
                       }}
                     >
                       Gửi
+                    </button>
+                  </div>
+                </div>
+              )}
+              {/* màn hình show full thông tin khi xem những đơn đã gửi  */}
+              {showFullInfoLeaveRequestSent && selectedLeaveRequest && (
+                <div className="max-w-md mx-auto border bg-white shadow-md rounded-lg p-4 mt-6">
+                  <div className="flex items-center mb-4 justify-between">
+                    <button
+                      onClick={() => {
+                        setShowFullInfoLeaveRequestSent(false);
+                        setShowLeaveRequestSent(true);
+                      }}
+                      className="mr-2"
+                    >
+                      <i className="fas fa-arrow-left text-blue-500"></i> {/* Nút mũi tên quay về */}
+                    </button>
+                    <h1 className="text-center text-blue-600 text-xl font-bold mx-auto">ĐƠN XIN PHÉP NGHỈ HỌC</h1>
+                  </div>
+                  <div className="mb-4">
+                    <div className="flex items-center mb-2">
+                      <i className="fas fa-user text-green-500 mr-2"></i>
+                      <h2 className="text-lg font-semibold">Kính gửi</h2>
+                    </div>
+                    <p className="ml-6">. Ban giám hiệu nhà trường</p>
+                    <p className="ml-6">. Giáo viên chủ nhiệm lớp {studentInfo.className} và các thầy cô bộ môn</p>
+                  </div>
+                  <div className="mb-4">
+                    <div className="flex items-center mb-2">
+                      <i className="fas fa-user-circle text-blue-500 mr-2"></i>
+                      <h2 className="text-lg font-semibold">Người làm đơn</h2>
+                    </div>
+                    <p className="ml-6">- Tôi tên là: {studentInfo.parents[0].userName} </p>
+                    <p className="ml-6">- Phụ huynh của em: {studentInfo.userName}</p>
+                    <p className="ml-6">- Lớp: {studentInfo.className}</p>
+                  </div>
+                  <div className="mb-4">
+                    <div className="flex items-center mb-2">
+                      <i className="fas fa-calendar-alt text-red-500 mr-2"></i>
+                      <h2 className="text-lg font-semibold">Thời gian nghỉ</h2>
+                    </div>
+                    <p className="ml-6">- Tôi làm đơn này xin phép cho con được nghỉ học trong thời gian sau:</p>
+
+                    {selectedLeaveRequest.sessions.map((session) => (
+                      <li key={session._id}>
+                        {new Date(session.date).toLocaleDateString('en-GB')}: {/* Chỉnh lại session.date */}
+                        {session.morning && 'Sáng'} {session.afternoon && 'Chiều'}
+                      </li>
+                    ))}
+                  </div>
+                  <div className="mb-4">
+                    <div className="flex items-center mb-2">
+                      <i className="fas fa-comment-dots text-yellow-500 mr-2"></i>
+                      <h2 className="text-lg font-semibold">Lý do</h2>
+                    </div>
+                    <p className="ml-6">- {selectedLeaveRequest.reason}</p>
+                    <p className="ml-6">- Kính mong quý thầy cô xem xét, giúp đỡ.</p>
+                    <p className="ml-6">- Tôi sẽ nhắc nhở cháu học bài và làm bài tập đầy đủ.</p>
+                  </div>
+                  <div className="text-right mb-4">
+                    <p>Xin chân thành cảm ơn</p>
+                    <p>Ngày: {new Date().toLocaleDateString('vi-VN')}</p>
+                    <p>{studentInfo.parents[0].userName}</p>
+                  </div>
+                  <div className="text-center">
+                    <button
+                      className="bg-red-500 text-white px-4 py-2 rounded"
+                      onClick={() => {
+                        setShowFullInfoLeaveRequestSent(false);
+                        setShowLeaveRequestSent(true);
+                      }}
+                    >
+                      Xác nhận
                     </button>
                   </div>
                 </div>

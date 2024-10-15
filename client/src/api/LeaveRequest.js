@@ -27,4 +27,26 @@ async function createLeaveRequest(student_id, parent_id, teacher_id, class_id, s
     throw error;
   }
 }
-export { createLeaveRequest };
+//getLeaveRequestsByStudentId
+async function getLeaveRequestsByStudentId(student_id) {
+  try {
+    const response = await axios.post(
+      `${API_URL}/leaveRequest/getLeaveRequestsByStudentId`,
+      { student_id },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response;
+  } catch (error) {
+    console.error(
+      'Lỗi khi lấy danh sách đơn xin nghĩ học theo id học sinh:',
+      error.response ? error.response.data : error.message
+    );
+    throw error;
+  }
+}
+
+export { createLeaveRequest, getLeaveRequestsByStudentId };
