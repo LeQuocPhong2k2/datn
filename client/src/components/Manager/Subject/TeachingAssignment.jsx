@@ -1,131 +1,321 @@
 import 'flowbite';
 import React from 'react';
 import { useEffect, useState } from 'react';
-import { IoIosArrowDown } from 'react-icons/io';
-import { getGiaoVienByDepartment } from '../../../api/Teacher';
-import { IoMdAdd } from 'react-icons/io';
-import { IoAddCircleOutline } from 'react-icons/io5';
-import { RiSubtractFill } from 'react-icons/ri';
-import { CiEdit } from 'react-icons/ci';
 
-import moment from 'moment';
-import { Calendar, momentLocalizer } from 'react-big-calendar';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 
-import { getSubjectAssignments } from '../../../api/Subject';
-
-const localizer = momentLocalizer(moment);
+import { createSchedule, getSchedulesByClass, getSubjectNotInSchedule, deleteSchedule } from '../../../api/Schedules';
 
 export default function TeachingAssignment() {
-  const [events, setEvents] = useState([]);
-  const scheduleDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+  const [assignmentInput, setAssignmentInput] = useState({
+    grade: '1',
+    className: '1A1',
+    schoolYear: '',
+    subjectCode: '',
+    teacherID: '',
+    title: '',
+  });
+  const [semester1, setSemester1] = useState(false);
+  const [semester2, setSemester2] = useState(false);
+  const [schedules, setSchedules] = useState([]);
+  const [subjectGrade, setSubjectGrade] = useState([]);
+  /**
+   * get current year
+   */
   useEffect(() => {
-    // Giả lập dữ liệu từ thuật toán lịch học
-    const timetable = [
-      { subject: 'TIẾNG VIỆT 1', scheduleLesson: 1, session: 'Sáng', scheduleDay: 'Monday' },
-      { subject: 'TOÁN 1', scheduleLesson: 2, session: 'Chiều', scheduleDay: 'Tuesday' },
-      { subject: 'ANH VĂN 1', scheduleLesson: 2, session: 'Sáng', scheduleDay: 'Wednesday' },
-      { subject: 'ÂM NHẠC 1', scheduleLesson: 1, session: 'Chiều', scheduleDay: 'Thursday' },
-      { subject: 'ĐẠO ĐỨC 1', scheduleLesson: 1, session: 'Sáng', scheduleDay: 'Friday' },
-    ];
-
-    const newEvents = timetable.map((entry) => {
-      const dayOfWeek = moment().day(entry.scheduleDay).startOf('day'); // Ngày đầu tiên của tuần
-      const startHour = entry.session === 'Sáng' ? 8 : 13; // 8h sáng hoặc 13h chiều
-      const start = moment(dayOfWeek)
-        .add(startHour, 'hours')
-        .add(entry.scheduleLesson - 1, 'hours'); // Bắt đầu tiết học
-      const end = moment(start).add(1, 'hours'); // Giả sử mỗi tiết học kéo dài 1 giờ
-
-      return {
-        title: entry.subject,
-        start: start.toDate(),
-        end: end.toDate(),
-      };
-    });
-
-    setEvents(newEvents);
+    const date = new Date();
+    const year = date.getFullYear();
+    setAssignmentInput((prevInput) => ({
+      ...prevInput,
+      schoolYear: `${year}-${year + 1}`,
+    }));
   }, []);
+  /**
+   *
+   */
+  useEffect(() => {
+    handleGetSchedulesByClass();
+  }, [assignmentInput.className, assignmentInput.schoolYear]);
+  /**
+   *
+   * @param {*} e
+   */
+  const handleSelectClass = (e) => {
+    const { name, value } = e.target;
+    const grade = handleSplitClassNameToGrade(value);
+    setAssignmentInput({
+      ...assignmentInput,
+      grade,
+      [name]: value,
+    });
+  };
+  /**
+   *
+   * @param {*} e
+   */
+  const handleAssignmentInputChange = (e) => {
+    const { name, value } = e.target;
+    if (name === 'className') {
+      const grade = handleSplitClassNameToGrade(value);
+      setAssignmentInput({
+        ...assignmentInput,
+        grade,
+        [name]: value,
+      });
+    } else {
+      setAssignmentInput({
+        ...assignmentInput,
+        [name]: value,
+      });
+    }
+  };
+  /**
+   *
+   * @param {*} className
+   * @returns
+   */
+  const handleSplitClassNameToGrade = (className) => {
+    const grade = className.split('')[0];
+    return grade;
+  };
+  /**
+   *
+   */
+  useEffect(() => {
+    const fetchSubjectGrade = async () => {
+      try {
+        const response = await getSubjectNotInSchedule(assignmentInput.grade);
+        setSubjectGrade(response.subjectNotInSchedule);
+      } catch (error) {
+        console.error('Get subject by grade error :', error);
+      }
+    };
+    fetchSubjectGrade();
+  }, [assignmentInput.grade]);
+  /**
+   *
+   */
+  const [activeSubjectAssignment, setActiveSubjectAssignment] = useState(-1);
+  const handleSelectSubjectAssignment = (index) => {
+    setActiveSubjectAssignment(index);
+    setAssignmentInput({
+      ...assignmentInput,
+      subjectCode: subjectGrade[index].subjectCode,
+      title: subjectGrade[index].subjectName,
+    });
+  };
+  /**
+   *
+   * @param {*} index
+   */
+  const handleCancelSubjectAssignment = (index) => {
+    setAssignmentInput({
+      ...assignmentInput,
+      subjectCode: '',
+      teacherID: '',
+    });
+    setActiveSubjectAssignment(-1);
+    setTimeSlotsChecked([]);
+    const timeSlotCheckboxs = document.querySelectorAll('.timeSlot-Checkbox');
+    timeSlotCheckboxs.forEach((checkbox) => {
+      checkbox.checked = false;
+    });
+  };
+  /**
+   *
+   */
+  const [timeSlotsChecked, setTimeSlotsChecked] = useState([]);
+  const handleTimeSlotChange = (e, slot) => {
+    if (e.target.checked) {
+      setTimeSlotsChecked((prev) => [...prev, slot]);
+    } else {
+      timeSlotsChecked.forEach((timeSlot, index) => {
+        if (timeSlot.scheduleDay === slot.scheduleDay && timeSlot.hour === slot.hour) {
+          timeSlotsChecked.splice(index, 1);
+        }
+      });
+      setTimeSlotsChecked(timeSlotsChecked);
+    }
+  };
+  /**
+   *
+   * @returns
+   */
+  const handleValidateAssignment = () => {
+    if (assignmentInput.teacherID === '') {
+      alert('Vui lòng chọn giáo viên');
+      return false;
+    }
 
-  const EventComponent = ({ event }) => (
-    <div>
-      <div>
-        <strong>{event.title}</strong>
-      </div>{' '}
-      <div>
-        <strong>Gv.Nguyễn Văn Ba</strong>
-      </div>{' '}
-      {/* Tên môn học */}
-      {/* <div>
-        {moment(event.start).format('HH:mm')} - {moment(event.end).format('HH:mm')}
-      </div>{' '} */}
-      {/* Thời gian */}
-    </div>
-  );
-  // Khởi tạo thời gian trong tuần từ 8 AM đến 6 PM (18:00)
+    if (semester1 === false && semester2 === false) {
+      alert('Vui lòng chọn học kỳ');
+      return false;
+    }
+
+    if (timeSlotsChecked.length === 0) {
+      alert('Vui lòng chọn tiết học');
+      return false;
+    }
+
+    if (timeSlotsChecked.length > Math.round(subjectGrade[activeSubjectAssignment].subjectCredits / 35)) {
+      alert('Số tiết học đã chọn vượt quá số tiết/tuần');
+      return false;
+    }
+
+    return true;
+  };
+  /**
+   *
+   */
+  const handleSaveAssignment = async () => {
+    if (handleValidateAssignment()) {
+      const schedule = {
+        scheduleTitle: assignmentInput.title,
+        scheduleTimeSlot: timeSlotsChecked,
+        scheduleTeacher: assignmentInput.teacherID,
+        subjectCode: assignmentInput.subjectCode,
+        className: assignmentInput.className,
+        schoolYear: assignmentInput.schoolYear,
+      };
+
+      try {
+        const response = await createSchedule(
+          schedule.scheduleTitle,
+          schedule.scheduleTeacher,
+          schedule.scheduleTimeSlot,
+          schedule.subjectCode,
+          schedule.className,
+          schedule.schoolYear,
+          semester1,
+          semester2
+        );
+
+        if (response) {
+          alert('Phân công giảng dạy thành công');
+          handleGetSchedulesByClass();
+          const fetchSubjectGrade = async () => {
+            try {
+              const response = await getSubjectNotInSchedule(assignmentInput.grade);
+              setSubjectGrade(response.subjectNotInSchedule);
+            } catch (error) {
+              console.error('Get subject by grade error :', error);
+            }
+          };
+          fetchSubjectGrade();
+          setActiveSubjectAssignment(-1);
+        }
+      } catch (error) {
+        console.error('Create schedule error:', error);
+      }
+    }
+  };
+  /**
+   *
+   */
+  const handleGetSchedulesByClass = async () => {
+    try {
+      const response = await getSchedulesByClass(assignmentInput.className, assignmentInput.schoolYear);
+      setSchedules(response.schedules);
+    } catch (error) {
+      console.error('Get schedules by class error:', error);
+    }
+  };
+  /**
+   *
+   * @param {*} e
+   */
+  const handleSetSemester = (e) => {
+    const { name, checked } = e.target;
+    if (name === 'semester1') {
+      setSemester1(checked);
+    } else {
+      setSemester2(checked);
+    }
+  };
+
+  /**
+   * Hiển thị lịch học
+   */
+  const scheduleDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
   const generateTimeSlots = () => {
     const timeSlots = [];
+    const morningStartHour = 7.5; // 7:30 AM
+    const morningEndHour = 10.5; // 10:30 AM
+    const afternoonStartHour = 13.5; // 1:30 PM
+    const afternoonEndHour = 15.5; // 3:30 PM
+    const lessonDuration = 45 / 60; // 45 minutes in hours
+    const breakDuration = 5 / 60; // 5 minutes in hours
+
     scheduleDays.forEach((day) => {
       let lessonNumber = 1; // Bắt đầu từ tiết 1
 
-      for (let hour = 8; hour <= 17; hour++) {
+      // Morning sessions
+      for (let hour = morningStartHour; hour < morningEndHour; hour += lessonDuration + breakDuration) {
         timeSlots.push({
           scheduleDay: day,
           hour,
-          lessonNumber, // Thêm thứ tự tiết học
-          isFree: true, // Mặc định là giờ trống
+          lessonNumber,
+          isFree: handleCheckScheduleExist(day, lessonNumber),
         });
+        lessonNumber++;
+      }
 
-        lessonNumber++; // Tăng số tiết học sau mỗi giờ
+      // Afternoon sessions
+      for (let hour = afternoonStartHour; hour < afternoonEndHour; hour += lessonDuration + breakDuration) {
+        timeSlots.push({
+          scheduleDay: day,
+          hour,
+          lessonNumber,
+          isFree: handleCheckScheduleExist(day, lessonNumber),
+        });
+        lessonNumber++;
       }
     });
+
     return timeSlots;
   };
+  /**
+   *
+   * @param {*} day
+   * @param {*} lessonNumber
+   * @returns
+   */
+  const handleCheckScheduleExist = (day, lessonNumber) => {
+    for (const schedule of schedules) {
+      const scheduleExists = schedule.timesSlot.some(
+        (slot) => parseInt(slot.lessonNumber) === lessonNumber && slot.scheduleDay === day
+      );
 
-  // Xác định các giờ trống (không có sự kiện nào)
-  const timeSlots = generateTimeSlots().map((slot) => {
-    const isOccupied = events.some((event) => {
-      const eventDay = moment(event.start).format('dddd');
-      const eventHour = moment(event.start).hour();
-      return eventDay === slot.scheduleDay && eventHour === slot.hour;
-    });
-    return {
-      ...slot,
-      isFree: !isOccupied, // Nếu giờ không có sự kiện thì là giờ trống
-    };
-  });
-
-  const [assignment, setAssignment] = useState([
-    {
-      subjectCode: '',
-      subjectName: '',
-      subjectType: '',
-      teacherCode: '',
-      semester1: true,
-      semester2: false,
-    },
-  ]);
-  const [subjectAssignmentSearch, setSubjectAssignmentSearch] = useState([]);
-  const [teachersDepartment, setTeachersDepartment] = useState([]);
-  const [addRowSubject, setAddRowSubject] = useState(false);
-  const handleAddRowSubject = () => {
-    console.log('Thêm môn học');
-    setAddRowSubject(true);
+      if (scheduleExists) {
+        return false;
+      }
+    }
+    return true;
   };
-
-  const handleSubtractRowSubject = () => {
-    setAddRowSubject(false);
-    setSubjectAssignmentSearch([]);
-  };
-
-  const handleSearchAssignment = async (department) => {
-    console.log('Tìm kiếm giáo viên theo bộ môn...', department);
+  const timeSlots = generateTimeSlots();
+  /**
+   *
+   * @param {*} scheduleId
+   */
+  const handleDeleteSchedule = async (scheduleId) => {
     try {
-      const response = await getSubjectAssignments(department.toUpperCase());
-      console.log('getSubjectAssignments:', response);
-      setSubjectAssignmentSearch(response);
+      console.log('Delete schedule:', scheduleId);
+      const response = await deleteSchedule(scheduleId);
+      if (response) {
+        alert('Xóa lịch học thành công');
+        handleGetSchedulesByClass();
+        const fetchSubjectGrade = async () => {
+          try {
+            const response = await getSubjectNotInSchedule(assignmentInput.grade);
+            setSubjectGrade(response.subjectNotInSchedule);
+          } catch (error) {
+            console.error('Get subject by grade error :', error);
+          }
+        };
+        fetchSubjectGrade();
+      }
     } catch (error) {
-      console.error('Get teachers by department error :', error);
+      console.error('Delete schedule error:', error);
     }
   };
 
@@ -146,17 +336,22 @@ export default function TeachingAssignment() {
           <input
             className="w-full p-2 border border-gray-300 rounded bg-gray-100"
             type="text"
-            value="2024-2025"
+            value={assignmentInput.schoolYear}
             disabled
           />
         </div>
         <div>
-          <label htmlFor="name2">Lớp học*</label>
-          <select name="tenLop" id="tenLop" className="w-full p-2 border border-gray-300 rounded">
-            <option value=""></option>
-            <option value="1A1" selected>
-              1A1
-            </option>
+          <label htmlFor="className">Lớp học*</label>
+          <select
+            name="className"
+            id="className"
+            onChange={(e) => handleSelectClass(e)}
+            value={assignmentInput.className}
+            className="w-full p-2 border border-gray-300 rounded"
+            defaultValue={''}
+          >
+            <option value="" selected></option>
+            <option value="1A1">1A1</option>
             <option value="1A2">1A2</option>
             <option value="1A3">1A3</option>
             <option value="1A4">1A4</option>
@@ -201,27 +396,6 @@ export default function TeachingAssignment() {
         </div>
       </div>
       <div>
-        <span className="font-medium">2. Lịch hiện tại của lớp</span>
-      </div>
-      <div className="overflow-x-auto overflow-y-auto">
-        <Calendar
-          style={{ height: '800px', minWidth: '1000px' }}
-          localizer={localizer}
-          events={events}
-          components={{
-            event: EventComponent, // Sử dụng component tùy chỉnh hiển thị sự kiện
-          }}
-          startAccessor="start"
-          endAccessor="end"
-          defaultView="week"
-          views={['week', 'day']}
-          step={60} // Mỗi bước thời gian là 1 giờ
-          timeslots={1} // Chia thời gian thành các slot mỗi giờ
-          min={new Date(2024, 1, 1, 8, 0)} // Bắt đầu từ 8:00 AM
-          max={new Date(2024, 1, 1, 18, 0)} // Kết thúc lúc 6:00 PM
-        />
-      </div>
-      <div>
         <span className="font-medium">3. Chọn môn học phân công*</span>
       </div>
       <div className="overflow-x-auto">
@@ -236,103 +410,124 @@ export default function TeachingAssignment() {
               <th className="py-2 px-2 border border-b border-gray-300 text-left w-60  min-w-60">Giáo viên</th>
               <th className="py-2 px-2 border border-b border-gray-300 text-left w-36 min-w-36">Học kỳ 1</th>
               <th className="py-2 px-2 border border-b border-gray-300 text-left w-36 min-w-36">Học kỳ 2</th>
-              <th className="py-2 px-2 border border-b border-gray-300 text-left w-24 min-w-24"></th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left w-36 min-w-36"></th>
             </tr>
           </thead>
           <tbody>
-            {addRowSubject && (
-              <tr className="bg-blue-100">
-                <td className="py-2 px-2 border border-b border-gray-300 text-left relative">1</td>
-                <td className="py-2 px-2 border border-b border-gray-300 text-left">
-                  {subjectAssignmentSearch[0]?.subjectCode}
+            {schedules.map((schedule, index) => (
+              <tr key={index} className={activeSubjectAssignment === index ? 'bg-blue-100' : 'bg-white'}>
+                <td className="py-2 px-2 border border-b border-gray-300 text-left">{index + 1}</td>
+                <td className="py-2 px-2 border border-b border-gray-300 text-left">{schedule.subject.subjectCode}</td>
+                <td className="py-2 px-2 border border-b border-gray-300 text-left">{schedule.subject.subjectName}</td>
+                <td className="py-2 px-2 border border-b border-gray-300 text-center">
+                  {Math.round(schedule.subject.subjectCredits / 35)}
                 </td>
+                <td className="py-2 px-2 border border-b border-gray-300 text-left">{schedule.subject.subjectType}</td>
                 <td className="py-2 px-2 border border-b border-gray-300 text-left">
-                  <select
-                    onChange={(e) => {
-                      handleSearchAssignment(e.target.value);
-                    }}
-                    name="tenGiaoVien"
-                    id="tenGiaoVien"
-                    className="w-full p-2 border border-gray-300 rounded"
-                  >
-                    <option value="" selected></option>
-                    <option value="Toán 1">Toán 1</option>
-                    <option value="Tiếng Việt 1">Tiếng Việt 1</option>
-                    <option value="Anh văn 1">Anh văn 1</option>
-                  </select>
-                </td>
-                <td className="py-2 px-2 border border-b border-gray-300 text-left">10</td>
-                <td className="py-2 px-2 border border-b border-gray-300 text-left">
-                  {subjectAssignmentSearch[0]?.subjectType}
-                </td>
-                <td className="py-2 px-2 border border-b border-gray-300 text-left">
-                  <select name="tenGiaoVien" id="tenGiaoVien" className="w-full p-2 border border-gray-300 rounded">
-                    {subjectAssignmentSearch[0]?.teachers.map((teacher) => (
-                      <option value={teacher._id}>{teacher.userName}</option>
-                    ))}
-                  </select>
+                  {schedule.scheduleTeacher.userName}
                 </td>
                 <td className="py-2 px-2 border border-b border-gray-300 text-left">
                   <div className="flex items-center justify-center">
-                    <input type="checkbox" />
+                    <input type="checkbox" checked={schedule.semester1} />
                   </div>
                 </td>
                 <td className="py-2 px-2 border border-b border-gray-300 text-left">
                   <div className="flex items-center justify-center">
-                    <input type="checkbox" />
+                    <input type="checkbox" checked={schedule.semester2} />
                   </div>
                 </td>
                 <td className="py-2 px-2 border border-b border-gray-300 text-left">
                   <div className="flex items-center justify-center">
-                    <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded">
-                      Tiếp tục
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleDeleteSchedule(schedule._id)}
+                        className="bg-red-500 text-white hover:bg-red-700 font-medium py-1 px-2 rounded"
+                      >
+                        Xóa
+                      </button>
+                      <button
+                        onClick={() => handleCancelSubjectAssignment(index)}
+                        className="bg-cyan-700 hover:bg-cyan-900 text-white font-medium py-1 px-2 rounded"
+                      >
+                        Sửa
+                      </button>
+                    </div>
                   </div>
-                  {/* <div onClick={handleSubtractRowSubject} className="flex items-center justify-center">
-                    <RiSubtractFill className="text-xl text-red-500 cursor-pointer" />
-                  </div> */}
                 </td>
               </tr>
-            )}
-            <tr>
-              <td className="py-2 px-2 border border-b border-gray-300 text-left">1</td>
-              <td className="py-2 px-2 border border-b border-gray-300 text-left">20245678</td>
-              <td className="py-2 px-2 border border-b border-gray-300 text-left">Toán 1</td>
-              <td className="py-2 px-2 border border-b border-gray-300 text-left">10</td>
-              <td className="py-2 px-2 border border-b border-gray-300 text-left">Cơ bản</td>
-              <td className="py-2 px-2 border border-b border-gray-300 text-left">
-                <select name="tenGiaoVien" id="tenGiaoVien" className="w-full p-2 border border-gray-300 rounded">
-                  <option value="" selected></option>
-                  <option value="GV001">Nguyễn Thị A</option>
-                  <option value="GV002">Nguyễn Thị B</option>
-                  <option value="GV003">Nguyễn Thị C</option>
-                </select>
-              </td>
-              <td className="py-2 px-2 border border-b border-gray-300 text-left">
-                <div className="flex items-center justify-center">
-                  <input type="checkbox" />
-                </div>
-              </td>
-              <td className="py-2 px-2 border border-b border-gray-300 text-left">
-                <div className="flex items-center justify-center">
-                  <input type="checkbox" />
-                </div>
-              </td>
-              <td className="py-2 px-2 border border-b border-gray-300 text-left">
-                <div className="flex items-center justify-center">
-                  <button className="bg-yellow-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded">
-                    Sửa
-                  </button>
-                </div>
-              </td>
-            </tr>
+            ))}
+
+            {subjectGrade.map((subject, index) => (
+              <tr key={index} className={activeSubjectAssignment === index ? 'bg-blue-100' : 'bg-white'}>
+                <td className="py-2 px-2 border border-b border-gray-300 text-left">{index + 1}</td>
+                <td className="py-2 px-2 border border-b border-gray-300 text-left">{subject.subjectCode}</td>
+                <td className="py-2 px-2 border border-b border-gray-300 text-left">{subject.subjectName}</td>
+                <td className="py-2 px-2 border border-b border-gray-300 text-center">
+                  {Math.round(subject.subjectCredits / 35)}
+                </td>
+                <td className="py-2 px-2 border border-b border-gray-300 text-left">{subject.subjectType}</td>
+                <td className="py-2 px-2 border border-b border-gray-300 text-left">
+                  <select
+                    onChange={(e) => handleAssignmentInputChange(e)}
+                    name="teacherID"
+                    id="tenGiaoVien"
+                    className="w-full p-2 border border-gray-300 rounded"
+                    defaultValue={''}
+                  >
+                    <option value="" selected></option>
+                    {subject.teachers.length === 0 ? (
+                      <option value="" selected>
+                        Chưa có giáo viên
+                      </option>
+                    ) : (
+                      subject.teachers.map((teacher) => <option value={teacher._id}>{teacher.userName}</option>)
+                    )}
+                  </select>
+                </td>
+                <td className="py-2 px-2 border border-b border-gray-300 text-left">
+                  <div className="flex items-center justify-center">
+                    <input name="semester1" value={semester1} onChange={(e) => handleSetSemester(e)} type="checkbox" />
+                  </div>
+                </td>
+                <td className="py-2 px-2 border border-b border-gray-300 text-left">
+                  <div className="flex items-center justify-center">
+                    <input name="semester2" value={semester2} onChange={(e) => handleSetSemester(e)} type="checkbox" />
+                  </div>
+                </td>
+                <td className="py-2 px-2 border border-b border-gray-300 text-left">
+                  <div className="flex items-center justify-center">
+                    {activeSubjectAssignment === index ? (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleCancelSubjectAssignment(index)}
+                          className="bg-red-500 hover:bg-red-700 text-white font-medium py-1 px-2 rounded"
+                        >
+                          {/* <MdOutlineCancel /> */}
+                          Hủy
+                        </button>
+                        <button
+                          onClick={() => handleSaveAssignment()}
+                          className="bg-green-500 hover:bg-green-700 text-white font-medium py-1 px-2 rounded"
+                        >
+                          {/* <MdOutlineSave /> */}
+                          Lưu
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => handleSelectSubjectAssignment(index)}
+                        className="bg-blue-500 hover:bg-blue-700 text-white font-medium py-1 px-2 rounded"
+                      >
+                        {/* <MdAddCircle /> */}
+                        Thêm
+                      </button>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
-      </div>
-      <div>
-        <div onClick={handleAddRowSubject} className="flex items-center justify-start">
-          <IoAddCircleOutline className="text-[20px] text-green-500 cursor-pointer" />
-        </div>
       </div>
 
       <div>
@@ -350,7 +545,14 @@ export default function TeachingAssignment() {
                 <li key={index}>
                   {slot.isFree ? (
                     <label>
-                      <input type="checkbox" /> {slot.hour}:00 - Tiết:{slot.lessonNumber}
+                      <input
+                        className="timeSlot-Checkbox"
+                        onChange={(e) => {
+                          handleTimeSlotChange(e, slot);
+                        }}
+                        type="checkbox"
+                      />{' '}
+                      {slot.hour}:00 - Tiết:{slot.lessonNumber}
                     </label>
                   ) : (
                     <span className="text-red-500">
@@ -367,15 +569,15 @@ export default function TeachingAssignment() {
           </label>
           <ul>
             {timeSlots
-              .filter((slot, indexParent) => slot.scheduleDay === 'Tuesday')
+              .filter((slot) => slot.scheduleDay === 'Tuesday')
               .map((slot, index) => (
                 <li key={index}>
                   {slot.isFree ? (
                     <label>
                       <input
+                        className="timeSlot-Checkbox"
                         onChange={(e) => {
-                          console.log(e.target.checked);
-                          console.log(slot);
+                          handleTimeSlotChange(e, slot);
                         }}
                         type="checkbox"
                       />{' '}
@@ -402,7 +604,14 @@ export default function TeachingAssignment() {
                 <li key={index}>
                   {slot.isFree ? (
                     <label>
-                      <input type="checkbox" /> {slot.hour}:00 - Tiết:{slot.lessonNumber}
+                      <input
+                        className="timeSlot-Checkbox"
+                        onChange={(e) => {
+                          handleTimeSlotChange(e, slot);
+                        }}
+                        type="checkbox"
+                      />{' '}
+                      {slot.hour}:00 - Tiết:{slot.lessonNumber}
                     </label>
                   ) : (
                     <span className="text-red-500">
@@ -425,7 +634,14 @@ export default function TeachingAssignment() {
                 <li key={index}>
                   {slot.isFree ? (
                     <label>
-                      <input type="checkbox" /> {slot.hour}:00 - Tiết:{slot.lessonNumber}
+                      <input
+                        className="timeSlot-Checkbox"
+                        onChange={(e) => {
+                          handleTimeSlotChange(e, slot);
+                        }}
+                        type="checkbox"
+                      />{' '}
+                      {slot.hour}:00 - Tiết:{slot.lessonNumber}
                     </label>
                   ) : (
                     <span className="text-red-500">
@@ -448,7 +664,14 @@ export default function TeachingAssignment() {
                 <li key={index}>
                   {slot.isFree ? (
                     <label>
-                      <input type="checkbox" /> {slot.hour}:00 - Tiết:{slot.lessonNumber}
+                      <input
+                        className="timeSlot-Checkbox"
+                        onChange={(e) => {
+                          handleTimeSlotChange(e, slot);
+                        }}
+                        type="checkbox"
+                      />{' '}
+                      {slot.hour}:00 - Tiết:{slot.lessonNumber}
                     </label>
                   ) : (
                     <span className="text-red-500">
@@ -459,13 +682,6 @@ export default function TeachingAssignment() {
               ))}
           </ul>
         </div>
-      </div>
-      <div>
-        <div></div>
-        <br />
-        <button className=" bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-          Thêm phân công giảng dạy
-        </button>
       </div>
     </div>
   );

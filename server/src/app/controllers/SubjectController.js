@@ -3,6 +3,50 @@ const Subject = require("../models/Subject");
 const Teacher = require("../models/Teacher");
 
 const SubjectController = {
+  async getSubjectByGrade(req, res) {
+    const { grade } = req.body;
+    try {
+      const subject = await Subject.aggregate([
+        {
+          $match: {
+            subjectGrade: grade,
+          },
+        },
+        {
+          $lookup: {
+            from: "Teacher",
+            localField: "subjectType",
+            foreignField: "department",
+            as: "teachers",
+          },
+        },
+        {
+          $project: {
+            subjectName: 1,
+            subjectCode: 1,
+            subjectDescription: 1,
+            subjectCredits: 1,
+            subjectGrade: 1,
+            subjectType: 1,
+            teachers: {
+              _id: 1,
+              userName: 1,
+            },
+          },
+        },
+      ]);
+
+      if (subject) {
+        console.log("subject by grade", subject);
+        return res.status(200).json(subject);
+      }
+
+      return res.status(404).json({ error: "Subject not found" });
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  },
+
   async addSubject(req, res) {
     const { subjectName, subjectDescription, subjectCredits, subjectGrade, subjectType } = req.body;
     console.log(req.body);
