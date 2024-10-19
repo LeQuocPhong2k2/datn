@@ -4,6 +4,41 @@ const Subject = require("../models/Subject");
 const Schedule = require("../models/Schedule");
 
 const ScheduleController = {
+  async updateSchedule(req, res) {
+    const { scheduleId, scheduleTitle, scheduleTeacher, subjectCode, className, schoolYear, semester1, semester2 } = req.body;
+    const timeSlot = req.body.scheduleTimeSlot;
+    try {
+      const subject = await Subject.findOne({ subjectCode: subjectCode });
+      const teacher = await Teacher.findOne({ _id: scheduleTeacher });
+
+      let arrTimeSlot = [];
+
+      timeSlot.forEach((slot) => {
+        arrTimeSlot.push({
+          lessonNumber: slot.lessonNumber,
+          scheduleDay: slot.scheduleDay,
+        });
+      });
+
+      const schedule = await Schedule.findOne({ _id: scheduleId });
+
+      schedule.schoolYear = schoolYear;
+      schedule.className = className;
+      schedule.subject = subject._id;
+      schedule.scheduleTitle = scheduleTitle;
+      schedule.scheduleTeacher = teacher._id;
+      schedule.semester1 = semester1;
+      schedule.semester2 = semester2;
+      schedule.timesSlot = arrTimeSlot;
+
+      schedule.save();
+
+      return res.status(200).json({ message: "Update schedule successfully" });
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  },
+
   async deleteSchedule(req, res) {
     const { scheduleId } = req.body;
     try {

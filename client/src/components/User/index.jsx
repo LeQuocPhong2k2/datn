@@ -3,26 +3,44 @@ import { useEffect } from 'react';
 import Cookies from 'js-cookie'; // Thêm import để sử dụng Cookies
 // import { jwtDecode } from 'jwt-decode';
 import { useState } from 'react'; // Thêm import useState
-import { getFullInfoStudentByCode } from '../../api/Student';
+import { getFullInfoStudentByCode, getStudentByAccountId } from '../../api/Student';
 import { changePassword } from '../../api/Accounts';
 import 'react-toastify/dist/ReactToastify.css';
 import { Toaster, toast } from 'react-hot-toast';
 import { createLeaveRequest } from '../../api/LeaveRequest';
+
+import Schedule from './Schedule';
+
 export default function Student() {
+  const [accounts, setAccounts] = useState([]);
   useEffect(() => {
     const student_token = Cookies.get('student_token'); // Lấy token từ cookie
     if (!student_token) {
       window.location.href = '/login'; // Nếu không có token, chuyển hướng về trang login
     }
   }, []);
+  useEffect(() => {
+    document.title = 'Home';
+    const accountId = localStorage.getItem('_id');
+    const resStudent = getStudentByAccountId(accountId);
+    resStudent
+      .then((data) => {
+        console.log(data);
+        setAccounts(data);
+      })
+      .catch((error) => {
+        console.log(error);
+        window.location.href = '/login';
+      });
+  }, []);
+
   // gọi tới apiu getFullInfoStudentByCode đựa trên studentCode ở trong cookie
-  const studentCode = Cookies.get('studentCode');
   const [studentInfo, setStudentInfo] = useState({});
   useEffect(() => {
-    getFullInfoStudentByCode(studentCode).then((res) => {
+    getFullInfoStudentByCode(accounts.studentCode).then((res) => {
       setStudentInfo(res);
     });
-  }, []);
+  }, [accounts.studentCode]);
   // console.log('studentInfo là:', studentInfo);
   const [isMenuOpen, setMenuOpen] = useState(false); // Thêm state để quản lý menu
   // show thông tin toàn bộ menu (thông tin hồ sơ,ds giáo viên,thời khoá biểu,các thư mới nhất,bàio học gần đây)
@@ -419,7 +437,6 @@ export default function Student() {
                   <div className="text-gray-600">Hồ Sơ Học Sinh</div>
                 </a>
                 <a
-                  href="#"
                   onClick={() => {
                     setShowStudentProfile(true);
                     setActiveTab('academic');
@@ -513,109 +530,7 @@ export default function Student() {
                 </button>
               </div>
               {/* Thời khoá biểu */}
-              {showTimeTable && (
-                <div className="overflow-x-auto">
-                  {' '}
-                  {/* Thêm div để tạo khả năng cuộn cho bảng trên thiết bị di động */}
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr className="bg-[#429AB8] text-white">
-                        <th className="border p-2">Buổi</th>
-                        <th className="border p-2">Tiết</th>
-                        <th className="border p-2">Thứ 2</th>
-                        <th className="border p-2">Thứ 3</th>
-                        <th className="border p-2">Thứ 4</th>
-                        <th className="border p-2">Thứ 5</th>
-                        <th className="border p-2">Thứ 6</th>
-                        <th className="border p-2">Thứ 7</th>
-                        <th className="border p-2">Chủ nhật</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td className="border p-2">Sáng</td>
-                        <td className="border p-2">1</td>
-                        <td className="border p-2">HĐTN</td>
-                        <td className="border p-2">GDTC</td>
-                        <td className="border p-2">Tiếng Việt</td>
-                        <td className="border p-2">Tiếng Việt</td>
-                        <td className="border p-2">Tiếng Việt</td>
-
-                        <td className="border p-2"></td>
-                        <td className="border p-2"></td>
-                      </tr>
-                      <tr>
-                        <td className="border p-2"></td>
-                        <td className="border p-2">2</td>
-                        <td className="border p-2">Tiếng Việt</td>
-                        <td className="border p-2">Tiếng Việt</td>
-                        <td className="border p-2">Toán</td>
-                        <td className="border p-2">Toán</td>
-                        <td className="border p-2">Toán</td>
-                        <td className="border p-2"></td>
-                        <td className="border p-2"></td>
-                      </tr>
-                      <tr>
-                        <td className="border p-2"></td>
-                        <td className="border p-2">3</td>
-                        <td className="border p-2">Đạo Đức</td>
-                        <td className="border p-2">Toán</td>
-                        <td className="border p-2">Anh Văn</td>
-                        <td className="border p-2">Khoa Học</td>
-                        <td className="border p-2">HĐTN</td>
-                        <td className="border p-2"></td>
-                        <td className="border p-2"></td>
-                      </tr>
-                      <tr>
-                        <td className="border p-2"></td>
-                        <td className="border p-2">4</td>
-                        <td className="border p-2">Toán</td>
-                        <td className="border p-2">Khoa Học</td>
-                        <td className="border p-2">Anh Văn</td>
-                        <td className="border p-2">Lịch Sử & Địa Lý</td>
-                        <td className="border p-2">POKI</td>
-
-                        <td className="border p-2"></td>
-                        <td className="border p-2"></td>
-                      </tr>
-
-                      <tr>
-                        <td className="border p-2"> Chiều</td>
-                        <td className="border p-2">5</td>
-                        <td className="border p-2">GDTC</td>
-                        <td className="border p-2">Tiếng Việt</td>
-                        <td className="border p-2">Tin Học</td>
-                        <td className="border p-2">Anh Văn</td>
-                        <td className="border p-2"></td>
-                        <td className="border p-2"></td>
-                        <td className="border p-2"></td>
-                      </tr>
-                      <tr>
-                        <td className="border p-2"></td>
-                        <td className="border p-2">6</td>
-                        <td className="border p-2">Công Nghệ</td>
-                        <td className="border p-2">Lịch sử & Địa lý</td>
-                        <td className="border p-2">Mĩ Thuật</td>
-                        <td className="border p-2">Anh Văn</td>
-                        <td className="border p-2"></td>
-                        <td className="border p-2"></td>
-                        <td className="border p-2"></td>
-                      </tr>
-                      <tr>
-                        <td className="border p-2"></td>
-                        <td className="border p-2">7</td>
-                        <td className="border p-2">Âm nhạc</td>
-                        <td className="border p-2">HĐTN</td>
-                        <td className="border p-2">Tiếng Việt</td>
-                        <td className="border p-2">L Tiếng Việt</td>
-                        <td className="border p-2"></td>
-                        <td className="border p-2"></td>
-                        <td className="border p-2"></td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              )}
+              {showTimeTable && <Schedule className={studentInfo.className} schoolYear={studentInfo.academicYear} />}
             </div>
             <div className="bg-white p-4 rounded-lg shadow-lg mb-4">
               <div className="flex justify-between items-center">

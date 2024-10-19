@@ -52,9 +52,8 @@ async function getGiaoVienChuaPhanCongChuNhiem(namHoc) {
 
 async function getGiaoVienByDepartment(department) {
   try {
-    console.log('Getting teachers by department...', department);
     const response = await axios.post(
-      `${HOST}/teachers/getGiaoVienByDepartment`,
+      'http://localhost:3000/teachers/getGiaoVienByDepartment',
       { department },
       {
         headers: {

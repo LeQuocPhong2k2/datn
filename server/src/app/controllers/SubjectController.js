@@ -1,6 +1,6 @@
 require("dotenv").config({ path: "../../../../.env" });
 const Subject = require("../models/Subject");
-const Teacher = require("../models/Teacher");
+const Schedule = require("../models/Schedule");
 
 const SubjectController = {
   async getSubjectByGrade(req, res) {
@@ -143,6 +143,10 @@ const SubjectController = {
       });
 
       if (subject) {
+        const schedule = await Schedule.findOne({
+          subject: subject._id,
+        });
+        await schedule.deleteOne();
         await subject.deleteOne();
         return res.status(200).json({ message: "Subject deleted" });
       }

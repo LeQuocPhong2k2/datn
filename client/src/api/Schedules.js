@@ -86,4 +86,42 @@ async function deleteSchedule(scheduleId) {
   }
 }
 
-export { createSchedule, getSchedulesByClass, getSubjectNotInSchedule, deleteSchedule };
+async function updateSchedule(
+  scheduleId,
+  scheduleTitle,
+  scheduleTeacher,
+  scheduleTimeSlot,
+  subjectCode,
+  className,
+  schoolYear,
+  semester1,
+  semester2
+) {
+  try {
+    const response = await axios.post(
+      'http://localhost:3000/schedules/updateSchedule',
+      {
+        scheduleId,
+        scheduleTitle,
+        scheduleTeacher,
+        scheduleTimeSlot,
+        subjectCode,
+        className,
+        schoolYear,
+        semester1,
+        semester2,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Update schedule error:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+}
+
+export { createSchedule, getSchedulesByClass, getSubjectNotInSchedule, deleteSchedule, updateSchedule };

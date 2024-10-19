@@ -117,6 +117,19 @@ async function changePassword(userName, oldPassword, newPassword) {
   return response;
 }
 
+async function getStudentByAccountId(accountId) {
+  const response = await axios.post(
+    `${API_URL}/students/getStudentByAccountId`,
+    { accountId },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+  return response.data;
+}
+
 export {
   addStudent,
   getAllStudents,
@@ -127,4 +140,5 @@ export {
   deleteStudent,
   getStudentByNameAndAcademicYearAndGradeAndClassName,
   changePassword,
+  getStudentByAccountId,
 };

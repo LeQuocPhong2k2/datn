@@ -8,5 +8,6 @@ router.post("/createSchedule", ScheduleController.createSchedule);
 router.post("/getSchedulesByClass", ScheduleController.getSchedulesByClass);
 router.post("/getSubjectNotInSchedule", ScheduleController.getSubjectNotInSchedule);
 router.post("/deleteSchedule", ScheduleController.deleteSchedule);
+router.post("/updateSchedule", ScheduleController.updateSchedule);
 
 module.exports = router;
