@@ -44,6 +44,14 @@ export default function AddSubject() {
   const closeModal = () => {
     setModalIsOpen(false);
     setSubjectToDelete(null);
+    setSubjectInfo({
+      subjectName: '',
+      subjectCode: '',
+      subjectDescription: '',
+      subjectCredits: '',
+      subjectGrade: '',
+      subjectType: '',
+    });
   };
 
   const handleEditClick = (index) => {
@@ -99,7 +107,7 @@ export default function AddSubject() {
 
   const handleDeleteClick = (index) => {
     setRowIndex(index);
-    setActiveEdit(true);
+    // setActiveEdit(true);
     setSubjectInfo((prevInfo) => ({
       ...prevInfo,
       rowIndex: index,
@@ -203,7 +211,7 @@ export default function AddSubject() {
         contentLabel="Search Teacher"
         style={{
           overlay: {
-            backgroundColor: 'rgba(0, 0, 0, 0.1)', // Change overlay background color here
+            backgroundColor: 'rgba(0, 0, 0, 0.3)', // Change overlay background color here
           },
           content: {
             top: '50%',
@@ -406,6 +414,7 @@ export default function AddSubject() {
                 <th className="py-2 px-2 border border-b border-gray-300 text-left">Tên môn học</th>
                 <th className="py-2 px-2 border border-b border-gray-300 text-left">Khối lớp</th>
                 <th className="py-2 px-2 border border-b border-gray-300 text-left">Số tiết/năm</th>
+                <th className="py-2 px-2 border border-b border-gray-300 text-left">Số tiết/tuần</th>
                 <th className="py-2 px-2 border border-b border-gray-300 text-left">Loại môn học</th>
                 <th className="py-2 px-2 border border-b border-gray-300 text-left">Mô tả</th>
                 <th className="py-2 px-2 border border-b border-gray-300 text-left w-16"></th>
@@ -454,6 +463,9 @@ export default function AddSubject() {
                       <td className="py-2 px-2 border border-b border-gray-300 text-left">{subject.subjectName}</td>
                       <td className="py-2 px-2 border border-b border-gray-300 text-left">{subject.subjectGrade}</td>
                       <td className="py-2 px-2 border border-b border-gray-300 text-left">{subject.subjectCredits}</td>
+                      <td className="py-2 px-2 border border-b border-gray-300 text-left">
+                        {Math.round(subject.subjectCredits / 35)}
+                      </td>
                       <td className="py-2 px-2 border border-b border-gray-300 text-left">{subject.subjectType}</td>
                       <td className="py-2 px-2 border border-b border-gray-300 text-left">
                         {subject.subjectDescription}

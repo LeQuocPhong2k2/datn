@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import Cookies from 'js-cookie'; // Thêm import để sử dụng Cookies
 // import { jwtDecode } from 'jwt-decode';
 import { useState } from 'react'; // Thêm import useState
-import { getFullInfoStudentByCode } from '../../api/Student';
+import { getFullInfoStudentByCode, getStudentByAccountId } from '../../api/Student';
 import { changePassword } from '../../api/Accounts';
 import 'react-toastify/dist/ReactToastify.css';
 import { Toaster, toast } from 'react-hot-toast';
@@ -11,7 +11,10 @@ import { createLeaveRequest, getLeaveRequestsByStudentId } from '../../api/Leave
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
+import Schedule from './Schedule';
+
 export default function Student() {
+  const [accounts, setAccounts] = useState([]);
   useEffect(() => {
     const student_token = Cookies.get('student_token'); // Lấy token từ cookie
     if (!student_token) {
@@ -20,15 +23,38 @@ export default function Student() {
   }, []);
   // gọi tới apiu getFullInfoStudentByCode đựa trên studentCode ở trong cookie
   const studentCode = Cookies.get('studentCode');
-  const [studentInfo, setStudentInfo] = useState({});
-  useEffect(() => {
-    getFullInfoStudentByCode(studentCode).then((res) => {
-      setStudentInfo(res);
-    });
-  }, []);
+  // const [studentInfo, setStudentInfo] = useState({});
+  // useEffect(() => {
+  //   getFullInfoStudentByCode(studentCode).then((res) => {
+  //     setStudentInfo(res);
+  //   });
+  // }, []);
 
   // HÃY TẠO console.log về studentInfo để xem thông tin học sinh
   // console.log('setStudentInfo');
+  useEffect(() => {
+    document.title = 'Home';
+    const accountId = localStorage.getItem('_id');
+    const resStudent = getStudentByAccountId(accountId);
+    resStudent
+      .then((data) => {
+        console.log(data);
+        setAccounts(data);
+      })
+      .catch((error) => {
+        console.log(error);
+        window.location.href = '/login';
+      });
+  }, []);
+
+  // gọi tới apiu getFullInfoStudentByCode đựa trên studentCode ở trong cookie
+  const [studentInfo, setStudentInfo] = useState({});
+  useEffect(() => {
+    getFullInfoStudentByCode(accounts.studentCode).then((res) => {
+      setStudentInfo(res);
+    });
+  }, [accounts.studentCode]);
+  // console.log('studentInfo là:', studentInfo);
   const [isMenuOpen, setMenuOpen] = useState(false); // Thêm state để quản lý menu
   // show thông tin toàn bộ menu (thông tin hồ sơ,ds giáo viên,thời khoá biểu,các thư mới nhất,bàio học gần đây)
   const [showAllMenu, setShowAllMenu] = useState(true); // Thêm state để quản lý hiển thị toàn bộ menu
@@ -97,6 +123,148 @@ export default function Student() {
   const [showDetailLesson1, setShowDetailLesson1] = useState(false);
 
   // 1 state quản lý khi bấm vào họ tên trên góc tay phải hiển thị mục là thông tin cá nhân,đổi mật khẩu,đăng xuất
+  // const [showProfile, setShowProfile] = useState(false);
+  // // 1 state h iển thị form thay đổi mật khẩu
+  // const [showChangePassword, setShowChangePassword] = useState(false);
+  // const [oldPassword, setOldPassword] = useState();
+  // const [newPassword, setNewPassword] = useState();
+  // const [confirmPassword, setConfirmPassword] = useState();
+
+  // // sự kiện khi bấm nút lưu mật khẩu
+  // const handleChangePassword = () => {
+  //   // kiểm tra có nhập đủ thông tin không
+
+  //   if (!oldPassword || !newPassword || !confirmPassword) {
+  //     toast.dismiss();
+  //     toast.error('Vui lòng nhập đầy đủ thông tin');
+  //     return;
+  //   }
+
+  //   // so sánh mật khẩu mới và mật khẩu xác nhận có giống nhau không
+  //   else if (newPassword !== confirmPassword) {
+  //     toast.dismiss();
+  //     toast.error('Mật khẩu xác nhận không đúng');
+  //     return;
+  //   } else {
+  //     // gọi tới api changePassword do userName trong studentInfo là tên còn trong account là mã học sinh nên ở đây truyền mã học sinh
+  //     changePassword(studentInfo.studentCode, oldPassword, newPassword)
+  //       .then((res) => {
+  //         toast.dismiss();
+  //         toast.success(res.data.message);
+  //         setShowChangePassword(false);
+  //       })
+  //       .catch((error) => {
+  //         alert(error);
+  //       });
+  //   }
+  // };
+  // 1 state hiển thị lên xuống thười khoá biểu ở màn hình chính
+  // const [showTimeTable, setShowTimeTable] = useState(true);
+  // // 1 state hiển thị thông báo notice ở màn hình chính
+  // const [showNotice, setShowNotice] = useState(true);
+  // // 1 state hiển thị thông báo bài học gần đây ở màn hình chính
+  // const [showLessonHome, setShowLessonHome] = useState(true);
+
+  // // phần state nghĩ học
+  // // Add these new state variables
+  // const [startDate, setStartDate] = useState('');
+
+  // const [endDate, setEndDate] = useState('');
+  // // định dạng DD/MM/YYYY
+
+  // const [selectedSessions, setSelectedSessions] = useState([]);
+  // hàm xử lý tạo ngày nghĩ dựa trên ngày bắt đầu và ngày kết thúc
+  function generateDateRange(start, end) {
+    const dates = [];
+    let currentDate = new Date(start);
+    const endDate = new Date(end);
+
+    while (currentDate <= endDate) {
+      dates.push(new Date(currentDate));
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    return dates;
+  }
+  // format ngày tháng theo việt nam
+  function formatDate(date) {
+    return new Date(date).toLocaleDateString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+  }
+  function handleSessionChange(e) {
+    const { value, checked } = e.target;
+
+    setSelectedSessions(
+      (prev) =>
+        checked
+          ? [...prev, value] // Thêm session vào mảng khi được chọn
+          : prev.filter((session) => session !== value) // Loại bỏ session khỏi mảng khi bỏ chọn
+    );
+  }
+
+  // // tạo biến lưu lý do nghỉ học
+  // const [leaveReason, setLeaveReason] = useState('');
+  // // xử lý sự kiện khi bấm gửi đơn nghỉ học
+  // const handleSubmitLeaveRequest = () => {
+  //   // Chuyển đổi selectedSessions thành định dạng mong muốn
+  //   const formattedSessions = generateDateRange(startDate, endDate).map((date) => {
+  //     const dateString = new Date(date).toISOString().split('T')[0];
+  //     return {
+  //       date: new Date(date).toISOString(),
+  //       morning: selectedSessions.includes(`${dateString}-morning`) ? true : false,
+  //       afternoon: selectedSessions.includes(`${dateString}-afternoon`) ? true : false,
+  //     };
+  //   });
+
+  //   createLeaveRequest(
+  //     studentInfo._id,
+  //     studentInfo.parents[0]._id,
+  //     studentInfo.homeRoomTeacher_id,
+  //     studentInfo.class_id,
+  //     startDate,
+  //     endDate,
+  //     leaveReason,
+  //     formattedSessions
+  //   )
+  //     .then((response) => {
+  //       console.log('Leave request created successfully:', response);
+  //       alert('Đã gửi đơn nghỉ học thành công');
+  //       setShowFullInfoLeaveRequest(false);
+  //       setShowInfoLeaveRequest(true);
+  //     })
+  //     .catch((error) => {
+  //       console.error('Error creating leave request:', error);
+  //       alert('Đã xảy ra lỗi khi gửi đơn nghỉ học. Vui lòng thử lại sau.' + error);
+  //     });
+  // };
+
+  // // 1 state quản lý hiên main của thông báo xổ xuống khi bấm vào thông báo
+  // const [showMainNotice, setShowMainNotice] = useState(false);
+  // // 1 state quản lý hiện all thông báo
+  // const [showAllMainNotice, setShowAllMainNotice] = useState(false);
+  // // Giả lập danh sách thông báo (thay thế bằng dữ liệu thực tế khi có API)
+  // const notifications = [
+  //   'Thông báo 1',
+  //   'Thông báo 2',
+  //   'Thông báo 3',
+  //   'Thông báo 4',
+  //   'Thông báo 5',
+  //   'Thông báo 6',
+  //   'Thông báo 7',
+  //   'Thông báo 8',
+  //   'Thông báo 9',
+  //   'Thông báo 10',
+  //   'Thông báo 11',
+  //   'Thông báo 12',
+  // ];
+
+  // // Hiển thị thông báo mặc định 5 cái
+  // const displayedNotifications = showAllMainNotice ? notifications : notifications.slice(0, 5);
+
+  // 1 state quản lý khi bấm vào họ tên trên góc tay phải hiển thị mục là thông tin cá nhân,đổi mật khẩu,đăng xuất
   const [showProfile, setShowProfile] = useState(false);
   // 1 state h iển thị form thay đổi mật khẩu
   const [showChangePassword, setShowChangePassword] = useState(false);
@@ -142,10 +310,7 @@ export default function Student() {
   // phần state nghĩ học
   // Add these new state variables
   const [startDate, setStartDate] = useState('');
-
   const [endDate, setEndDate] = useState('');
-  // định dạng DD/MM/YYYY
-
   const [selectedSessions, setSelectedSessions] = useState([]);
   // hàm xử lý tạo ngày nghĩ dựa trên ngày bắt đầu và ngày kết thúc
   function generateDateRange(start, end) {
@@ -178,6 +343,19 @@ export default function Student() {
           : prev.filter((session) => session !== value) // Loại bỏ session khỏi mảng khi bỏ chọn
     );
   }
+
+  // function handleSessionChange(e) {
+  //   const { value, checked } = e.target;
+
+  //   // Chuyển đổi giá trị thành chuỗi ISO ngắn (chỉ lấy phần ngày)
+  //   const dateValue = new Date(value.split('-')[0]).toISOString().split('T')[0];
+
+  //   setSelectedSessions((prev) =>
+  //     checked
+  //       ? [...prev, `${dateValue}-${value.split('-')[1]}`] // Chỉ lấy phần ngày + morning/afternoon
+  //       : prev.filter((session) => session !== `${dateValue}-${value.split('-')[1]}`)
+  //   );
+  // }
 
   // tạo biến lưu lý do nghỉ học
   const [leaveReason, setLeaveReason] = useState('');
@@ -214,29 +392,6 @@ export default function Student() {
         alert('Đã xảy ra lỗi khi gửi đơn nghỉ học. Vui lòng thử lại sau.' + error);
       });
   };
-
-  // // 1 state quản lý hiên main của thông báo xổ xuống khi bấm vào thông báo
-  // const [showMainNotice, setShowMainNotice] = useState(false);
-  // // 1 state quản lý hiện all thông báo
-  // const [showAllMainNotice, setShowAllMainNotice] = useState(false);
-  // // Giả lập danh sách thông báo (thay thế bằng dữ liệu thực tế khi có API)
-  // const notifications = [
-  //   'Thông báo 1',
-  //   'Thông báo 2',
-  //   'Thông báo 3',
-  //   'Thông báo 4',
-  //   'Thông báo 5',
-  //   'Thông báo 6',
-  //   'Thông báo 7',
-  //   'Thông báo 8',
-  //   'Thông báo 9',
-  //   'Thông báo 10',
-  //   'Thông báo 11',
-  //   'Thông báo 12',
-  // ];
-
-  // // Hiển thị thông báo mặc định 5 cái
-  // const displayedNotifications = showAllMainNotice ? notifications : notifications.slice(0, 5);
 
   return (
     <div className="font-sans bg-gray-100 min-h-screen">
@@ -323,13 +478,13 @@ export default function Student() {
             <i className="fas fa-bars" style={{ color: '#429AB8' }}></i> {/* Dấu ba gạch */}
           </button>
         </div>
+
         {isMenuOpen && ( // đây là menu cho responsive mobile hiện
-          <div className="absolute left-0 bg-white shadow-lg p-4  md:hidden" style={{ top: '0px' }}>
+          <div className="absolute left-0 bg-white shadow-lg p-4 md:hidden" style={{ top: '0px' }}>
             <span
               className="flex items-center"
               onClick={() => {
                 setShowStudentProfile(true);
-                setActiveTab('profile');
                 setMenuOpen(false);
                 setShowAllMenu(false);
                 setShowProfile(false);
@@ -359,16 +514,11 @@ export default function Student() {
               <i className="fas fa-envelope mr-2" style={{ color: '#429AB8' }}></i>Hộp thư góp ý
             </span>
             <span className="flex items-center">
-              {/* <i className="fas fa-phone mr-2" style={{ color: '#429AB8' }}></i>SĐT Hỗ Trợ : 0907021954 */}
-              <a href="tel:0907021954" style={{ textDecoration: 'none' }}>
-                <i className="fas fa-phone mr-2" style={{ color: '#429AB8' }}></i>0907021954
-              </a>
+              <i className="fas fa-phone mr-2" style={{ color: '#429AB8' }}></i>SĐT Hỗ Trợ : 0907021954
             </span>
             <span className="flex items-center">
-              {/* <i className="fas fa-bell mr-2" style={{ color: '#429AB8' }}></i> */}
-              {/*Tạo logo thông báo bằng thẻ i*/}
-              <i className="fas fa-bell mr-2" style={{ color: '#429AB8' }}></i>
-              Thông báo
+              <i className="fas fa-school mr-2" style={{ color: '#429AB8' }}></i>
+              Trường Tiểu học Nguyễn Bỉnh Khiêm
             </span>
             <a href="/login" className="flex items-center">
               <i className="fas fa-sign-out-alt mr-2" style={{ color: '#429AB8' }}></i>
@@ -493,7 +643,6 @@ export default function Student() {
                   <div className="text-gray-600">Hồ Sơ Học Sinh</div>
                 </a>
                 <a
-                  href="#"
                   onClick={() => {
                     setShowStudentProfile(true);
                     setActiveTab('academic');
@@ -690,6 +839,7 @@ export default function Student() {
                   </table>
                 </div>
               )}
+              {showTimeTable && <Schedule className={studentInfo.className} schoolYear={studentInfo.academicYear} />}
             </div>
             <div className="bg-white p-4 rounded-lg shadow-lg mb-4">
               <div className="flex justify-between items-center">
@@ -2051,6 +2201,7 @@ export default function Student() {
                         }
                         // alert ra selectedSessions
 
+                        alert(selectedSessions);
                         setShowFullInfoLeaveRequest(true);
                         setShowInfoLeaveRequest(false);
                       }}

@@ -97,4 +97,23 @@ async function getSubjectAssignments(subjectName) {
     throw error;
   }
 }
-export { addSubject, findAllSubject, updateSubject, deleteSubject, getSubjectAssignments };
+
+async function getSubjectByGrade(grade) {
+  try {
+    const response = await axios.post(
+      'http://localhost:3000/subjects/getSubjectByGrade',
+      { grade },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Get subject by grade error:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+}
+
+export { addSubject, findAllSubject, updateSubject, deleteSubject, getSubjectAssignments, getSubjectByGrade };

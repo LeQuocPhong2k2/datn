@@ -1,8 +1,147 @@
 require("dotenv").config({ path: "../../../../.env" });
 const Teacher = require("../models/Teacher");
 const Subject = require("../models/Subject");
+const Schedule = require("../models/Schedule");
 
 const ScheduleController = {
+  async updateSchedule(req, res) {
+    const { scheduleId, scheduleTitle, scheduleTeacher, subjectCode, className, schoolYear, semester1, semester2 } = req.body;
+    const timeSlot = req.body.scheduleTimeSlot;
+    try {
+      const subject = await Subject.findOne({ subjectCode: subjectCode });
+      const teacher = await Teacher.findOne({ _id: scheduleTeacher });
+
+      let arrTimeSlot = [];
+
+      timeSlot.forEach((slot) => {
+        arrTimeSlot.push({
+          lessonNumber: slot.lessonNumber,
+          scheduleDay: slot.scheduleDay,
+        });
+      });
+
+      const schedule = await Schedule.findOne({ _id: scheduleId });
+
+      schedule.schoolYear = schoolYear;
+      schedule.className = className;
+      schedule.subject = subject._id;
+      schedule.scheduleTitle = scheduleTitle;
+      schedule.scheduleTeacher = teacher._id;
+      schedule.semester1 = semester1;
+      schedule.semester2 = semester2;
+      schedule.timesSlot = arrTimeSlot;
+
+      schedule.save();
+
+      return res.status(200).json({ message: "Update schedule successfully" });
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  },
+
+  async deleteSchedule(req, res) {
+    const { scheduleId } = req.body;
+    try {
+      await Schedule.deleteOne({ _id: scheduleId });
+      return res.status(200).json({ message: "Delete schedule successfully" });
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  },
+
+  async getSubjectNotInSchedule(req, res) {
+    const { grade } = req.body;
+    try {
+      const subjects = await Subject.aggregate([
+        {
+          $match: {
+            subjectGrade: grade,
+          },
+        },
+        {
+          $lookup: {
+            from: "Teacher",
+            localField: "subjectType",
+            foreignField: "department",
+            as: "teachers",
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            subjectName: 1,
+            subjectCode: 1,
+            subjectDescription: 1,
+            subjectCredits: 1,
+            subjectGrade: 1,
+            subjectType: 1,
+            teachers: {
+              _id: 1,
+              userName: 1,
+            },
+          },
+        },
+      ]);
+      const schedules = await Schedule.find();
+      const subjectNotInSchedule = subjects.filter((subject) => {
+        return !schedules.some((schedule) => schedule.subject.toString() === subject._id.toString());
+      });
+
+      console.log(grade);
+      console.log(subjectNotInSchedule);
+
+      return res.status(200).json({ subjectNotInSchedule });
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  },
+
+  async getSchedulesByClass(req, res) {
+    const { className, schoolYear } = req.body;
+    try {
+      const schedules = await Schedule.find({ className: className, schoolYear: schoolYear }).populate("subject").populate("scheduleTeacher");
+      return res.status(200).json({ schedules });
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  },
+
+  async createSchedule(req, res) {
+    const { scheduleTitle, scheduleTeacher, subjectCode, className, schoolYear, semester1, semester2 } = req.body;
+    const timeSlot = req.body.scheduleTimeSlot;
+    try {
+      const subject = await Subject.findOne({ subjectCode: subjectCode });
+      const teacher = await Teacher.findOne({ _id: scheduleTeacher });
+
+      let arrTimeSlot = [];
+
+      timeSlot.forEach((slot) => {
+        arrTimeSlot.push({
+          lessonNumber: slot.lessonNumber,
+          scheduleDay: slot.scheduleDay,
+        });
+      });
+
+      const schedule = new Schedule({
+        schoolYear: schoolYear,
+        className: className,
+        subject: subject._id,
+        scheduleTitle,
+        scheduleTeacher: teacher._id,
+        semester1: semester1,
+        semester2: semester2,
+        timesSlot: arrTimeSlot,
+      });
+
+      console.log("Đang lưu lịch học...");
+      schedule.save();
+
+      return res.status(201).json({ message: "Create schedule successfully" });
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  },
+
   async autoCreateTeacherSchedule(req, res) {
     const { subjectGrade, teacherId } = req.body;
     try {
