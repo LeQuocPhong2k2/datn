@@ -205,65 +205,6 @@ export default function Student() {
     );
   }
 
-  // // tạo biến lưu lý do nghỉ học
-  // const [leaveReason, setLeaveReason] = useState('');
-  // // xử lý sự kiện khi bấm gửi đơn nghỉ học
-  // const handleSubmitLeaveRequest = () => {
-  //   // Chuyển đổi selectedSessions thành định dạng mong muốn
-  //   const formattedSessions = generateDateRange(startDate, endDate).map((date) => {
-  //     const dateString = new Date(date).toISOString().split('T')[0];
-  //     return {
-  //       date: new Date(date).toISOString(),
-  //       morning: selectedSessions.includes(`${dateString}-morning`) ? true : false,
-  //       afternoon: selectedSessions.includes(`${dateString}-afternoon`) ? true : false,
-  //     };
-  //   });
-
-  //   createLeaveRequest(
-  //     studentInfo._id,
-  //     studentInfo.parents[0]._id,
-  //     studentInfo.homeRoomTeacher_id,
-  //     studentInfo.class_id,
-  //     startDate,
-  //     endDate,
-  //     leaveReason,
-  //     formattedSessions
-  //   )
-  //     .then((response) => {
-  //       console.log('Leave request created successfully:', response);
-  //       alert('Đã gửi đơn nghỉ học thành công');
-  //       setShowFullInfoLeaveRequest(false);
-  //       setShowInfoLeaveRequest(true);
-  //     })
-  //     .catch((error) => {
-  //       console.error('Error creating leave request:', error);
-  //       alert('Đã xảy ra lỗi khi gửi đơn nghỉ học. Vui lòng thử lại sau.' + error);
-  //     });
-  // };
-
-  // // 1 state quản lý hiên main của thông báo xổ xuống khi bấm vào thông báo
-  // const [showMainNotice, setShowMainNotice] = useState(false);
-  // // 1 state quản lý hiện all thông báo
-  // const [showAllMainNotice, setShowAllMainNotice] = useState(false);
-  // // Giả lập danh sách thông báo (thay thế bằng dữ liệu thực tế khi có API)
-  // const notifications = [
-  //   'Thông báo 1',
-  //   'Thông báo 2',
-  //   'Thông báo 3',
-  //   'Thông báo 4',
-  //   'Thông báo 5',
-  //   'Thông báo 6',
-  //   'Thông báo 7',
-  //   'Thông báo 8',
-  //   'Thông báo 9',
-  //   'Thông báo 10',
-  //   'Thông báo 11',
-  //   'Thông báo 12',
-  // ];
-
-  // // Hiển thị thông báo mặc định 5 cái
-  // const displayedNotifications = showAllMainNotice ? notifications : notifications.slice(0, 5);
-
   // 1 state quản lý khi bấm vào họ tên trên góc tay phải hiển thị mục là thông tin cá nhân,đổi mật khẩu,đăng xuất
   const [showProfile, setShowProfile] = useState(false);
   // 1 state h iển thị form thay đổi mật khẩu
@@ -343,19 +284,6 @@ export default function Student() {
           : prev.filter((session) => session !== value) // Loại bỏ session khỏi mảng khi bỏ chọn
     );
   }
-
-  // function handleSessionChange(e) {
-  //   const { value, checked } = e.target;
-
-  //   // Chuyển đổi giá trị thành chuỗi ISO ngắn (chỉ lấy phần ngày)
-  //   const dateValue = new Date(value.split('-')[0]).toISOString().split('T')[0];
-
-  //   setSelectedSessions((prev) =>
-  //     checked
-  //       ? [...prev, `${dateValue}-${value.split('-')[1]}`] // Chỉ lấy phần ngày + morning/afternoon
-  //       : prev.filter((session) => session !== `${dateValue}-${value.split('-')[1]}`)
-  //   );
-  // }
 
   // tạo biến lưu lý do nghỉ học
   const [leaveReason, setLeaveReason] = useState('');
@@ -736,109 +664,7 @@ export default function Student() {
                 </button>
               </div>
               {/* Thời khoá biểu */}
-              {showTimeTable && (
-                <div className="overflow-x-auto">
-                  {' '}
-                  {/* Thêm div để tạo khả năng cuộn cho bảng trên thiết bị di động */}
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr className="bg-[#429AB8] text-white">
-                        <th className="border p-2">Buổi</th>
-                        <th className="border p-2">Tiết</th>
-                        <th className="border p-2">Thứ 2</th>
-                        <th className="border p-2">Thứ 3</th>
-                        <th className="border p-2">Thứ 4</th>
-                        <th className="border p-2">Thứ 5</th>
-                        <th className="border p-2">Thứ 6</th>
-                        {/* <th className="border p-2">Thứ 7</th>
-                        <th className="border p-2">Chủ nhật</th> */}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td className="border p-2">Sáng</td>
-                        <td className="border p-2">1</td>
-                        <td className="border p-2">HĐTN</td>
-                        <td className="border p-2">GDTC</td>
-                        <td className="border p-2">Tiếng Việt</td>
-                        <td className="border p-2">Tiếng Việt</td>
-                        <td className="border p-2">Tiếng Việt</td>
 
-                        {/* <td className="border p-2"></td>
-                        <td className="border p-2"></td> */}
-                      </tr>
-                      <tr>
-                        <td className="border p-2"></td>
-                        <td className="border p-2">2</td>
-                        <td className="border p-2">Tiếng Việt</td>
-                        <td className="border p-2">Tiếng Việt</td>
-                        <td className="border p-2">Toán</td>
-                        <td className="border p-2">Toán</td>
-                        <td className="border p-2">Toán</td>
-                        {/* <td className="border p-2"></td>
-                        <td className="border p-2"></td> */}
-                      </tr>
-                      <tr>
-                        <td className="border p-2"></td>
-                        <td className="border p-2">3</td>
-                        <td className="border p-2">Đạo Đức</td>
-                        <td className="border p-2">Toán</td>
-                        <td className="border p-2">Anh Văn</td>
-                        <td className="border p-2">Khoa Học</td>
-                        <td className="border p-2">HĐTN</td>
-                        {/* <td className="border p-2"></td>
-                        <td className="border p-2"></td> */}
-                      </tr>
-                      <tr>
-                        <td className="border p-2"></td>
-                        <td className="border p-2">4</td>
-                        <td className="border p-2">Toán</td>
-                        <td className="border p-2">Khoa Học</td>
-                        <td className="border p-2">Anh Văn</td>
-                        <td className="border p-2">Lịch Sử & Địa Lý</td>
-                        <td className="border p-2">Poki</td>
-
-                        {/* <td className="border p-2"></td>
-                        <td className="border p-2"></td> */}
-                      </tr>
-
-                      <tr>
-                        <td className="border p-2"> Chiều</td>
-                        <td className="border p-2">5</td>
-                        <td className="border p-2">GDTC</td>
-                        <td className="border p-2">Tiếng Việt</td>
-                        <td className="border p-2">Tin Học</td>
-                        <td className="border p-2">Anh Văn</td>
-                        <td className="border p-2"></td>
-                        {/* <td className="border p-2"></td>
-                        <td className="border p-2"></td> */}
-                      </tr>
-                      <tr>
-                        <td className="border p-2"></td>
-                        <td className="border p-2">6</td>
-                        <td className="border p-2">Công Nghệ</td>
-                        <td className="border p-2">Lịch sử & Địa lý</td>
-                        <td className="border p-2">Mĩ Thuật</td>
-                        <td className="border p-2">Anh Văn</td>
-                        <td className="border p-2">Nghĩ</td>
-                        {/* <td className="border p-2"></td>
-                        <td className="border p-2"></td> */}
-                      </tr>
-                      <tr>
-                        <td className="border p-2"></td>
-                        <td className="border p-2">7</td>
-                        <td className="border p-2">Âm nhạc</td>
-                        <td className="border p-2">HĐTN</td>
-                        <td className="border p-2">Tiếng Việt</td>
-                        <td className="border p-2">Tiếng Việt</td>
-                        <td className="border p-2"></td>
-                        {/* <td className="border p-2"></td>
-                        <td className="border p-2"></td> */}
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              )}
               {showTimeTable && <Schedule className={studentInfo.className} schoolYear={studentInfo.academicYear} />}
             </div>
             <div className="bg-white p-4 rounded-lg shadow-lg mb-4">
@@ -2201,7 +2027,7 @@ export default function Student() {
                         }
                         // alert ra selectedSessions
 
-                        alert(selectedSessions);
+                        // alert(selectedSessions);
                         setShowFullInfoLeaveRequest(true);
                         setShowInfoLeaveRequest(false);
                       }}

@@ -620,6 +620,22 @@ const StudentController = {
       res.status(500).json({ error: error.message })
     }
   },
+
+  getStudentByAccountId: async (req, res) => {
+    const { accountId } = req.body
+    try {
+      const student = await Student.findOne({ account: accountId })
+        .populate('parents')
+        .populate('account')
+      if (!student) {
+        return res.status(404).json({ message: 'Không tìm thấy học sinh' })
+      }
+      res.status(200).json(student)
+    } catch (error) {
+      console.error('Lỗi khi lấy thông tin học sinh:', error)
+      res.status(500).json({ error: error })
+    }
+  },
 }
 
 /**
