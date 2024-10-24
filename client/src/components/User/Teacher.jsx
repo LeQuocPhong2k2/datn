@@ -2,24 +2,34 @@
 import React, { useEffect, useState } from 'react';
 import { Toaster, toast } from 'react-hot-toast';
 import Schedule from './Schedule';
+import Cookies from 'js-cookie';
+import { getGiaoVienByPhoneNumber } from '../../api/Teacher';
+import { getLeaveRequestsByTeacherId, updateLeaveRequest } from '../../api/LeaveRequest';
 
 export default function Teacher() {
   useEffect(() => {
     document.title = 'Trang chủ giáo viên';
-
-    const accountId = localStorage.getItem('_id');
-
-    // const resStudent = getStudentByAccountId(accountId);
-    // resStudent
-    //   .then((data) => {
-    //     console.log(data);
-    //     setAccounts(data);
-    //   })
-    //   .catch((error) => {
-    //     console.log(error);
-    //     window.location.href = '/login';
-    //   });
+    // kiểm tra xem có teacher_token trong cookie không
+    const teacherToken = Cookies.get('teacher_token');
+    if (!teacherToken) {
+      window.location.href = '/login';
+    }
   }, []);
+  const phoneNumber = localStorage.getItem('phoneNumberTeacher');
+  const [teacherInfo, setTeacherInfo] = useState({});
+  /// lấy thông tin giáo viên
+  useEffect(() => {
+    const fetchTeacherInfo = async () => {
+      try {
+        const response = await getGiaoVienByPhoneNumber(phoneNumber);
+        setTeacherInfo(response);
+        console.log('Thông tin giáo viên:', response);
+      } catch (error) {
+        console.error('Lỗi lấy thông tin giáo viên:', error);
+      }
+    };
+    fetchTeacherInfo();
+  }, [phoneNumber]);
 
   const [showProfile, setShowProfile] = useState(false);
   const [isMenuOpen, setMenuOpen] = useState(false);
@@ -38,138 +48,25 @@ export default function Teacher() {
 
   // biến quản lý thông tin quản lý đơn nghĩ học của giáo viên
   const [showTeacherLeaveRequests, setShowTeacherLeaveRequests] = useState(true);
-  //data mẫu cho đơn nghỉ học
 
-  // const leaveRequests = [
-  //   {
-  //     _id: '6708122e9f7280b1ec58e4e1',
-  //     student_id: '66fad3b9cf582e73b67c41e3',
-  //     parent_id: '66fad3b9cf582e73b67c41de',
-  //     teacher_id: '67069ec320e98879b63b369a',
-  //     class_id: '66fad3b4cf582e73b67c418a',
-  //     start_date: new Date('2024-10-25T00:00:00.000Z'),
-  //     end_date: new Date('2024-10-26T00:00:00.000Z'),
-  //     reason: 'ốm ạ',
-  //     status: 'pending',
-  //     sessions: [
-  //       {
-  //         date: new Date('2024-10-25T00:00:00.000Z'),
-  //         morning: true,
-  //         afternoon: false,
-  //         _id: '6708122e9f7280b1ec58e4e2',
-  //       },
-  //       {
-  //         date: new Date('2024-10-26T00:00:00.000Z'),
-  //         morning: false,
-  //         afternoon: true,
-  //         _id: '6708122e9f7280b1ec58e4e3',
-  //       },
-  //     ],
-  //     created_at: new Date('2024-10-10T17:43:10.979Z'),
-  //     updated_at: new Date('2024-10-10T17:43:10.979Z'),
-  //     __v: 0,
-  //   },
-  // ];
-  const leaveRequests = [
-    {
-      _id: '6708122e9f7280b1ec58e4e1',
-      student_id: '66fad3b9cf582e73b67c41e3',
-      parent_id: '66fad3b9cf582e73b67c41de',
-      teacher_id: '67069ec320e98879b63b369a',
-      class_id: '66fad3b4cf582e73b67c418a',
-      start_date: new Date('2024-10-25T00:00:00.000Z'),
-      end_date: new Date('2024-10-26T00:00:00.000Z'),
-      reason: 'ốm ạ',
-      status: 'pending',
-      sessions: [
-        {
-          date: new Date('2024-10-25T00:00:00.000Z'),
-          morning: true,
-          afternoon: false,
-          _id: '6708122e9f7280b1ec58e4e2',
-        },
-        {
-          date: new Date('2024-10-26T00:00:00.000Z'),
-          morning: false,
-          afternoon: true,
-          _id: '6708122e9f7280b1ec58e4e3',
-        },
-      ],
-      created_at: new Date('2024-10-10T17:43:10.979Z'),
-      updated_at: new Date('2024-10-10T17:43:10.979Z'),
-      __v: 0,
-    },
-    {
-      _id: '6708122e9f7280b1ec58e4e4',
-      student_id: '66fad3b9cf582e73b67c41e4',
-      parent_id: '66fad3b9cf582e73b67c41df',
-      teacher_id: '67069ec320e98879b63b369b',
-      class_id: '66fad3b4cf582e73b67c418b',
-      start_date: new Date('2024-11-01T00:00:00.000Z'),
-      end_date: new Date('2024-11-03T00:00:00.000Z'),
-      reason: 'gia đình có việc',
-      status: 'approved',
-      sessions: [
-        { date: new Date('2024-11-01T00:00:00.000Z'), morning: true, afternoon: true, _id: '6708122e9f7280b1ec58e4e5' },
-        {
-          date: new Date('2024-11-02T00:00:00.000Z'),
-          morning: false,
-          afternoon: true,
-          _id: '6708122e9f7280b1ec58e4e6',
-        },
-      ],
-      created_at: new Date('2024-10-12T17:43:10.979Z'),
-      updated_at: new Date('2024-10-12T17:43:10.979Z'),
-      __v: 0,
-    },
-    {
-      _id: '6708122e9f7280b1ec58e4e7',
-      student_id: '66fad3b9cf582e73b67c41e5',
-      parent_id: '66fad3b9cf582e73b67c41e0',
-      teacher_id: '67069ec320e98879b63b369c',
-      class_id: '66fad3b4cf582e73b67c418c',
-      start_date: new Date('2024-12-10T00:00:00.000Z'),
-      end_date: new Date('2024-12-12T00:00:00.000Z'),
-      reason: 'du lịch',
-      status: 'rejected',
-      sessions: [
-        {
-          date: new Date('2024-12-10T00:00:00.000Z'),
-          morning: true,
-          afternoon: false,
-          _id: '6708122e9f7280b1ec58e4e8',
-        },
-        { date: new Date('2024-12-11T00:00:00.000Z'), morning: true, afternoon: true, _id: '6708122e9f7280b1ec58e4e9' },
-      ],
-      created_at: new Date('2024-10-15T17:43:10.979Z'),
-      updated_at: new Date('2024-10-15T17:43:10.979Z'),
-      __v: 0,
-    },
+  // data mẫu đơn nghĩ học
+  const [leaveRequests, setLeaveRequests] = useState([]);
 
-    {
-      _id: '6708122e9f7280b1ec58e4e9',
-      student_id: '66fad3b9cf582e73b67c41e5',
-      parent_id: '66fad3b9cf582e73b67c41e0',
-      teacher_id: '67069ec320e98879b63b369c',
-      class_id: '66fad3b4cf582e73b67c418c',
-      start_date: new Date('2024-12-10T00:00:00.000Z'),
-      end_date: new Date('2024-12-12T00:00:00.000Z'),
-      reason: 'du lịch 12312312',
-      status: 'rejected',
-      sessions: [
-        {
-          date: new Date('2024-12-10T00:00:00.000Z'),
-          morning: true,
-          afternoon: false,
-          _id: '6708122e9f7280b1ec58e4e8',
-        },
-        { date: new Date('2024-12-11T00:00:00.000Z'), morning: true, afternoon: true, _id: '6708122e9f7280b1ec58e4e9' },
-      ],
-      created_at: new Date('2024-10-15T17:43:10.979Z'),
-      updated_at: new Date('2024-10-15T17:43:10.979Z'),
-      __v: 0,
-    },
-  ];
+  // gọi tới getLeaveRequestsByTeacherId xong to biến leaveRequests
+  useEffect(() => {
+    const fetchLeaveRequests = async () => {
+      if (!teacherInfo._id) return;
+
+      try {
+        const response = await getLeaveRequestsByTeacherId(teacherInfo._id);
+        setLeaveRequests(response.data);
+        console.log('Danh sách đơn nghỉ học:', response.data);
+      } catch (error) {
+        console.error('Lỗi lấy danh sách đơn nghỉ học:', error);
+      }
+    };
+    fetchLeaveRequests();
+  }, [teacherInfo._id]);
 
   const [selectedLeaveRequest, setSelectedLeaveRequest] = useState(null);
   // biến quản lý khi bấm vào xem chi tiết đơn nghỉ học
@@ -180,6 +77,33 @@ export default function Teacher() {
   const filteredRequests = leaveRequests.filter((request) =>
     filterStatus === 'all' ? true : request.status === filterStatus
   );
+  // handle xử lý chấp thuận , từ chối đơn nghỉ học
+  const handleUpdateLeaveRequest = async (leaveRequest_id, status) => {
+    // alert ra leaveRequest_id và status
+
+    try {
+      const response = await updateLeaveRequest(leaveRequest_id, status);
+      console.log('Cập nhật đơn nghỉ học:', response);
+      // cập nhật lại danh sách đơn nghỉ học
+      const updatedLeaveRequests = leaveRequests.map((request) =>
+        request._id === leaveRequest_id ? { ...request, status } : request
+      );
+      setLeaveRequests(updatedLeaveRequests);
+      toast.success('Cập nhật đơn nghỉ học thành công');
+      setShowFullInfoLeaveRequestSent(false);
+      setShowTeacherLeaveRequests(true);
+      // chuyển qua tab đã duyệt
+      if (status === 'approved') {
+        setFilterStatus('approved');
+      } else if (status === 'rejected') {
+        setFilterStatus('rejected');
+      }
+    } catch (error) {
+      console.error('Lỗi cập nhật đơn nghỉ học:', error);
+      toast.error('Có lỗi xảy ra khi cập nhật đơn nghỉ học');
+    }
+  };
+
   return (
     <div className="font-sans bg-gray-100 min-h-screen">
       <header className="bg-white p-4 border-b border-gray-300 flex justify-between items-center">
@@ -227,8 +151,7 @@ export default function Teacher() {
             <div className="relative ">
               <a href="#" className="flex items-center" onClick={() => setShowProfile(!showProfile)}>
                 <i className="fas fa-user-circle mr-2" style={{ color: '#429AB8' }}></i>
-                {/* {studentInfo.userName} */}
-                Nguyễn Văn A
+                {teacherInfo.userName}
               </a>
               {showProfile && (
                 <div className="absolute mt-2 w-48 bg-white border rounded shadow-lg" style={{ left: '-10px' }}>
@@ -404,10 +327,7 @@ export default function Teacher() {
                 />
 
                 <div className="mt-4">
-                  <div className="font-bold">
-                    {/* {studentInfo.userName} */}
-                    Nguyễn Văn A
-                  </div>
+                  <div className="font-bold">{teacherInfo.userName}</div>
 
                   <div className="flex flex-col md:flex-row justify-center space-y-2 md:space-y-0 md:space-x-4 break-words md:flex-wrap">
                     <div className="text-gray-600">
@@ -457,7 +377,7 @@ export default function Teacher() {
                   onMouseLeave={(e) => e.currentTarget.querySelector('div').classList.remove('font-bold')}
                 >
                   <i className="fas fa-book mr-2" style={{ color: '#545885' }}></i>
-                  <div className="text-gray-600">Quá Trình Học Tập</div>
+                  <div className="text-gray-600">Nhập điểm học sinh</div>
                 </a>
                 <a
                   href="#"
@@ -959,13 +879,17 @@ export default function Teacher() {
                                 <>
                                   <button
                                     className="bg-green-500 text-white px-4 py-2 rounded"
-                                    onClick={() => alert('Đã đồng ý đơn xin nghỉ học')}
+                                    onClick={() => {
+                                      handleUpdateLeaveRequest(selectedLeaveRequest._id, 'approved');
+                                    }}
                                   >
                                     Đồng ý
                                   </button>
                                   <button
                                     className="bg-red-500 text-white px-4 py-2 rounded"
-                                    onClick={() => alert('Đã từ chối đơn xin nghỉ học')}
+                                    onClick={() => {
+                                      handleUpdateLeaveRequest(selectedLeaveRequest._id, 'rejected');
+                                    }}
                                   >
                                     Từ chối
                                   </button>

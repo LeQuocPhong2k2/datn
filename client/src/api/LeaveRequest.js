@@ -48,5 +48,44 @@ async function getLeaveRequestsByStudentId(student_id) {
     throw error;
   }
 }
+// getLeaveRequestsByTeacherId
+async function getLeaveRequestsByTeacherId(teacher_id) {
+  try {
+    const response = await axios.post(
+      `${API_URL}/leaveRequest/getLeaveRequestsByTeacherId`,
+      { teacher_id },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response;
+  } catch (error) {
+    console.error(
+      'Lỗi khi lấy danh sách đơn xin nghĩ học theo id giáo viên:',
+      error.response ? error.response.data : error.message
+    );
+    throw error;
+  }
+}
+// updateLeaveRequest
+async function updateLeaveRequest(leaveRequest_id, status) {
+  try {
+    const response = await axios.post(
+      `${API_URL}/leaveRequest/updateLeaveRequest`,
+      { leaveRequest_id, status },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response;
+  } catch (error) {
+    console.error('Lỗi khi cập nhật đơn xin nghĩ học:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+}
 
-export { createLeaveRequest, getLeaveRequestsByStudentId };
+export { createLeaveRequest, getLeaveRequestsByStudentId, getLeaveRequestsByTeacherId, updateLeaveRequest };

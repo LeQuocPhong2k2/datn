@@ -67,5 +67,29 @@ async function getGiaoVienByDepartment(department) {
     throw error;
   }
 }
+// getGiaoVienByPhoneNumber
+async function getGiaoVienByPhoneNumber(phoneNumber) {
+  try {
+    const response = await axios.post(
+      'http://localhost:3000/teachers/getGiaoVienByPhoneNumber',
+      { phoneNumber },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Get teachers by phoneNumber error:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+}
 
-export { addGiaoVien, getAllGiaoViens, getGiaoVienChuaPhanCongChuNhiem, getGiaoVienByDepartment };
+export {
+  addGiaoVien,
+  getAllGiaoViens,
+  getGiaoVienChuaPhanCongChuNhiem,
+  getGiaoVienByDepartment,
+  getGiaoVienByPhoneNumber,
+};
