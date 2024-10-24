@@ -134,6 +134,28 @@ export default function Teacher() {
       toast.error('Có lỗi xảy ra khi cập nhật đơn nghỉ học');
     }
   };
+  const [showContent, setShowContent] = useState(false);
+  const [showContent1, setShowContent1] = useState(false);
+  const content = {
+    text: 'Nhân dịp Lễ Giáng Sinh 2023 Chúc các thầy cô và các em học sinh có một kỳ nghỉ lễ vui vẻ và hạnh phúc bên gia đình và người thân. Chúc các em học sinh sẽ có một kỳ học mới đầy nhiệt huyết và hứng khởi. Merry Christmas and Happy New Year 2024!',
+    link: 'https://www.youtube.com/watch?v=4YBGRGBj7_w',
+    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRVLAlmZuyO7OQx5a9lyBLhl_t1gwimPhrMhw&s',
+  };
+  const content1 = {
+    // hãy viết text về họp phụ huynh
+    text: ' Kính mời quý phụ huynh tham dự buổi họp phụ huynh học sinh vào lúc 7h30 ngày 10/10/2024 tại trường Tiểu học Nguyễn Bỉnh Khiêm. Đây là cơ hội để quý phụ huynh gặp gỡ và trò chuyện với giáo viên, cũng như nhận thông tin về quá trình học tập của con em mình. Hẹn gặp lại quý phụ huynh!',
+    link: 'https://www.youtube.com/watch?v=4YBGRGBj7_w',
+    image:
+      'https://www.canva.com/design/DAGTWH_JYfw/_ZLoUqEYAJgTzgSi6WQ3wQ/view?utm_content=DAGTWH_JYfw&utm_campaign=designshare&utm_medium=link&utm_source=editor',
+  };
+  const senderName = 'Admin01';
+  const createdAt = '2024-09-07T00:00:00.000Z'; // Thay thế bằng thời gian gửi thực tế
+  const createdAt1 = '2023-12-24T00:00:00.000Z'; // Thay thế bằng thời gian gửi thực tế
+
+  // phần sự kiệN cho nhập điểm học sinh\
+  const [grade, setGrade] = useState(1); // Default grade is 1
+  const [selectedSemester, setSelectedSemester] = useState('Semester 1');
+  const [examType, setExamType] = useState('Midterm'); // Default exam type is Midterm
 
   return (
     <div className="font-sans bg-gray-100 min-h-screen">
@@ -364,17 +386,14 @@ export default function Teacher() {
                   <div className="flex flex-col md:flex-row justify-center space-y-2 md:space-y-0 md:space-x-4 break-words md:flex-wrap">
                     <div className="text-gray-600">
                       Lớp Chủ Nhiệm:{' '}
-                      <b>
-                        {/* {studentInfo.className} */}
-                        1A
-                      </b>
+                      <b>{teacherInfo.lopChuNhiem ? teacherInfo.lopChuNhiem[0].className : 'Chưa có lớp chủ nhiệm'}</b>
                     </div>
 
                     <div className="text-gray-600">
-                      MSGV:
+                      Năm học :
                       <b>
                         {/* {studentInfo.studentCode} */}
-                        123456
+                        {teacherInfo.lopChuNhiem ? teacherInfo.lopChuNhiem[0].academicYear : 'Chưa có năm học'}
                       </b>
                     </div>
                   </div>
@@ -564,8 +583,8 @@ export default function Teacher() {
         </div>
       )}
       {showTeacherProfile && ( // phần dưới body
-        <div className={`max-w-4xl mx-auto bg-white p-6 rounded shadow ${window.innerWidth > 768 ? 'mt-4' : 'mt-0'}`}>
-          <div className="flex space-x-2 mb-4 md:space-x-4 ">
+        <div className={`w-[100%] mx-auto bg-white p-6 rounded shadow ${window.innerWidth > 768 ? 'mt-4' : 'mt-0'}`}>
+          <div className="flex space-x-2 mb-4 md:space-x-4 justify-center ">
             <div
               className={`tab ${activeTab === 'profile' ? 'active' : ''} ${window.innerWidth <= 768 ? 'text-sm p-2' : ' p-3'}`}
               onClick={() => setActiveTab('profile')}
@@ -684,57 +703,49 @@ export default function Teacher() {
                     />
 
                     <p className="font-bold" style={{ color: '#0B6FA1' }}>
-                      {/* {studentInfo.userName} */}
-                      Nguyễn Văn A
+                      {teacherInfo.userName}
                     </p>
                     {/* <p style={{ color: '#0B6FA1' }}> Năm học :{studentInfo.academicYear}</p> */}
                   </div>
                   <div className="w-2/3">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <strong>Họ tên:</strong>
-                        {/* {studentInfo.userName} */}
-                        Nguyễn Văn A
+                        <strong>Họ tên: </strong>
+                        {teacherInfo.userName}
                       </div>
                       <div>
                         <strong>Giới tính:</strong>
-                        {/* {studentInfo.gender} */}
-                        Nam
+                        {teacherInfo.gender}
                       </div>
                       <div>
-                        <strong>Số điện thoại:</strong>
-                        {/* {studentInfo.status} */}
-                        0907021954
+                        <strong>SĐT: </strong>
+                        {teacherInfo.phoneNumber}
                       </div>
                       <div>
-                        <strong>Trình độ:</strong>
-                        {/* {studentInfo.status} */}
-                        Thạc sĩ
+                        <strong>Trình độ: </strong>
+                        {teacherInfo.levelOfExpertise}
                       </div>
 
                       <div>
-                        <strong>Địa chỉ:</strong>
-                        {/* {studentInfo.address} */}
-                        Gò Vấp, TP.HCM
+                        <strong>Địa chỉ: </strong>
+                        {teacherInfo.address}
                       </div>
                       <div>
                         <strong>Ngày bắt đầu công tác :</strong>{' '}
-                        {/* {new Date(studentInfo.dateOfEnrollment).toLocaleDateString('vi-VN', {
+                        {new Date(teacherInfo.dateOfEnrollment).toLocaleDateString('vi-VN', {
                           day: '2-digit',
                           month: '2-digit',
                           year: 'numeric',
-                        })} */}
-                        01/01/2021
+                        })}
                       </div>
 
                       <div>
-                        <strong>Môn giảng dạy:</strong>
-                        {/* {studentInfo.className} */}
-                        Ngoại ngữ
+                        <strong>Môn giảng dạy: </strong>
+                        {teacherInfo.department}
                       </div>
                       <div>
                         <strong>Lớp Chủ Nhiệm:</strong>
-                        1A2
+                        {teacherInfo.lopChuNhiem ? teacherInfo.lopChuNhiem[0].className : 'Chưa có lớp chủ nhiệm'}
                       </div>
                     </div>
                   </div>
@@ -742,6 +753,204 @@ export default function Teacher() {
               </div>
             </div>
           )}
+          {activeTab === 'academic' && (
+            <div className="w-[80%] mx-auto bg-white p-6 rounded shadow mt-4">
+              <h2 className="text-xl font-bold mb-4 text-center">Nhập Điểm Cho Học Sinh Tiểu Học</h2>
+
+              {/* Form nhập khối, lớp, môn học, học kỳ */}
+              <div className="grid grid-cols-4 gap-4 mb-6">
+                <div>
+                  <label className="block mb-2">Khối</label>
+                  <select
+                    className="w-full p-2 border rounded"
+                    value={grade}
+                    onChange={(e) => setGrade(Number(e.target.value))}
+                  >
+                    <option value={1}>Khối 1</option>
+                    <option value={2}>Khối 2</option>
+                    <option value={3}>Khối 3</option>
+                    <option value={4}>Khối 4</option>
+                    <option value={5}>Khối 5</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block mb-2">Lớp</label>
+                  <select className="w-full p-2 border rounded" style={{ zIndex: 10 }}>
+                    {Array.from({ length: 5 }, (_, i) => i + 1).map((grade) =>
+                      Array.from({ length: 5 }, (_, j) => `A${j + 1}`).map((className) => (
+                        <option key={`${grade}${className}`} value={`${grade}${className}`}>
+                          {`${grade}${className}`}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                </div>
+                <div>
+                  <label className="block mb-2">Môn học</label>
+                  <select className="w-full p-2 border rounded">
+                    <option>Tiếng Việt</option>
+                    <option>Toán</option>
+                    <option>Ngoại ngữ 1</option>
+                    <option>Đạo đức</option>
+                    <option>TN-XH</option>
+                    <option>Âm Nhạc</option>
+                    <option>Mĩ Thuật</option>
+                    <option>Tin học</option>
+                    <option>Giáo dục thể chất</option>
+                    <option>Hoạt động trải nghiệm</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block mb-2">Học kỳ</label>
+                  <div className="flex items-center space-x-4">
+                    <select className="w-full p-2 border rounded">
+                      <option>Học kỳ 1</option>
+                      <option>Học kỳ 2</option>
+                    </select>
+                    <select className="w-full p-2 border rounded">
+                      <option>Giữa kỳ</option>
+                      <option>Cuối kỳ</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="block mb-2">Nhập điểm từ file Excel</label>
+                  <input type="file" className="w-full p-2 border rounded" />
+                </div>
+              </div>
+
+              {/* Table nhập điểm */}
+              <div className="overflow-x-auto">
+                <table className="min-w-full border">
+                  <thead>
+                    <tr>
+                      <th className="border px-4 py-2">STT</th>
+                      <th className="border px-4 py-2">Họ và Tên</th>
+                      <th className="border px-4 py-2">Ngày Sinh</th>
+                      <th className="border px-4 py-2">Nhận Xét Giữa Kỳ</th>
+                      <th className="border px-4 py-2">Nhận Xét Cuối Kỳ</th>
+                      {/* Dựa trên lựa chọn học kỳ và khối để hiển thị thêm cột */}
+                      {selectedSemester === 'Cuối kỳ' && grade > 3 && (
+                        <>
+                          <th className="border px-4 py-2">Kiểm Tra Cuối Kỳ</th>
+                          <th className="border px-4 py-2">Xếp Loại Cuối Kỳ</th>
+                        </>
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {/* Đây là ví dụ về một hàng điểm, bạn cần thêm logic để render nhiều học sinh */}
+                    <tr>
+                      <td className="border px-4 py-2">1</td>
+                      <td className="border px-4 py-2">Nguyễn Văn A</td>
+                      <td className="border px-4 py-2">01/01/2015</td>
+                      <td className="border px-4 py-2">
+                        <select className="w-full p-2 border rounded">
+                          <option>Hoàn thành tốt</option>
+                          <option>Hoàn thành</option>
+                          <option>Chưa hoàn thành</option>
+                        </select>
+                      </td>
+                      <td className="border px-4 py-2">
+                        <select className="w-full p-2 border rounded">
+                          <option>Hoàn thành tốt</option>
+                          <option>Hoàn thành</option>
+                          <option>Chưa hoàn thành</option>
+                        </select>
+                      </td>
+                      {/* Thêm ô kiểm tra nếu là cuối kỳ */}
+                      {selectedSemester === 'Cuối kỳ' && grade > 3 && (
+                        <>
+                          <td className="border px-4 py-2">
+                            <input type="number" className="w-full p-2 border rounded" placeholder="Điểm" />
+                          </td>
+                          <td className="border px-4 py-2">
+                            <select className="w-full p-2 border rounded">
+                              <option>Hoàn thành tốt</option>
+                              <option>Hoàn thành</option>
+                              <option>Chưa hoàn thành</option>
+                            </select>
+                          </td>
+                        </>
+                      )}
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'notice' && (
+            <div>
+              {/* Nội dung cho Thông báo */}
+              <h2 className="text-xl font-bold mb-4">Thông Báo</h2>
+              {/* Thông báo họp phụ huynh */}
+              <div className="bg-white p-4 rounded-lg shadow-md mb-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <strong>Người gửi: </strong>
+
+                    {senderName}
+                  </div>
+                  <div>
+                    <strong>Thời gian: </strong>
+                    {new Date(createdAt).toLocaleString()} {/* Thay createdAt bằng thời gian gửi */}
+                  </div>
+                </div>
+                <h3
+                  className="text-lg font-semibold mt-2 cursor-pointer text-blue-500"
+                  onClick={() => setShowContent1(!showContent1)}
+                >
+                  Thông báo họp phụ huynh {/* Tiêu đề thông báo */}
+                </h3>
+                {showContent1 && ( // Hiển thị nội dung khi nhấp vào tiêu đề
+                  <div className="mt-2">
+                    <p>{content1.text}</p> {/* Nội dung thông báo */}
+                    {content1.image && (
+                      <div className="mt-2 flex justify-center">
+                        <img src={content1.image} alt="Thông báo" className="w-200 h-200 object-cover" />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              <div className="bg-white p-4 rounded-lg shadow-md mb-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <strong>Người gửi: </strong>
+
+                    {senderName}
+                  </div>
+                  <div>
+                    <strong>Thời gian: </strong>
+                    {new Date(createdAt1).toLocaleString()} {/* Thay createdAt bằng thời gian gửi */}
+                  </div>
+                </div>
+                <h3
+                  className="text-lg font-semibold mt-2 cursor-pointer text-blue-500"
+                  onClick={() => setShowContent(!showContent)}
+                >
+                  Chúc mừng lễ Giáng Sinh 2023 {/* Tiêu đề thông báo */}
+                </h3>
+                {showContent && ( // Hiển thị nội dung khi nhấp vào tiêu đề
+                  <div className="mt-2">
+                    <p>{content.text}</p> {/* Nội dung thông báo */}
+                    {content.link && (
+                      <a href={content.link} target="_blank" rel="noopener noreferrer" className="text-blue-500">
+                        Xem thêm
+                      </a>
+                    )}
+                    {content.image && (
+                      <div className="mt-2 flex justify-center">
+                        <img src={content.image} alt="Thông báo" className="w-200 h-200 object-cover" />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {activeTab === 'leaveRequest' && (
             <div>
               {/* phần button chuyển trang */}
