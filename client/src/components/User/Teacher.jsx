@@ -5,6 +5,7 @@ import Schedule from './Schedule';
 import Cookies from 'js-cookie';
 import { getGiaoVienByPhoneNumber } from '../../api/Teacher';
 import { getLeaveRequestsByTeacherId, updateLeaveRequest } from '../../api/LeaveRequest';
+import { changePassword } from '../../api/Accounts';
 
 export default function Teacher() {
   useEffect(() => {
@@ -37,6 +38,36 @@ export default function Teacher() {
   const [oldPassword, setOldPassword] = useState();
   const [newPassword, setNewPassword] = useState();
   const [confirmPassword, setConfirmPassword] = useState();
+
+  // sự kiện khi bấm nút lưu mật khẩu
+  const handleChangePassword = () => {
+    // kiểm tra có nhập đủ thông tin không
+
+    if (!oldPassword || !newPassword || !confirmPassword) {
+      toast.dismiss();
+      toast.error('Vui lòng nhập đầy đủ thông tin');
+      return;
+    }
+
+    // so sánh mật khẩu mới và mật khẩu xác nhận có giống nhau không
+    else if (newPassword !== confirmPassword) {
+      toast.dismiss();
+      toast.error('Mật khẩu xác nhận không đúng');
+      return;
+    } else {
+      // gọi tới api changePassword do userName trong studentInfo là tên còn trong account là mã học sinh nên ở đây truyền mã học sinh
+      changePassword(teacherInfo.phoneNumber, oldPassword, newPassword)
+        .then((res) => {
+          toast.dismiss();
+          toast.success(res.data.message);
+          setShowChangePassword(false);
+        })
+        .catch((error) => {
+          alert(error);
+        });
+    }
+  };
+
   const [showAllMenu, setShowAllMenu] = useState(true);
   const [activeTab, setActiveTab] = useState('profile');
   const [showTimeTable, setShowTimeTable] = useState(true);
@@ -140,8 +171,8 @@ export default function Teacher() {
                 onClick={() => {
                   // setShowStudentProfile(true);
                   setShowTeacherProfile(true);
-                  // setActiveTab('notice');
-                  // setShowAllMenu(false);
+                  setActiveTab('notice');
+                  setShowAllMenu(false);
                 }}
               >
                 <i className="fas fa-bell mr-2" style={{ color: '#d55557' }}></i>
@@ -160,8 +191,9 @@ export default function Teacher() {
                     onClick={() => {
                       // setShowStudentProfile(true);
                       setShowTeacherProfile(true);
-                      // setActiveTab('profile');
-                      // setShowAllMenu(false);
+                      setActiveTab('profile');
+                      setShowAllMenu(false);
+
                       // setShowProfile(false);
                     }}
                     className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
@@ -171,7 +203,7 @@ export default function Teacher() {
                   <a
                     href="#"
                     onClick={() => {
-                      // setShowChangePassword(true);
+                      setShowChangePassword(true);
                       // setShowProfile(false);
                     }}
                     className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
@@ -293,7 +325,7 @@ export default function Teacher() {
                 </div>
                 <div className="flex items-center justify-end">
                   <button
-                    // onClick={handleChangePassword}
+                    onClick={handleChangePassword}
                     className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
                   >
                     Lưu
