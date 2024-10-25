@@ -13,7 +13,7 @@ import {
   deleteSchedule,
   updateSchedule,
 } from '../../../api/Schedules';
-import { getGiaoVienByDepartment } from '../../../api/Teacher';
+import { getGiaoVienByDepartment, getGiaoVienByClassNameAndSchoolYear } from '../../../api/Teacher';
 
 import Modal from 'react-modal';
 Modal.setAppElement('#root');
@@ -27,6 +27,7 @@ export default function TeachingAssignment() {
     teacherID: '',
     title: '',
   });
+  const [teacher, setTeacher] = useState([]);
   const [semester1, setSemester1] = useState(false);
   const [semester2, setSemester2] = useState(false);
   const [schedules, setSchedules] = useState([]);
@@ -108,6 +109,29 @@ export default function TeachingAssignment() {
   }, [assignmentInput.className, assignmentInput.schoolYear]);
   /**
    *
+   */
+  useEffect(() => {
+    const fetchTeacherByClassNameAndSchoolYear = async () => {
+      try {
+        const response = await getGiaoVienByClassNameAndSchoolYear(
+          assignmentInput.className,
+          assignmentInput.schoolYear
+        );
+        if (response && response.length > 0) {
+          setTeacher(response);
+        } else {
+          setTeacher([]);
+        }
+      } catch (error) {
+        console.error('Get teacher by class name and school year error:', error);
+      }
+    };
+    fetchTeacherByClassNameAndSchoolYear();
+    handlePageLoading();
+  }, [assignmentInput.className, assignmentInput.schoolYear]);
+
+  /**
+   *
    * @param {*} e
    */
   const handleSelectClass = (e) => {
@@ -118,6 +142,7 @@ export default function TeachingAssignment() {
       grade,
       [name]: value,
     });
+    setTeacher([]);
   };
   /**
    *
@@ -238,6 +263,9 @@ export default function TeachingAssignment() {
     const timeSlotCheckboxs = document.querySelectorAll('.timeSlot-Checkbox');
     timeSlotCheckboxs.forEach((checkbox) => {
       checkbox.checked = false;
+    });
+    document.querySelectorAll('.teacherID').forEach((checkbox) => {
+      checkbox.value = '';
     });
   };
   /**
@@ -380,7 +408,7 @@ export default function TeachingAssignment() {
   const scheduleDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
   const generateTimeSlots = () => {
     const timeSlots = [];
-    const morningStartHour = 7 + 30 / 60; // 7:30 AM
+    const morningStartHour = 7 + 20 / 60; // 7:30 AM
     const morningEndHour = 10 + 30 / 60; // 10:30 AM
     const afternoonStartHour = 13.5; // 1:30 PM
     const afternoonEndHour = 15.5; // 3:30 PM
@@ -678,45 +706,45 @@ export default function TeachingAssignment() {
               <input
                 className="w-full p-2 border border-gray-300 rounded bg-gray-100"
                 type="text"
-                value="Nguyễn Thị A"
+                value={teacher.length === 0 ? 'Chưa có giáo viên' : teacher[0].userName}
                 disabled
               />
             </div>
-            <div>
+            {/* <div>
               <div></div>
               <br />
               <button className=" bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
                 Tạo lịch cho Gv.Chủ nhiệm
               </button>
-            </div>
+            </div> */}
           </div>
           <div>
             <span className="font-medium">3. Chọn môn học phân công*</span>
           </div>
           <div className="overflow-x-auto">
-            <table className="min-w-full bg-white border border-gray-300">
-              <thead>
+            <table className="min-w-full border border-gray-300">
+              <thead className="bg-gray-200">
                 <tr>
                   <th className="py-2 px-2 border border-b border-gray-300 text-left w-10 min-w-10">STT</th>
                   <th className="py-2 px-2 border border-b border-gray-300 text-left w-28 min-w-28">Mã môn học</th>
                   <th className="py-2 px-2 border border-b border-gray-300 text-left w-32 min-w-32">Tên môn học</th>
-                  <th className="py-2 px-2 border border-b border-gray-300 text-left w-24 min-w-24">Số tiết/tuần</th>
+                  <th className="py-2 px-2 border border-b border-gray-300 text-left w-28 min-w-28">Tiết/tuần</th>
                   <th className="py-2 px-2 border border-b border-gray-300 text-left w-28 min-w-28">Bộ môn</th>
-                  <th className="py-2 px-2 border border-b border-gray-300 text-left w-48 min-w-48">Giáo viên</th>
-                  <th className="py-2 px-2 border border-b border-gray-300 text-left w-24 min-w-24">Học kỳ 1</th>
-                  <th className="py-2 px-2 border border-b border-gray-300 text-left w-24 min-w-24">Học kỳ 2</th>
-                  <th className="py-2 px-2 border border-b border-gray-300 text-left w-24 min-w-24">Thứ 2</th>
-                  <th className="py-2 px-2 border border-b border-gray-300 text-left w-24 min-w-24">Thứ 3</th>
-                  <th className="py-2 px-2 border border-b border-gray-300 text-left w-24 min-w-24">Thứ 4</th>
-                  <th className="py-2 px-2 border border-b border-gray-300 text-left w-24 min-w-24">Thứ 5</th>
-                  <th className="py-2 px-2 border border-b border-gray-300 text-left w-24 min-w-24">Thứ 6</th>
+                  <th className="py-2 px-2 border border-b border-gray-300 text-left w-52 min-w-52">Giáo viên*</th>
+                  <th className="py-2 px-2 border border-b border-gray-300 text-left w-20 min-w-20">HK1*</th>
+                  <th className="py-2 px-2 border border-b border-gray-300 text-left w-20 min-w-20">HK2*</th>
+                  <th className="py-2 px-2 border border-b border-gray-300 text-left w-20 min-w-20">Thứ 2</th>
+                  <th className="py-2 px-2 border border-b border-gray-300 text-left w-20 min-w-20">Thứ 3</th>
+                  <th className="py-2 px-2 border border-b border-gray-300 text-left w-20 min-w-20">Thứ 4</th>
+                  <th className="py-2 px-2 border border-b border-gray-300 text-left w-20 min-w-20">Thứ 5</th>
+                  <th className="py-2 px-2 border border-b border-gray-300 text-left w-20 min-w-20">Thứ 6</th>
                   <th className="py-2 px-2 border border-b border-gray-300 text-left w-32 min-w-32"></th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td colSpan={14} className="py-2 px-2 border border-b border-gray-300 text-left bg-gray-200">
-                    Các môn học đã được phân công
+                  <td colSpan={14} className="py-2 px-2 border border-b border-r border-gray-300 text-left">
+                    Các môn học đã được phân công <i>{'(' + schedules.length + ' items)'}</i>
                   </td>
                 </tr>
                 {schedules.map((schedule, index) => (
@@ -840,19 +868,19 @@ export default function TeachingAssignment() {
                           </div>
                         ))}
                     </td>
-                    <td className="h-10 py-2 px-2 border border-b border-gray-300 text-left">
+                    <td className="h-10 py-2 px-2 border border-b border-r border-gray-300 text-left">
                       <div className="h-10 flex items-center justify-center">
                         {activeSubjectAssignmentUpdate === index ? (
                           <div className="h-10 flex gap-2">
                             <button
                               onClick={() => handleCancelSubjectAssignmentUpdate(index)}
-                              className="bg-red-500 hover:bg-red-700 text-white font-medium py-1 px-2 rounded"
+                              className="bg-red-500 hover:bg-red-700 text-white font-normal py-1 px-2 rounded"
                             >
                               Hủy
                             </button>
                             <button
                               onClick={() => handleSaveUpdateAssignment(index)}
-                              className="bg-green-500 hover:bg-green-700 text-white font-medium py-1 px-2 rounded"
+                              className="bg-green-500 hover:bg-green-700 text-white font-normal py-1 px-2 rounded"
                             >
                               Lưu
                             </button>
@@ -861,13 +889,13 @@ export default function TeachingAssignment() {
                           <div className="h-10 flex gap-2">
                             <button
                               onClick={() => openModal(index)}
-                              className="bg-red-500 text-white hover:bg-red-700 font-medium py-1 px-2 rounded"
+                              className="bg-red-500 text-white hover:bg-red-700 font-normal py-1 px-2 rounded"
                             >
                               Xóa
                             </button>
                             <button
                               onClick={() => handleSelectSubjectAssignmentUpdate(index)}
-                              className="bg-cyan-700 hover:bg-cyan-900 text-white font-medium py-1 px-2 rounded"
+                              className="bg-yellow-500 hover:bg-yellow-700 text-white font-normal py-1 px-2 rounded"
                             >
                               Sửa
                             </button>
@@ -878,8 +906,8 @@ export default function TeachingAssignment() {
                   </tr>
                 ))}
                 <tr>
-                  <td colSpan={14} className="py-2 px-2 border border-b border-gray-300 text-left bg-gray-200">
-                    Các môn học chưa được phân công
+                  <td colSpan={14} className="py-2 px-2 border border-b border-gray-300 text-left">
+                    Các môn học chưa được phân công <i>{'(' + subjectGrade.length + ' items)'}</i>
                   </td>
                 </tr>
                 {subjectGrade.map((subject, index) => (

@@ -82,10 +82,55 @@ async function importNewProfileStudent(studentInfo, namHoc, khoiLop, tenLop) {
   return response.data;
 }
 
+async function importStudents(mshs, classId) {
+  const response = await axios.post(
+    'http://localhost:3000/class/importStudents',
+    {
+      mshs,
+      classId,
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+  return response.data;
+}
+
+async function autoUpClass(classId) {
+  const response = await axios.post(
+    'http://localhost:3000/class/autoUpClass',
+    { classId },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+  return response;
+}
+
+async function deleteClass(idClass) {
+  const response = await axios.post(
+    'http://localhost:3000/class/deleteClass',
+    { idClass },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+  return response;
+}
+
 export {
   addLopHoc,
   getLopHocByNamHocVaKhoi,
   getLopHocByNamHocOrKhoiOrTenLopOrBuoiHoc,
   getDsHocSinhByLopHoc,
   importNewProfileStudent,
+  importStudents,
+  autoUpClass,
+  deleteClass,
 };

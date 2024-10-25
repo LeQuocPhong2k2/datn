@@ -1,6 +1,9 @@
 import { RiExpandLeftRightFill } from 'react-icons/ri';
 import { useState, useEffect, useRef } from 'react';
-import { PiExport } from 'react-icons/pi';
+
+import { FiSearch } from 'react-icons/fi';
+import { Toaster, toast } from 'react-hot-toast';
+import { IoSettingsSharp } from 'react-icons/io5';
 
 import 'react-datepicker/dist/react-datepicker.css';
 import { LuFilterX } from 'react-icons/lu';
@@ -8,7 +11,12 @@ import { LuFilterX } from 'react-icons/lu';
 import * as FileSaver from 'file-saver';
 import * as XLSX from 'xlsx';
 
-import { getLopHocByNamHocOrKhoiOrTenLopOrBuoiHoc, getDsHocSinhByLopHoc } from '../../../api/Class';
+import {
+  getLopHocByNamHocOrKhoiOrTenLopOrBuoiHoc,
+  getDsHocSinhByLopHoc,
+  autoUpClass,
+  deleteClass,
+} from '../../../api/Class';
 
 import ViewClassDetail from './ViewClassDetail';
 import UpdateClass from './UpdateClass';
@@ -33,25 +41,30 @@ export default function ListClass({ filterClass, action }) {
     ngayBatDau: '',
     buoiHoc: '',
   });
-
+  /**
+   * handle page loading
+   */
   useEffect(() => {
+    toast.remove();
     handlePageLoading();
   }, []);
-
+  /**
+   * handle page loading
+   */
   const handlePageLoading = () => {
     setPageLoading(true);
     setTimeout(() => {
       setPageLoading(false);
     }, 500);
   };
-
   const dropdownRef = useRef(null);
-
   const [classId, setClassId] = useState('');
+  const [classUpId, setClassUpId] = useState([]);
+  const [selectAll, setSelectAll] = useState(false);
+  const [checkedItems, setCheckedItems] = useState({});
   const [classes, setClasses] = useState([]);
   const [iShowExport, setShowExport] = useState(false);
   const [studentList, setStudentList] = useState([]);
-
   const [iShowComponet, setShowComponet] = useState({
     classList: true,
     classDetail: false,
@@ -59,7 +72,9 @@ export default function ListClass({ filterClass, action }) {
     searchStudent: false,
     exportDetail: false,
   });
-
+  /**
+   * get class list
+   */
   useEffect(() => {
     const date = new Date();
     const year = date.getFullYear();
@@ -73,24 +88,23 @@ export default function ListClass({ filterClass, action }) {
         console.error('Lỗi khi tìm kiếm lớp học:', error);
       }
     };
-
     fetchClasses();
   }, []);
-
+  /**
+   * handle click outside
+   */
   useEffect(() => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
-
   //handle click outside
   const handleClickOutside = (event) => {
     if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
       setShowExport(false);
     }
   };
-
   /**
    * handle search class
    */
@@ -109,13 +123,19 @@ export default function ListClass({ filterClass, action }) {
         classDetail: false,
         classUpdate: false,
       });
+      const newCheckedItems = {};
+      classes.forEach((classItem, index) => {
+        newCheckedItems[index] = false;
+      });
+      setCheckedItems(newCheckedItems);
+      setSelectAll(false);
+      setClassUpId([]);
     } catch (error) {
       console.error('Lỗi khi tìm kiếm lớp học:', error);
     }
   };
-
   //handle clear filters
-  const handleClearFilters = () => {
+  const handleClearFilters = async () => {
     setFilter({
       ...filter,
       namHoc: '',
@@ -123,15 +143,32 @@ export default function ListClass({ filterClass, action }) {
       tenLop: '',
       buoiHoc: '',
     });
+    try {
+      const res = await getLopHocByNamHocOrKhoiOrTenLopOrBuoiHoc('', '', '', '');
+      setClasses(res.data);
+      setShowComponet({
+        ...iShowComponet,
+        classList: true,
+        classDetail: false,
+        classUpdate: false,
+      });
+    } catch (error) {
+      console.error('Lỗi khi tìm kiếm lớp học:', error);
+    }
+    const newCheckedItems = {};
+    classes.forEach((classItem, index) => {
+      newCheckedItems[index] = false;
+    });
+    setCheckedItems(newCheckedItems);
+    setSelectAll(false);
+    setClassUpId([]);
   };
-
   /**
    * handle show export class
    */
   const handleShowExportClass = () => {
     setShowExport(!iShowExport);
   };
-
   /**
    * handle export class
    * @param {*} args
@@ -153,7 +190,6 @@ export default function ListClass({ filterClass, action }) {
     const dataBlob = new Blob([excelBuffer], { type: fileType });
     FileSaver.saveAs(dataBlob, 'Danh sách lớp năm học ' + filter.namHoc + fileExtension);
   };
-
   /**
    * set data for export class detail basic
    * @returns
@@ -164,7 +200,6 @@ export default function ListClass({ filterClass, action }) {
       'Năm học',
       'Khối lớp',
       'Tên lớp',
-      'Buổi học',
       'Giáo viên chủ nhiệm',
       'Ngày vào bắt đầu lớp học',
       'Sỉ số',
@@ -174,14 +209,12 @@ export default function ListClass({ filterClass, action }) {
       'Năm học': item.academicYear,
       'Khối lớp': item.grade,
       'Tên lớp': item.className,
-      'Buổi học': item.classSession,
       'Giáo viên chủ nhiệm': item.teacherInfo.userName,
       'Ngày vào bắt đầu lớp học': new Date(item.startDate).toLocaleDateString('en-GB'),
       'Sỉ số': item.totalStudents,
     }));
     return { columnNames, formatData };
   };
-
   /**
    * handle view details
    * @param {*} classId
@@ -195,7 +228,6 @@ export default function ListClass({ filterClass, action }) {
       classDetail: true,
       classUpdate: false,
     });
-
     try {
       const res = getDsHocSinhByLopHoc(classes[classId]._id);
       res.then((data) => {
@@ -206,7 +238,6 @@ export default function ListClass({ filterClass, action }) {
       console.error('Lỗi khi lấy danh sách học sinh:', error);
     }
   };
-
   /**
    *handle update class
    * @param {*} classId
@@ -237,7 +268,6 @@ export default function ListClass({ filterClass, action }) {
       console.error('Lỗi khi lấy danh sách học sinh:', error);
     }
   };
-
   //handle back to class list
   const handleBackDsLopHoc = () => {
     handlePageLoading();
@@ -248,38 +278,102 @@ export default function ListClass({ filterClass, action }) {
       classUpdate: false,
     });
   };
-
   //handle selected all
   const handleSelectAll = (e) => {
-    const checkboxes = document.querySelectorAll('input[name="checkedExport"]');
-    if (e.target.checked) {
-      checkboxes.forEach((checkbox) => {
-        checkbox.checked = true;
-      });
+    const isChecked = e.target.checked;
+    setSelectAll(isChecked);
+    const newCheckedItems = {};
+    classes.forEach((classItem, index) => {
+      newCheckedItems[index] = isChecked;
+    });
+    setCheckedItems(newCheckedItems);
+    if (isChecked) {
+      setClassUpId(classes.map((classItem, index) => index));
     } else {
-      checkboxes.forEach((checkbox) => {
-        checkbox.checked = false;
-      });
+      setClassUpId([]);
     }
   };
-
   /**
    * handle checked item
    */
-  const handleCheckedItem = () => {
-    const checkboxes = document.querySelectorAll('input[name="checkedExport"]');
-    const checkedExportAll = document.getElementById('checkedExportAll');
-    let count = 0;
-    checkboxes.forEach((checkbox) => {
+  const handleCheckedItem = (index) => {
+    const newCheckedItems = {
+      ...checkedItems,
+      [index]: !checkedItems[index],
+    };
+    setCheckedItems(newCheckedItems);
+    if (newCheckedItems[index]) {
+      setClassUpId([...classUpId, index]);
+    } else {
+      setClassUpId(classUpId.filter((id) => id !== index));
+    }
+  };
+  useEffect(() => {
+    console.log('checkedItems:', checkedItems);
+  }, [checkedItems]);
+  /**
+   * handle auto up class
+   */
+  const handleAutoUpClass = async () => {
+    const checkedExport = document.querySelectorAll('input[name="checkedExport"]');
+    let countChecked = 0;
+    checkedExport.forEach((checkbox) => {
       if (checkbox.checked) {
-        count++;
+        countChecked++;
       }
     });
-
-    if (count === checkboxes.length) {
-      checkedExportAll.checked = true;
-    } else {
-      checkedExportAll.checked = false;
+    if (countChecked === 0) {
+      toast.error('Vui lòng chọn lớp học');
+      return;
+    }
+    const date = new Date();
+    const year = date.getFullYear();
+    let check = false;
+    classUpId.forEach((index) => {
+      if (classes[index].academicYear === `${year - 1}-${year}`) {
+        check = true;
+        return;
+      }
+    });
+    if (!check && countChecked > 0) {
+      toast.error('Lớp học được chọn phải có năm học là năm học trước');
+      return;
+    }
+    classUpId.forEach(async (index) => {
+      try {
+        const res = await autoUpClass(classes[index]._id);
+        console.log('Lên lớp:', res);
+        if (res.status === 200) {
+          toast.success('Lên lớp thành công');
+          handleSearchClass();
+        } else {
+          toast.error('Lên lớp thất bại');
+        }
+      } catch (error) {
+        if (error.status === 400) {
+          toast.error(`Lớp ${classes[index].className} đã được lên lớp!`);
+        }
+      }
+    });
+  };
+  /**
+   *
+   * @param {*} classId
+   */
+  const handleDeleteClass = async (classId) => {
+    if (window.confirm('Bạn có chắc chắn muốn xóa lớp học này không?')) {
+      deleteClass(classId)
+        .then((res) => {
+          console.log('Xóa lớp học:', res);
+          if (res.status === 200) {
+            toast.success('Xóa lớp học thành công');
+            handleSearchClass();
+          }
+        })
+        .catch((error) => {
+          console.error('Lỗi khi xóa lớp học:', error);
+          toast.error('Xóa lớp học thất bại');
+        });
     }
   };
 
@@ -315,7 +409,7 @@ export default function ListClass({ filterClass, action }) {
           </button>
         </div>
       )}
-
+      <Toaster toastOptions={{ duration: 2200 }} />
       {iShowComponet.classList && !pageLoading && (
         <div id="root" className="grid grid-flow-row gap-4 p-4 px-10 max-h-full w-full overflow-auto relative">
           <div className="pb-5">
@@ -331,8 +425,8 @@ export default function ListClass({ filterClass, action }) {
           <div>
             <span className="font-medium">1. Bộ lọc tìm kiếm</span>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2">
-            <div className="grid grid-cols-10 items-center">
+          <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-5">
+            <div>
               <label htmlFor="name1" className="col-span-3">
                 Năm học*
               </label>
@@ -341,7 +435,7 @@ export default function ListClass({ filterClass, action }) {
                 id="namHoc"
                 value={filter.namHoc}
                 onChange={(e) => setFilter({ ...filter, namHoc: e.target.value })}
-                className="col-span-7 p-2 border border-gray-300 rounded"
+                className="w-full p-2 border border-gray-300 rounded"
               >
                 <option value="" selected></option>
                 <option value="2020-2021">2020-2021</option>
@@ -352,7 +446,7 @@ export default function ListClass({ filterClass, action }) {
                 <option value="2025-2026">2025-2026</option>
               </select>
             </div>
-            <div className="grid grid-cols-10 items-center">
+            <div>
               <label htmlFor="name1" className="col-span-3">
                 Khối lớp*
               </label>
@@ -361,7 +455,7 @@ export default function ListClass({ filterClass, action }) {
                 id="khoiLop"
                 value={filter.khoiLop}
                 onChange={(e) => setFilter({ ...filter, khoiLop: e.target.value })}
-                className="col-span-7 p-2 border border-gray-300 rounded"
+                className="w-full p-2 border border-gray-300 rounded"
               >
                 <option value="" selected></option>
                 <option value="1">1</option>
@@ -371,7 +465,7 @@ export default function ListClass({ filterClass, action }) {
                 <option value="5">5</option>
               </select>
             </div>
-            <div className="grid grid-cols-10 items-center">
+            <div>
               <label htmlFor="name1" className="col-span-3">
                 Tên lớp
               </label>
@@ -381,75 +475,72 @@ export default function ListClass({ filterClass, action }) {
                 name="tenLop"
                 value={filter.tenLop}
                 onChange={(e) => setFilter({ ...filter, tenLop: e.target.value.toUpperCase() })}
-                className="col-span-7 p-2 border border-gray-300 rounded"
+                className="w-full p-2 border border-gray-300 rounded"
               />
             </div>
-            <div className="grid grid-cols-10 items-center">
-              <label htmlFor="name1" className="col-span-3">
-                Buổi học*
-              </label>
-              <select
-                name="buoiHoc"
-                id="buoiHoc"
-                value={filter.buoiHoc}
-                onChange={(e) => setFilter({ ...filter, buoiHoc: e.target.value })}
-                className="col-span-7 p-2 border border-gray-300 rounded"
-              >
-                <option value="" selected></option>
-                <option value="Sáng">Sáng</option>
-                <option value="Chiều">Chiều</option>
-              </select>
-            </div>
-            <div className="grid grid-flow-col items-center gap-2">
-              <button
-                onClick={handleClearFilters}
-                className="flex items-center justify-center font-medium bg-red-500 text-white gap-2 px-4 py-2 rounded"
-              >
-                <LuFilterX />
-                Xóa bộ lọc
-              </button>
-              <button
-                onClick={handleSearchClass}
-                className="font-medium gap-2 bg-blue-500 text-white px-4 py-2 rounded"
-              >
-                Tìm kiếm
-              </button>
+            <div>
+              <div></div>
+              <br />
+              <div className="grid grid-flow-col items-center justify-start gap-2">
+                <button onClick={handleClearFilters} className="text-xl gap-2 bg-red-500 text-white px-4 py-2 rounded">
+                  <LuFilterX />
+                </button>
+                <button onClick={handleSearchClass} className="text-xl gap-2 bg-blue-500 text-white px-4 py-2 rounded">
+                  <FiSearch />
+                </button>
+              </div>
             </div>
           </div>
           <div className="grid grid-flow-col items-center gap-2">
             <span className="font-medium">2. Danh sách lớp học</span>
-            <div className="flex items-center justify-end relative dropdown-export" ref={dropdownRef}>
-              <button
-                disabled={classes.length === 0}
-                onClick={handleShowExportClass}
-                className="relative flex items-center justify-center gap-2 border px-4 py-2 rounded"
-              >
-                <PiExport />
-                Xuất danh sách
-                <RiExpandLeftRightFill className="rotate-90" />
-                {iShowExport && (
-                  <ul className="w-full absolute z-50 top-10 bg-white border rounded mt-1 p-2 slide-down">
-                    <li className="px-1 hover:bg-gray-200 ">
-                      <a href="#export-list-class" onClick={() => handleExportClass('basic')} className="text-gray-700">
-                        Xuất danh sách lớp học
-                      </a>
-                    </li>
-                    <li className="px-1 hover:bg-gray-200 ">
-                      <a href="#list-student" className="text-gray-700">
-                        Xuất danh sách học sinh
-                      </a>
-                    </li>
-                  </ul>
-                )}
-              </button>
+
+            <div className="flex justify-end items-center gap-4">
+              <div className="flex items-center justify-end relative dropdown-export" ref={dropdownRef}>
+                <button
+                  disabled={classes.length === 0}
+                  onClick={handleShowExportClass}
+                  className="relative flex items-center justify-center gap-2 border px-4 py-2 rounded"
+                >
+                  <IoSettingsSharp />
+                  Chức năng
+                  <RiExpandLeftRightFill className="rotate-90" />
+                  {iShowExport && (
+                    <ul className="w-full absolute z-50 top-10 bg-white border rounded mt-1 p-2 slide-down">
+                      <li className="px-2 py-1 hover:bg-gray-100">
+                        <a
+                          href="#export-list-class"
+                          onClick={() => handleExportClass('basic')}
+                          className="hover:text-blue-600 text-gray-700"
+                        >
+                          Xuất danh sách lớp học
+                        </a>
+                      </li>
+                      <li className="px-2 py-1 hover:bg-gray-100">
+                        <a href="#list-student" className="hover:text-blue-600 text-gray-700">
+                          Xuất danh sách học sinh
+                        </a>
+                      </li>
+                      <li className="px-2 py-1 hover:bg-gray-100">
+                        <a
+                          href="#list-student"
+                          onClick={handleAutoUpClass}
+                          className="hover:text-blue-600 text-gray-700"
+                        >
+                          Lên lớp tự động
+                        </a>
+                      </li>
+                    </ul>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
-          <div className="relative overflow-x-auto">
+          <div className="relative overflow-x-auto min-h-60">
             <table className="w-full bg-white border border-gray-300">
               <thead>
                 <tr>
                   <th className="w-5 py-2 px-4 border border-b bg-gray-200 border-gray-300 text-center">
-                    <input id="checkedExportAll" type="checkbox" onChange={handleSelectAll} />
+                    <input type="checkbox" id="checkedExportAll" checked={selectAll} onChange={handleSelectAll} />
                   </th>
                   <th className="w-10 py-2 px-4 border border-b bg-gray-200 border-gray-300 text-left">STT</th>
                   <th className="w-36 min-w-36 py-2 px-4 border border-b bg-gray-200 border-gray-300 text-left">
@@ -457,7 +548,6 @@ export default function ListClass({ filterClass, action }) {
                   </th>
                   <th className="w-36 py-2 px-4 border border-b bg-gray-200 border-gray-300 text-left">Khối lớp</th>
                   <th className="w-36 py-2 px-4 border border-b bg-gray-200 border-gray-300 text-left">Tên lớp học</th>
-                  <th className="w-36 py-2 px-4 border border-b bg-gray-200 border-gray-300 text-left">Buổi học</th>
                   <th className="w-36 py-2 px-4 border border-b bg-gray-200 border-gray-300 text-left">Sỉ số</th>
                   <th className="w-80 py-2 px-4 border border-b bg-gray-200 border-gray-300 text-left">
                     Giáo viên chủ nhiệm
@@ -469,13 +559,17 @@ export default function ListClass({ filterClass, action }) {
                 {classes.map((classItem, index) => (
                   <tr key={classItem._id}>
                     <td className="py-2 px-4 border border-b border-gray-300 text-center">
-                      <input onClick={handleCheckedItem} name="checkedExport" type="checkbox" />
+                      <input
+                        type="checkbox"
+                        name="checkedExport"
+                        checked={checkedItems[index] || false}
+                        onChange={() => handleCheckedItem(index)}
+                      />
                     </td>
                     <td className="py-2 px-4 border border-b border-gray-300 text-left">{index + 1}</td>
                     <td className="py-2 px-4 border border-b border-gray-300 text-left">{classItem.academicYear}</td>
                     <td className="py-2 px-4 border border-b border-gray-300 text-left">{classItem.grade}</td>
                     <td className="py-2 px-4 border border-b border-gray-300 text-left">{classItem.className}</td>
-                    <td className="py-2 px-4 border border-b border-gray-300 text-left">{classItem.classSession}</td>
                     <td className="py-2 px-4 border border-b border-gray-300 text-left">
                       {classItem.totalStudents + '/' + classItem.maxStudents}
                     </td>
@@ -484,6 +578,12 @@ export default function ListClass({ filterClass, action }) {
                     </td>
                     <td className="py-2 px-4 border border-b border-gray-300 text-left">
                       <div className="flex gap-2">
+                        <button
+                          onClick={() => handleDeleteClass(classItem._id)}
+                          className="bg-red-500 text-white px-2 py-1 rounded"
+                        >
+                          Xóa
+                        </button>
                         <button
                           onClick={() => handleUpdateClass(index)}
                           className="bg-yellow-500 text-white px-2 py-1 rounded"

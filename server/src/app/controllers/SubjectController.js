@@ -146,7 +146,9 @@ const SubjectController = {
         const schedule = await Schedule.findOne({
           subject: subject._id,
         });
-        await schedule.deleteOne();
+        if (schedule) {
+          await schedule.deleteOne();
+        }
         await subject.deleteOne();
         return res.status(200).json({ message: "Subject deleted" });
       }
