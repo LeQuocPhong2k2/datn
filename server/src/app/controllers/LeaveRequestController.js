@@ -46,7 +46,7 @@ const LeaveRequestController = {
   getAllLeaveRequests: async (req, res) => {
     try {
       const leaveRequests = await LeaveRequest.find({})
-      console.log('Leave Requests:', leaveRequests)
+      //console.log('Leave Requests:', leaveRequests)
       res.json(leaveRequests)
     } catch (error) {
       console.error('Error fetching leave requests:', error)

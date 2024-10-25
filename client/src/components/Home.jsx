@@ -26,7 +26,7 @@ import { refreshAccessToken } from '../api/auth';
 export default function Home() {
   const [accounts, setAccounts] = useState([]);
   useEffect(() => {
-    document.title = 'Home';
+    document.title = 'Trang Admin';
     const accountId = localStorage.getItem('_id');
     const res = getAccountById(accountId);
     res
@@ -38,7 +38,6 @@ export default function Home() {
         window.location.href = '/login';
       });
   }, []);
-
 
   useEffect(() => {
     const admin_token = Cookies.get('admin_token'); // Lấy token từ cookie

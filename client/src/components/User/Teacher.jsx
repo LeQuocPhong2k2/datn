@@ -583,7 +583,7 @@ export default function Teacher() {
         </div>
       )}
       {showTeacherProfile && ( // phần dưới body
-        <div className={`w-[100%] mx-auto bg-white p-6 rounded shadow ${window.innerWidth > 768 ? 'mt-4' : 'mt-0'}`}>
+        <div className={`max-w-4xl mx-auto bg-white p-6 rounded shadow ${window.innerWidth > 768 ? 'mt-4' : 'mt-0'}`}>
           <div className="flex space-x-2 mb-4 md:space-x-4 justify-center ">
             <div
               className={`tab ${activeTab === 'profile' ? 'active' : ''} ${window.innerWidth <= 768 ? 'text-sm p-2' : ' p-3'}`}
@@ -758,7 +758,7 @@ export default function Teacher() {
               <h2 className="text-xl font-bold mb-4 text-center">Nhập Điểm Cho Học Sinh Tiểu Học</h2>
 
               {/* Form nhập khối, lớp, môn học, học kỳ */}
-              <div className="grid grid-cols-4 gap-4 mb-6">
+              <div className="grid grid-cols-2 gap-4 mb-6">
                 <div>
                   <label className="block mb-2">Khối</label>
                   <select

@@ -33,7 +33,7 @@ export default function Student() {
   // HÃY TẠO console.log về studentInfo để xem thông tin học sinh
   // console.log('setStudentInfo');
   useEffect(() => {
-    document.title = 'Home';
+    document.title = 'Trang Học Sinh';
     const accountId = localStorage.getItem('_id');
     const resStudent = getStudentByAccountId(accountId);
     resStudent
@@ -314,6 +314,9 @@ export default function Student() {
         alert('Đã gửi đơn nghỉ học thành công');
         setShowFullInfoLeaveRequest(false);
         setShowInfoLeaveRequest(true);
+        // chuyển qua tab xem đơn đã gửi
+        // setShowLeaveRequestSent(true);
+        // setShowScheduleLeaveRequest(false);
       })
       .catch((error) => {
         console.error('Error creating leave request:', error);
