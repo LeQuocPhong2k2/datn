@@ -6,6 +6,8 @@ import Cookies from 'js-cookie';
 import { getGiaoVienByPhoneNumber } from '../../api/Teacher';
 import { getLeaveRequestsByTeacherId, updateLeaveRequest } from '../../api/LeaveRequest';
 import { changePassword } from '../../api/Accounts';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 export default function Teacher() {
   useEffect(() => {
@@ -156,6 +158,8 @@ export default function Teacher() {
   const [grade, setGrade] = useState(1); // Default grade is 1
   const [selectedSemester, setSelectedSemester] = useState('Semester 1');
   const [examType, setExamType] = useState('Midterm'); // Default exam type is Midterm
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedClass, setSelectedClass] = useState('1A1');
 
   return (
     <div className="font-sans bg-gray-100 min-h-screen">
@@ -461,34 +465,54 @@ export default function Teacher() {
                   <i className="fas fa-file-alt mr-2" style={{ color: '#f8c9be' }}></i>
                   <div className="text-gray-600">Đơn Xin Nghĩ Học </div>
                 </a>
+
+                <a
+                  href="#"
+                  onClick={() => {
+                    // setShowStudentProfile(true);
+                    setShowTeacherProfile(true);
+                    setActiveTab('attendance');
+                    setShowAllMenu(false);
+                  }}
+                  className="flex items-center"
+                  onMouseEnter={(e) => e.currentTarget.querySelector('div').classList.add('font-bold')}
+                  onMouseLeave={(e) => e.currentTarget.querySelector('div').classList.remove('font-bold')}
+                >
+                  <i className="fas fa-clipboard-list mr-2" style={{ color: '#e0e4f6' }}></i>
+                  <div className="text-gray-600">Điểm Danh </div>
+                </a>
                 {/* Thêm thông tin quá trình học tập ở đây */}
               </div>
             </div>
             <div className="mt-6"></div>
             <div className="mt-6">
               <h2 className="text-lg font-bold mb-2" style={{ color: '#0B6FA1' }}>
-                <i className="fas fa-chalkboard-teacher mr-2" style={{ color: '#0B6FA1' }}></i>Danh Sách Các Lớp Giảng
-                dạy
+                <i className="fas fa-chalkboard-teacher mr-2" style={{ color: '#0B6FA1' }}></i>
+                Danh Sách Các Lớp Giảng Dạy
               </h2>
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="bg-[#429AB8] text-white">
+                    <th className="border p-2">Lớp</th>
                     <th className="border p-2">Môn Học</th>
-                    <th className="border p-2">Giáo Viên</th>
+                    <th className="border p-2">Thời Gian</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td className="border p-2">Tiếng Anh</td>
-                    <td className="border p-2">Hồ Kim Oanh</td>
+                    <td className="border p-2">Lớp 1A2</td>
+                    <td className="border p-2">Toán</td>
+                    <td className="border p-2">Thứ Hai, 08:00 - 09:30</td>
                   </tr>
                   <tr>
-                    <td className="border p-2">Sinh học</td>
-                    <td className="border p-2">Trần Thanh Danh</td>
+                    <td className="border p-2">Lớp 4B</td>
+                    <td className="border p-2">Tiếng Việt</td>
+                    <td className="border p-2">Thứ Ba, 10:00 - 11:30</td>
                   </tr>
                   <tr>
-                    <td className="border p-2">Âm nhạc</td>
-                    <td className="border p-2">Trần Thanh Linh</td>
+                    <td className="border p-2">Lớp 5C</td>
+                    <td className="border p-2">Khoa Học</td>
+                    <td className="border p-2">Thứ Tư, 13:00 - 14:30</td>
                   </tr>
                 </tbody>
               </table>
@@ -672,6 +696,24 @@ export default function Teacher() {
               }
             >
               Đơn nghỉ học
+            </div>
+
+            <div
+              className={`tab ${activeTab === 'attendance' ? 'active' : ''} ${window.innerWidth <= 768 ? 'text-sm p-2' : ' p-3'}`}
+              onClick={() => setActiveTab('attendance')}
+              style={{
+                backgroundColor: activeTab === 'attendance' ? '#0B6FA1' : '#929498',
+                borderRadius: '5%',
+                padding: '10px',
+                color: 'white',
+                boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.1)',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#0B6FA1')}
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.backgroundColor = activeTab === 'attendance' ? '#0B6FA1' : '#929498')
+              }
+            >
+              Điểm Danh
             </div>
           </div>
 
@@ -1152,6 +1194,112 @@ export default function Teacher() {
                     </div>
                   ))
                 )}
+              </div>
+            </div>
+          )}
+          {activeTab === 'attendance' && (
+            <div className="container mx-auto mt-4">
+              <h1 className="text-center text-xl font-bold">BẢNG ĐIỂM DANH LỚP {selectedClass} </h1>
+
+              <p className="text-center">
+                Nhập P: Vắng có phép, K: Vắng Không phép , Màu vàng nhạt: Thứ bảy, Màu xanh nhạt: Chủ nhật
+              </p>
+              <div className="flex justify-between p-4">
+                <div className="flex space-x-4">
+                  <div className="flex items-center">
+                    <label className="mr-2">Lớp : </label>
+                    <select
+                      className="border border-gray-300 p-1 rounded"
+                      value={selectedClass}
+                      onChange={(e) => setSelectedClass(e.target.value)}
+                    >
+                      {Array.from({ length: 5 }, (_, i) => i + 1).map((grade) =>
+                        Array.from({ length: 5 }, (_, j) => `A${j + 1}`).map((className) => (
+                          <option key={`${grade}${className}`} value={`${grade}${className}`}>
+                            {`${grade}${className}`}
+                          </option>
+                        ))
+                      )}
+                    </select>
+                  </div>
+                  <div className="flex items-center">
+                    <label className="mr-2">Ngày :</label>
+                    <DatePicker
+                      selected={selectedDate}
+                      onChange={(date) => setSelectedDate(date)}
+                      dateFormat="dd/MM/yyyy"
+                      minDate={new Date()}
+                      className="border border-gray-300 p-1 rounded"
+                      placeholderText="DD/MM/YYYY"
+                    />
+                  </div>
+                  <div className="flex items-center">
+                    <label className="mr-2">Buổi :</label>
+                    <select className="border border-gray-300 p-1 rounded">
+                      <option>Sáng</option>
+                      <option>Chiều</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <table className="table-auto w-full border-collapse border border-gray-400 mt-4">
+                <thead>
+                  <tr style={{ backgroundColor: '#e0e0e0' }}>
+                    <th className="border border-gray-400 px-2 py-1">STT</th>
+                    <th className="border border-gray-400 px-2 py-1">Họ và tên</th>
+                    {[...Array(18)].map((_, i) => (
+                      <th key={i} className="border border-gray-400 px-2 py-1">
+                        {i + 2}
+                      </th>
+                    ))}
+                    <th className="border border-gray-400 px-2 py-1">P</th>
+                    <th className="border border-gray-400 px-2 py-1">K</th>
+                    <th className="border border-gray-400 px-2 py-1">TS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { name: 'Trần Hải Đăng', data: [] },
+                    { name: 'Huỳnh Thị Hồng Đào', data: [] },
+                    { name: 'Nguyễn Thị Hạnh Đào', data: [] },
+                    { name: 'Nguyễn Hữu Đạt', data: [] },
+                    { name: 'Trần Ngọc Dương', data: ['P', 'K'] },
+                    { name: 'Hoàng Học Sinh', data: [] },
+                    { name: 'Nguyễn Văn Nam Anh', data: [] },
+                    { name: 'Ngọc Anh Thư', data: [] },
+                  ].map((student, index) => (
+                    <tr key={index}>
+                      <td className="border border-gray-400 px-2 py-1 text-center">{index + 1}</td>
+                      <td className="border border-gray-400 px-2 py-1">{student.name}</td>
+                      {[...Array(18)].map((_, i) => (
+                        <td
+                          key={i}
+                          className="border border-gray-400 px-2 py-1"
+                          style={
+                            [7, 14].includes(i + 2)
+                              ? { backgroundColor: '#ffffcc' } // màu vàng cho các cột 7 và 14
+                              : [8, 15].includes(i + 2)
+                                ? { backgroundColor: '#ccffcc' } // màu xanh cho các cột 8 và 15
+                                : {}
+                          }
+                        >
+                          {student.data[i] || ''}
+                        </td>
+                      ))}
+                      <td className="border border-gray-400 px-2 py-1 text-center" style={{ color: 'red' }}>
+                        {student.data.includes('P') ? '1' : '0'}
+                      </td>
+                      <td className="border border-gray-400 px-2 py-1 text-center" style={{ color: 'red' }}>
+                        {student.data.includes('K') ? '1' : '0'}
+                      </td>
+                      <td className="border border-gray-400 px-2 py-1 text-center">0</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="flex justify-center mt-4 space-x-4">
+                <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700">Lưu</button>
+                <button className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700">Hủy</button>
               </div>
             </div>
           )}
