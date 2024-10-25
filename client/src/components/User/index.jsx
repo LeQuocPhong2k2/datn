@@ -522,7 +522,7 @@ export default function Student() {
         )}
       </header>
       <div>
-        <h1>Test123123123123</h1>
+        <h1>TestPhong</h1>
       </div>
       {/* Hiển thị menu chính */}
       {showAllMenu && ( // hiển thị thông tin toàn bộ bên dưới menu
