@@ -521,6 +521,9 @@ export default function Student() {
           </div>
         )}
       </header>
+      <div>
+        <h1>Test123123123123</h1>
+      </div>
       {/* Hiển thị menu chính */}
       {showAllMenu && ( // hiển thị thông tin toàn bộ bên dưới menu
         <div className="container mx-auto py-8 px-4 md:px-32 flex flex-col md:flex-row">
