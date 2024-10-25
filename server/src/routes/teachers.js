@@ -7,5 +7,6 @@ router.post("/getGiaoVienChuaPhanCongChuNhiem", GiaoVienController.getGiaoVienCh
 router.get("/getAllGiaoViens", GiaoVienController.getAllGiaoViens);
 router.post("/addGiaoVien", GiaoVienController.addGiaoVien);
 router.post("/getGiaoVienByDepartment", GiaoVienController.getGiaoVienByDepartment);
+router.post("/getGiaoVienByClassNameAndSchoolYear", GiaoVienController.getGiaoVienByClassNameAndSchoolYear);
 
 module.exports = router;

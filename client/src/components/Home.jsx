@@ -39,21 +39,18 @@ export default function Home() {
       });
   }, []);
 
-
   useEffect(() => {
-    const admin_token = Cookies.get('admin_token'); // Lấy token từ cookie
+    const admin_token = Cookies.get('admin_token');
     const refresh_token = Cookies.get('refresh_token');
     if (!admin_token || admin_token === 'undefined') {
       if (refresh_token) {
         refreshAccessToken(refresh_token)
-          .then((tokenName) => {
-            // Sau khi gọi refreshAccessToken, admin_token sẽ được tạo lại và lưu vào cookie
-          })
+          .then((tokenName) => {})
           .catch(() => {
-            window.location.href = '/login'; // Nếu không thể refresh token, chuyển hướng về trang login
+            window.location.href = '/login';
           });
       } else {
-        window.location.href = '/login'; // Nếu không có token và không có refresh token, chuyển hướng về trang login
+        window.location.href = '/login';
       }
     }
   }, []);
@@ -312,7 +309,7 @@ export default function Home() {
       {/*
         Right side
       */}
-      <div className="body w-full h-screen md:mt-0 sm:mt-10">
+      <div className="body w-full h-screen md:mt-0 sm:mt-8">
         {selectedFunction === null ? (
           <div className="flex items-center justify-center h-full w-full">
             <img className="scale-150" src={imgBanner} alt="Rounded avatar" />

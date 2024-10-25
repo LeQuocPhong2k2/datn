@@ -104,6 +104,41 @@ const GiaoVienController = {
       res.status(500).json({ error: error.message });
     }
   },
+
+  getGiaoVienByClassNameAndSchoolYear: async (req, res) => {
+    const { className, schoolYear } = req.body;
+    try {
+      console.log("Đang truy vấn giáo viên theo lớp học...", className);
+      const result = await Teacher.aggregate([
+        {
+          $lookup: {
+            from: "Class",
+            localField: "_id",
+            foreignField: "homeRoomTeacher",
+            as: "class",
+          },
+        },
+        {
+          $match: {
+            $and: [{ "class.className": className }, { "class.academicYear": schoolYear }],
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            userName: 1,
+            department: 1,
+            phoneNumber: 1,
+          },
+        },
+      ]);
+
+      res.status(200).json(result);
+    } catch (error) {
+      console.error("Lỗi khi truy vấn giáo viên theo lớp học:", error);
+      res.status(500).json({ error: error.message });
+    }
+  },
 };
 
 module.exports = GiaoVienController;

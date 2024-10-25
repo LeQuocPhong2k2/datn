@@ -1,33 +1,26 @@
 import 'flowbite';
 import React from 'react';
 import Modal from 'react-modal';
-import { CiImport } from 'react-icons/ci';
 import { FiSearch } from 'react-icons/fi';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import 'react-toastify/dist/ReactToastify.css';
 import { Toaster, toast } from 'react-hot-toast';
-import { MdKeyboardArrowDown } from 'react-icons/md';
 import { FaRegCircleCheck } from 'react-icons/fa6';
-import { IoMdHelpCircleOutline } from 'react-icons/io';
 
 import * as XLSX from 'xlsx';
-import * as FileSaver from 'file-saver';
 
-import { addLopHoc, importNewProfileStudent } from '../../../api/Class';
+import { addLopHoc, importNewProfileStudent, deleteClass, importStudents } from '../../../api/Class';
 import { getGiaoVienChuaPhanCongChuNhiem } from '../../../api/Teacher';
 
 Modal.setAppElement('#root');
 
 export default function QuanLyGiaoVien({ functionType }) {
+  const [pageLoading, setPageLoading] = useState(true);
   const [teachers, setTeachers] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [importProgress, setImportProgress] = useState(0);
-  const [newClassProgress, setNewClassProgress] = useState(0);
   const [studentsFileUpload, setStudentsFileUpload] = useState([]);
   const [studentsImportFailed, setStudentsImportFailed] = useState([]);
-  const [iShowComponet, setShowComponent] = useState({
-    showDownloadFileSample: false,
-  });
   const [lopHocInfo, setLopHocInfo] = useState({
     namHoc: '',
     khoiLop: '',
@@ -38,40 +31,71 @@ export default function QuanLyGiaoVien({ functionType }) {
     studentsList: [],
     typeFileImport: '',
   });
-  const [studentInfo, setStudentInfo] = useState({
-    mssv: '',
-    ho: '',
-    ten: '',
-    namSinh: '',
-    gioiTinh: '',
-    danToc: '',
-    ngayVaoTruong: '',
-    sdt: '',
-    diaChi: '',
-    moiQuanHeKhac: false,
-    moiQuanHeCha: false,
-    moiQuanHeMe: false,
-    hoTenCha: '',
-    namSinhCha: '',
-    ngheNghiepCha: '',
-    sdtCha: '',
-    hoTenMe: '',
-    namSinhMe: '',
-    ngheNghiepMe: '',
-    sdtMe: '',
-    moiQuanHe: '',
-    hoTenNguoiGiamHo: '',
-    namSinhNguoiGiamHo: '',
-    ngheNghiepNguoiGiamHo: '',
-    sdtNguoiGiamHo: '',
-  });
 
+  const arrClassName = [
+    '1A1',
+    '1A2',
+    '1A3',
+    '1A4',
+    '1A5',
+    '2A1',
+    '2A2',
+    '2A3',
+    '2A4',
+    '2A5',
+    '3A1',
+    '3A2',
+    '3A3',
+    '3A4',
+    '3A5',
+    '4A1',
+    '4A2',
+    '4A3',
+    '4A4',
+    '4A5',
+    '5A1',
+    '5A2',
+    '5A3',
+    '5A4',
+    '5A5',
+  ];
+  const [filteredClassNames, setFilteredClassNames] = useState([]);
+  useEffect(() => {
+    setFilteredClassNames(arrClassName);
+  }, []);
+  /**
+   * handle page loading
+   */
+  useEffect(() => {
+    toast.remove();
+    handlePageLoading();
+  }, []);
+  /**
+   * handle page loading
+   */
+  const handlePageLoading = () => {
+    setPageLoading(true);
+    setTimeout(() => {
+      setPageLoading(false);
+    }, 500);
+  };
   /**
    * handle change input
    * @param {*} e
    */
   const handleChange = (e) => {
     const { id, value } = e.target;
+    if (id === 'khoiLop') {
+      if (value === '') {
+        setLopHocInfo((prevInfo) => ({
+          ...prevInfo,
+          tenLop: '',
+        }));
+        setFilteredClassNames(arrClassName);
+      }
+      const filtered = arrClassName.filter((className) => className[0].includes(value));
+      setFilteredClassNames(filtered);
+    }
     setLopHocInfo((prevInfo) => ({
       ...prevInfo,
       [id]: id === 'tenLop' ? value.toUpperCase() : value,
@@ -87,7 +111,6 @@ export default function QuanLyGiaoVien({ functionType }) {
     setTeachers(res);
     openModal();
   };
-
   /**
    * handle select teacher
    * @param {*} teacher
@@ -100,7 +123,6 @@ export default function QuanLyGiaoVien({ functionType }) {
     }));
     closeModal();
   };
-
   /**
    * validate input
    * @returns
@@ -110,17 +132,14 @@ export default function QuanLyGiaoVien({ functionType }) {
       toast.error('Vui lòng chọn khối lớp');
       return false;
     }
-
     if (lopHocInfo.tenLop === '') {
       toast.error('Vui lòng nhập tên lớp');
       return false;
     }
-
     if (lopHocInfo.giaoVienChuNhiem === '') {
       toast.error('Vui lòng chọn giáo viên chủ nhiệm');
       return false;
     }
-
     return true;
   };
 
@@ -137,21 +156,18 @@ export default function QuanLyGiaoVien({ functionType }) {
       typeFileImport: prevInfo.khoiLop === '1' ? 'newClass' : 'oldClass',
     }));
   }, []);
-
   /**
    * open modal
    */
   const openModal = () => {
     setIsModalOpen(true);
   };
-
   /**
    * close modal
    */
   const closeModal = () => {
     setIsModalOpen(false);
   };
-
   /**
    * handle file upload
    * @param {*} event
@@ -168,44 +184,120 @@ export default function QuanLyGiaoVien({ functionType }) {
     };
     reader.readAsArrayBuffer(file);
   };
-
+  /**
+   *
+   * @returns
+   */
   const handleSubmit = async () => {
-    // init progress
-    setNewClassProgress(0);
     setImportProgress(0);
-    // 1. Validate input and add new class
     if (!validateInput()) {
       return;
     } else {
-      const res = addLopHoc(lopHocInfo);
-      res
-        .then((res) => {
-          console.log('Thêm lớp học thành công');
-        })
-        .catch((err) => {
-          console.log(err.response.data);
-          toast.error(err.response.data.message);
-        });
-
-      let progress = 0;
-      setNewClassProgress(progress);
-      while (progress < 100) {
-        progress += 10;
-        setNewClassProgress(progress);
-        await new Promise((resolve) => setTimeout(resolve, 100));
+      try {
+        const res = await addLopHoc(lopHocInfo);
+        if (res) {
+          switch (lopHocInfo.khoiLop) {
+            case '1':
+              handleImportNewProfileStudent(res);
+              break;
+            default:
+              handleImportStudents(res);
+              break;
+          }
+        }
+      } catch (error) {
+        if (error.response.status === 400) {
+          toast.error('Lớp học đã tồn tại');
+          return;
+        }
       }
     }
-
-    // 2. Import students
-    if (lopHocInfo.khoiLop === '1') {
-      handleImportNewProfileStudent();
+  };
+  /**
+   *
+   * @param {*} classId
+   */
+  const handleDeleteClass = async (classId) => {
+    const res = await deleteClass(classId);
+    if (res) {
+      console.log('Xóa lớp học thành công');
     }
   };
-
-  const handleImportNewProfileStudent = async () => {
+  /**
+   *
+   * @param {*} classReponse
+   * @returns
+   */
+  const handleImportStudents = async (classReponse) => {
     let totalStudents = studentsFileUpload.length;
     setImportProgress(0);
     setStudentsImportFailed([]);
+    let isImported = true;
+    for (let index = 0; index < totalStudents; index++) {
+      const student = studentsFileUpload[index];
+      const studentInfo = {};
+      studentInfo.mshs = student['Mã số học sinh'];
+      if (studentInfo.mshs === undefined) {
+        toast.error('File import không đúng định dạng');
+        handleDeleteClass(classReponse._id);
+        return;
+      }
+      try {
+        await importStudents(studentInfo.mshs, classReponse._id);
+      } catch (error) {
+        isImported = false;
+        setStudentsImportFailed((studentsImportFailed) => [
+          ...studentsImportFailed,
+          {
+            student: error.response.data.student,
+            message: error.response.data.message,
+          },
+        ]);
+
+        if (error.response.status === 400) {
+          console.log('Mã số sinh viên đã tồn tại');
+        }
+        if (error.response.status === 404) {
+          console.log('Lớp học không tồn tại');
+        }
+        if (error.response.status === 405) {
+          console.log('Sỉ số lớp học đã đủ');
+        }
+        if (error.response.status === 500) {
+          console.log('Import thất bại');
+        }
+      }
+      setImportProgress(Math.round(((index + 1) / totalStudents) * 100));
+    }
+    if (!isImported) {
+      //handleDeleteClass(classReponse._id);
+      toast.error('Tạo lớp học thất bại');
+    } else {
+      //clear data
+      setStudentsFileUpload([]);
+      setLopHocInfo({
+        khoiLop: '',
+        tenLop: '',
+        giaoVienChuNhiem: '',
+        idGiaoVienChuNhiem: '',
+        ngayBatDau: '05/09/2024',
+        studentsList: [],
+        typeFileImport: '',
+      });
+      document.getElementById('input-file').value = '';
+
+      toast.success('Tạo lớp học thành công');
+    }
+  };
+  /**
+   *
+   * @param {*} classReponse
+   */
+  const handleImportNewProfileStudent = async (classReponse) => {
+    let totalStudents = studentsFileUpload.length;
+    setImportProgress(0);
+    setStudentsImportFailed([]);
+    let isImported = true;
     for (let index = 0; index < totalStudents; index++) {
       const student = studentsFileUpload[index];
       const studentInfo = {};
@@ -238,9 +330,60 @@ export default function QuanLyGiaoVien({ functionType }) {
       studentInfo.ngheNghiepNguoiGiamHo = student['Nghề nghiệp quan hệ khác'];
       studentInfo.sdtNguoiGiamHo = student['Số điện thoại quan hệ khác'];
 
+      if (
+        studentInfo.lopHoc !== lopHocInfo.tenLop ||
+        studentInfo.khoiLop !== lopHocInfo.khoiLop ||
+        studentInfo.namHoc !== lopHocInfo.namHoc
+      ) {
+        toast.error('File import không đúng với thông tin lớp học');
+        handleDeleteClass(classReponse._id);
+        return;
+      }
+
+      const dateRegex = /^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])\/\d{4}$/;
+      const validateDate = (date) => {
+        return dateRegex.test(date);
+      };
+      if (!validateDate(studentInfo.ngayVaoTruong)) {
+        toast.error('Ngày vào trường không đúng định dạng');
+        handleDeleteClass(classReponse._id);
+        return;
+      }
+
+      if (!validateDate(studentInfo.namSinh)) {
+        toast.error('Năm sinh không đúng định dạng');
+        handleDeleteClass(classReponse._id);
+        return;
+      }
+
+      if (studentInfo.moiQuanHeKhac) {
+        if (!validateDate(studentInfo.namSinhNguoiGiamHo)) {
+          toast.error('Năm sinh người giám hộ không đúng định dạng');
+          handleDeleteClass(classReponse._id);
+          return;
+        }
+      }
+
+      if (studentInfo.moiQuanHeCha) {
+        if (!validateDate(studentInfo.namSinhCha)) {
+          toast.error('Năm sinh cha không đúng định dạng');
+          handleDeleteClass(classReponse._id);
+          return;
+        }
+      }
+
+      if (studentInfo.moiQuanHeMe) {
+        if (!validateDate(studentInfo.namSinhMe)) {
+          toast.error('Năm sinh mẹ không đúng định dạng');
+          handleDeleteClass(classReponse._id);
+          return;
+        }
+      }
+
       try {
         await importNewProfileStudent(studentInfo, lopHocInfo.namHoc, lopHocInfo.khoiLop, lopHocInfo.tenLop);
       } catch (error) {
+        isImported = false;
         setStudentsImportFailed((studentsImportFailed) => [
           ...studentsImportFailed,
           {
@@ -264,12 +407,59 @@ export default function QuanLyGiaoVien({ functionType }) {
       }
       setImportProgress(Math.round(((index + 1) / totalStudents) * 100));
     }
+    if (!isImported) {
+      handleDeleteClass(classReponse._id);
+      toast.error('Tạo lớp học thất bại');
+    } else {
+      setStudentsFileUpload([]);
+      setLopHocInfo({
+        khoiLop: '',
+        tenLop: '',
+        giaoVienChuNhiem: '',
+        idGiaoVienChuNhiem: '',
+        ngayBatDau: '05/09/2024',
+        studentsList: [],
+        typeFileImport: '',
+      });
+      document.getElementById('input-file').value = '';
+      toast.success('Tạo lớp học thành công');
+    }
   };
 
   return (
     <>
+      {pageLoading && (
+        <div
+          id="root"
+          className="grid grid-flow-row gap-4 p-4 px-10 max-h-full w-full h-full items-center justify-center overflow-auto relative"
+        >
+          <button
+            disabled
+            type="button"
+            className="py-2.5 px-5 me-2 text-sm font-medium text-gray-900 bg-white rounded-lg hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 inline-flex items-center"
+          >
+            <svg
+              aria-hidden="true"
+              role="status"
+              className="inline w-6 h-w-6 me-3 text-gray-200 animate-spin dark:text-gray-600"
+              viewBox="0 0 100 101"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                fill="currentColor"
+              />
+              <path
+                d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                fill="#1C64F2"
+              />
+            </svg>
+          </button>
+        </div>
+      )}
       <Toaster toastOptions={{ duration: 2200 }} />
-      {functionType === 'add-classRoom' && (
+      {!pageLoading && functionType === 'add-classRoom' && (
         <div id="root" className="grid grid-flow-row gap-4 p-4 px-20 max-h-full overflow-auto relative">
           <div className="pb-5">
             <span className="text-lg font-medium flex items-center justify-start gap-1">Thêm mới lớp học</span>
@@ -321,33 +511,14 @@ export default function QuanLyGiaoVien({ functionType }) {
                 value={lopHocInfo.tenLop}
                 onChange={handleChange}
                 className="w-full p-2 border border-gray-300 rounded"
+                defaultValue={''}
               >
                 <option value="" selected></option>
-                <option value="1A1">1A1</option>
-                <option value="1A2">1A2</option>
-                <option value="1A3">1A3</option>
-                <option value="1A4">1A4</option>
-                <option value="1A5">1A5</option>
-                <option value="2A1">2A1</option>
-                <option value="2A2">2A2</option>
-                <option value="2A3">2A3</option>
-                <option value="2A4">2A4</option>
-                <option value="2A5">2A5</option>
-                <option value="3A1">1A1</option>
-                <option value="3A2">1A2</option>
-                <option value="3A3">1A3</option>
-                <option value="3A4">1A4</option>
-                <option value="3A5">3A5</option>
-                <option value="4A1">4A1</option>
-                <option value="4A2">4A2</option>
-                <option value="4A3">4A3</option>
-                <option value="4A4">4A4</option>
-                <option value="4A5">4A5</option>
-                <option value="5A1">5A1</option>
-                <option value="5A2">5A2</option>
-                <option value="5A3">5A3</option>
-                <option value="5A4">5A4</option>
-                <option value="5A5">5A5</option>
+                {filteredClassNames.map((item, index) => (
+                  <option key={index} value={item}>
+                    {item}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="relative">
@@ -376,13 +547,15 @@ export default function QuanLyGiaoVien({ functionType }) {
             <span data-tooltip-target="tooltip-default" className="font-medium flex items-center gap-1">
               2. Import danh sách học sinh
             </span>
-            <span className="italic">
-              (Chọn khối lớp 1 để import hồ sơ học sinh mới, chọn khối lớp khác để import danh sách học sinh cũ.)
-            </span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
             <div className="flex items-start justify-start">
-              <input className="w-full border-e border-y rounded-e px-2" type="file" onChange={handleFileUpload} />
+              <input
+                id="input-file"
+                className="w-full border-e border-y rounded-e px-2"
+                type="file"
+                onChange={handleFileUpload}
+              />
             </div>
             <div>
               <button
@@ -395,11 +568,11 @@ export default function QuanLyGiaoVien({ functionType }) {
             </div>
           </div>
           <div>
-            <span className="flex items-center gap-1">
+            {/* <span className="flex items-center gap-1">
               Tạo lớp học:
               {' ' + newClassProgress}%{' '}
               {newClassProgress === 100 ? <FaRegCircleCheck className=" text-green-500" /> : ''}
-            </span>
+            </span> */}
             <br />
             <span className="flex items-center gap-1">
               Import danh sách học sinh:

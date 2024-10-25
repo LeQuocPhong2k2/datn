@@ -107,7 +107,6 @@ export default function AddSubject() {
 
   const handleDeleteClick = (index) => {
     setRowIndex(index);
-    // setActiveEdit(true);
     setSubjectInfo((prevInfo) => ({
       ...prevInfo,
       rowIndex: index,

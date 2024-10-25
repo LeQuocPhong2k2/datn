@@ -68,4 +68,31 @@ async function getGiaoVienByDepartment(department) {
   }
 }
 
-export { addGiaoVien, getAllGiaoViens, getGiaoVienChuaPhanCongChuNhiem, getGiaoVienByDepartment };
+async function getGiaoVienByClassNameAndSchoolYear(className, schoolYear) {
+  try {
+    const response = await axios.post(
+      'http://localhost:3000/teachers/getGiaoVienByClassNameAndSchoolYear',
+      { className, schoolYear },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error(
+      'Get teachers by class name and school year error:',
+      error.response ? error.response.data : error.message
+    );
+    throw error;
+  }
+}
+
+export {
+  addGiaoVien,
+  getAllGiaoViens,
+  getGiaoVienChuaPhanCongChuNhiem,
+  getGiaoVienByDepartment,
+  getGiaoVienByClassNameAndSchoolYear,
+};
