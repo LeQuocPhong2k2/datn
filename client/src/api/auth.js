@@ -2,7 +2,7 @@ import axios from 'axios';
 import Cookies from 'universal-cookie';
 
 const cookies = new Cookies();
-
+const API_URL = process.env.REACT_APP_API_URL;
 const refreshAccessToken = async (refreshToken) => {
   // const refreshToken = cookies.get('refresh_token');
   if (!refreshToken) {
@@ -10,7 +10,7 @@ const refreshAccessToken = async (refreshToken) => {
   }
 
   try {
-    const response = await axios.post('http://localhost:3000/accounts/refreshToken', { refreshToken }); // Sửa URL
+    const response = await axios.post(`${API_URL}/accounts/refreshToken`, { refreshToken }); // Sửa URL
     const tokenName = response.data.account.role === 'Admin' ? 'admin_token' : 'student_token'; // Cập nhật theo vai trò
     cookies.set(tokenName, response.data.token, {
       // Sửa response
