@@ -157,9 +157,57 @@ export default function Teacher() {
   // phần sự kiệN cho nhập điểm học sinh\
   const [grade, setGrade] = useState(1); // Default grade is 1
   const [selectedSemester, setSelectedSemester] = useState('Semester 1');
-  const [examType, setExamType] = useState('Midterm'); // Default exam type is Midterm
-  const [selectedDate, setSelectedDate] = useState(new Date());
+
+  // phần sự kiện dành cho chỗ điểm danh
+
   const [selectedClass, setSelectedClass] = useState('1A1');
+  const students = [
+    { id: 1, name: 'Trần Hải Đăng', studentCode: 'STD001', data: [] },
+    { id: 2, name: 'Huỳnh Thị Hồng Đào', studentCode: 'STD002', data: [] },
+    { id: 3, name: 'Nguyễn Thị Hạnh Đào', studentCode: 'STD003', data: [] },
+    { id: 4, name: 'Nguyễn Hữu Đạt', studentCode: 'STD004', data: [] },
+    { id: 5, name: 'Trần Ngọc Dương', studentCode: 'STD005', data: ['P', 'K'] },
+    { id: 6, name: 'Hoàng Học Sinh', studentCode: 'STD006', data: [] },
+    { id: 7, name: 'Nguyễn Văn Nam Anh', studentCode: 'STD007', data: [] },
+    { id: 8, name: 'Ngọc Anh Thư', studentCode: 'STD008', data: [] },
+  ];
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [recentDays, setRecentDays] = useState([]);
+
+  // Hàm tính toán các ngày dựa trên selectedDate, đảm bảo tính toán đúng tháng của ngày đó
+  const calculateRecentDays = (baseDate) => {
+    const currentDate = new Date(baseDate);
+    const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+    return Array.from({ length: daysInMonth }, (_, i) => {
+      const date = new Date(firstDayOfMonth);
+      date.setDate(i + 1);
+      return date;
+    });
+  };
+
+  // Cập nhật recentDays khi selectedDate thay đổi
+  useEffect(() => {
+    setRecentDays(calculateRecentDays(selectedDate));
+  }, [selectedDate]);
+
+  const [attendanceData, setAttendanceData] = useState({});
+
+  const handleAttendanceChange = (studentId, date, attendance) => {
+    setAttendanceData((prevData) => ({
+      ...prevData,
+      [studentId]: {
+        ...prevData[studentId],
+        [date.toISOString()]: attendance,
+      },
+    }));
+  };
+
+  const handleUpdateAttendance = (student, date, status) => {
+    alert(
+      `Đã cập nhật điểm danh cho học sinh ${student.name} ngày ${date.toISOString().slice(0, 10)} với trạng thái ${status}`
+    );
+  };
 
   return (
     <div className="font-sans bg-gray-100 min-h-screen">
@@ -607,7 +655,7 @@ export default function Teacher() {
         </div>
       )}
       {showTeacherProfile && ( // phần dưới body
-        <div className={`max-w-4xl mx-auto bg-white p-6 rounded shadow ${window.innerWidth > 768 ? 'mt-4' : 'mt-0'}`}>
+        <div className={`w-[90%] mx-auto bg-white p-6 rounded shadow ${window.innerWidth > 768 ? 'mt-4' : 'mt-0'}`}>
           <div className="flex space-x-2 mb-4 md:space-x-4 justify-center ">
             <div
               className={`tab ${activeTab === 'profile' ? 'active' : ''} ${window.innerWidth <= 768 ? 'text-sm p-2' : ' p-3'}`}
@@ -1202,9 +1250,10 @@ export default function Teacher() {
               <h1 className="text-center text-xl font-bold">BẢNG ĐIỂM DANH LỚP {selectedClass} </h1>
 
               <p className="text-center">
-                Nhập P: Vắng có phép, K: Vắng Không phép , Màu vàng nhạt: Thứ bảy, Màu xanh nhạt: Chủ nhật
+                CheckBox trên (Màu xanh) : Vắng có phép , CheckBox dưới (Màu đỏ) : Vắng không phép , Màu vàng nhạt: Thứ
+                bảy, Màu xanh nhạt: Chủ nhật
               </p>
-              <div className="flex justify-between p-4">
+              <div className="flex justify-center p-4">
                 <div className="flex space-x-4">
                   <div className="flex items-center">
                     <label className="mr-2">Lớp : </label>
@@ -1228,7 +1277,7 @@ export default function Teacher() {
                       selected={selectedDate}
                       onChange={(date) => setSelectedDate(date)}
                       dateFormat="dd/MM/yyyy"
-                      minDate={new Date()}
+                      maxDate={new Date()}
                       className="border border-gray-300 p-1 rounded"
                       placeholderText="DD/MM/YYYY"
                     />
@@ -1246,10 +1295,10 @@ export default function Teacher() {
                 <thead>
                   <tr style={{ backgroundColor: '#e0e0e0' }}>
                     <th className="border border-gray-400 px-2 py-1">STT</th>
-                    <th className="border border-gray-400 px-2 py-1">Họ và tên</th>
-                    {[...Array(18)].map((_, i) => (
-                      <th key={i} className="border border-gray-400 px-2 py-1">
-                        {i + 2}
+                    <th className="border border-gray-400 px-2 py-1 whitespace-nowrap">Họ và tên</th>
+                    {recentDays.map((day, index) => (
+                      <th key={index} className="border border-gray-400 px-2 py-1" style={{ width: '25px' }}>
+                        {day.getDate()}
                       </th>
                     ))}
                     <th className="border border-gray-400 px-2 py-1">P</th>
@@ -1258,49 +1307,75 @@ export default function Teacher() {
                   </tr>
                 </thead>
                 <tbody>
-                  {[
-                    { name: 'Trần Hải Đăng', data: [] },
-                    { name: 'Huỳnh Thị Hồng Đào', data: [] },
-                    { name: 'Nguyễn Thị Hạnh Đào', data: [] },
-                    { name: 'Nguyễn Hữu Đạt', data: [] },
-                    { name: 'Trần Ngọc Dương', data: ['P', 'K'] },
-                    { name: 'Hoàng Học Sinh', data: [] },
-                    { name: 'Nguyễn Văn Nam Anh', data: [] },
-                    { name: 'Ngọc Anh Thư', data: [] },
-                  ].map((student, index) => (
+                  {students.map((student, index) => (
                     <tr key={index}>
                       <td className="border border-gray-400 px-2 py-1 text-center">{index + 1}</td>
-                      <td className="border border-gray-400 px-2 py-1">{student.name}</td>
-                      {[...Array(18)].map((_, i) => (
+                      <td className="border border-gray-400 px-2 py-1 whitespace-nowrap">{student.name}</td>
+                      {recentDays.map((date, dayIndex) => (
                         <td
-                          key={i}
-                          className="border border-gray-400 px-2 py-1"
-                          style={
-                            [7, 14].includes(i + 2)
-                              ? { backgroundColor: '#ffffcc' } // màu vàng cho các cột 7 và 14
-                              : [8, 15].includes(i + 2)
-                                ? { backgroundColor: '#ccffcc' } // màu xanh cho các cột 8 và 15
-                                : {}
-                          }
+                          key={dayIndex}
+                          className="border border-gray-400 px-1 py-1 text-center"
+                          style={{
+                            backgroundColor:
+                              date.getDay() === 6
+                                ? '#ffffcc' // Thứ Bảy
+                                : date.getDay() === 0
+                                  ? '#ccffcc' // Chủ Nhật
+                                  : 'transparent',
+                            width: '25px', // Corrected width
+                          }}
                         >
-                          {student.data[i] || ''}
+                          {date.getDay() !== 6 && date.getDay() !== 0 ? (
+                            <>
+                              <input
+                                type="checkbox"
+                                name={`attendance-${student.id}-${date.toISOString()}`}
+                                value="P"
+                                onChange={(e) => {
+                                  handleAttendanceChange(student.id, date, e.target.checked ? 'P' : '');
+                                  document.querySelector(
+                                    `input[name='attendance-${student.id}-${date.toISOString()}'][value='K']`
+                                  ).checked = false;
+                                }}
+                                style={{ color: 'green' }}
+                              />
+                              <input
+                                type="checkbox"
+                                name={`attendance-${student.id}-${date.toISOString()}`}
+                                value="K"
+                                onChange={(e) => {
+                                  handleAttendanceChange(student.id, date, e.target.checked ? 'K' : '');
+                                  document.querySelector(
+                                    `input[name='attendance-${student.id}-${date.toISOString()}'][value='P']`
+                                  ).checked = false;
+                                }}
+                                style={{ color: 'red' }}
+                              />
+                            </>
+                          ) : null}
                         </td>
                       ))}
-                      <td className="border border-gray-400 px-2 py-1 text-center" style={{ color: 'red' }}>
-                        {student.data.includes('P') ? '1' : '0'}
-                      </td>
-                      <td className="border border-gray-400 px-2 py-1 text-center" style={{ color: 'red' }}>
-                        {student.data.includes('K') ? '1' : '0'}
-                      </td>
+                      <td className="border border-gray-400 px-2 py-1 text-center">0</td>
+                      <td className="border border-gray-400 px-2 py-1 text-center">0</td>
                       <td className="border border-gray-400 px-2 py-1 text-center">0</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
               <div className="flex justify-center mt-4 space-x-4">
-                <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700">Lưu</button>
+                <button
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700"
+                  onClick={() => alert('Đã lưu điểm danh')}
+                >
+                  Lưu
+                </button>
                 <button className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700">Hủy</button>
               </div>
+            </div>
+          )}
+          {activeTab === 'lesson' && (
+            <div>
+              <h3>Nội dung cho Bài Học Trên Lớp</h3>
             </div>
           )}
         </div>

@@ -16,5 +16,6 @@ router.post('/getDsStudentByClass', ClassController.getDsStudentByClass)
 router.post('/importNewProfileStudent', ClassController.importNewProfileStudent)
 
 router.post('/addClass', ClassController.addClass)
+router.post('/getListStudentByClassId', ClassController.getListStudentByClassId)
 
 module.exports = router

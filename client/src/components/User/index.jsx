@@ -33,7 +33,7 @@ export default function Student() {
   // HÃY TẠO console.log về studentInfo để xem thông tin học sinh
   // console.log('setStudentInfo');
   useEffect(() => {
-    document.title = 'Trang Học Sinh';
+    document.title = 'Trang chủ học sinh';
     const accountId = localStorage.getItem('_id');
     const resStudent = getStudentByAccountId(accountId);
     resStudent
@@ -1307,44 +1307,7 @@ export default function Student() {
             <div>
               {showLesson && (
                 <div className="container mx-auto p-4">
-                  {/*  Card 1*/}
-                  <div className="flex flex-col md:flex-row border-b pb-4 mb-4">
-                    {/* Image Section */}
-                    <div className="w-full md:w-1/3 mb-4 md:mb-0">
-                      <img
-                        src="https://kids.hoc247.vn/storage-files/docs/2022/20220928/744x420/63451d69eb2bc.webp"
-                        alt="App Edu.One"
-                        className="object-cover w-full h-full rounded-md"
-                      />
-                    </div>
-
-                    {/* Text Section */}
-                    <div className="w-full md:w-2/3 md:pl-4">
-                      <h2 className="text-lg md:text-xl font-bold">
-                        Bài 2: Hình vuông - Hình tròn - Hình tam giác - Hình chữ nhật SGK Cánh diều
-                      </h2>
-                      <div className="mt-2 p-4 bg-gray-100 rounded">
-                        <span>
-                          Trong bài học Hình vuông - Hình tròn - Hình tam giác - Hình chữ nhật, học sinh sẽ được học về
-                          các hình học cơ bản như hình vuông, hình tròn, hình tam giác, hình chữ nhật. Học sinh sẽ được
-                          học cách nhận biết và phân biệt các hình học cơ bản này.
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-500 mt-2">
-                        11/10/2024 |{' '}
-                        <a
-                          href="#"
-                          className="text-blue-500"
-                          onClick={() => {
-                            setShowLesson(false);
-                            setShowDetailLesson1(true);
-                          }}
-                        >
-                          Xem Chi Tiết
-                        </a>
-                      </p>
-                    </div>
-                  </div>
+                  {/*  Card 0*/}
 
                   {/* Card 1 */}
                   <div className="flex flex-col md:flex-row border-b pb-4 mb-4">
@@ -1436,11 +1399,14 @@ export default function Student() {
                     </button>
                   </div>
                   <h3 className=" mt-2">
-                    <strong>Xin chào quý phụ huynh và các em học sinh,</strong>
+                    <strong></strong>
                   </h3>
 
                   <h3 className=" mt-4">
-                    <strong>Hôm nay, lớp 1A đã học các nội dung sau đây:</strong>
+                    <strong>
+                      {' '}
+                      Xin chào Quý phụ huynh và các em học sinh,hôm nay, lớp 1A đã học các nội dung sau đây:
+                    </strong>
                   </h3>
 
                   <ul className="list-disc list-inside mt-4">
