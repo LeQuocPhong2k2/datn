@@ -1249,10 +1249,15 @@ export default function Teacher() {
             <div className="container mx-auto mt-4">
               <h1 className="text-center text-xl font-bold">BẢNG ĐIỂM DANH LỚP {selectedClass} </h1>
 
-              <p className="text-center">
-                CheckBox trên (Màu xanh) : Vắng có phép , CheckBox dưới (Màu đỏ) : Vắng không phép , Màu vàng nhạt: Thứ
-                bảy, Màu xanh nhạt: Chủ nhật
-              </p>
+              <b>
+                {' '}
+                <p className="text-center">
+                  <span className="text-blue-700">CheckBox trên : Vắng có phép</span>,{' '}
+                  <span className="text-red-700">CheckBox dưới : Vắng không phép</span>,{' '}
+                  <span className="text-yellow-700">Màu vàng nhạt: Thứ bảy</span>,{' '}
+                  <span className="text-green-700">Màu xanh nhạt: Chủ Nhật</span>
+                </p>
+              </b>
               <div className="flex justify-center p-4">
                 <div className="flex space-x-4">
                   <div className="flex items-center">
@@ -1277,7 +1282,6 @@ export default function Teacher() {
                       selected={selectedDate}
                       onChange={(date) => setSelectedDate(date)}
                       dateFormat="dd/MM/yyyy"
-                      maxDate={new Date()}
                       className="border border-gray-300 p-1 rounded"
                       placeholderText="DD/MM/YYYY"
                     />
@@ -1308,13 +1312,13 @@ export default function Teacher() {
                 </thead>
                 <tbody>
                   {students.map((student, index) => (
-                    <tr key={index}>
+                    <tr key={index} className="hover:bg-[#E5E7EB]">
                       <td className="border border-gray-400 px-2 py-1 text-center">{index + 1}</td>
                       <td className="border border-gray-400 px-2 py-1 whitespace-nowrap">{student.name}</td>
                       {recentDays.map((date, dayIndex) => (
                         <td
                           key={dayIndex}
-                          className="border border-gray-400 px-1 py-1 text-center"
+                          className="border border-gray-400 px-1 py-1 text-center "
                           style={{
                             backgroundColor:
                               date.getDay() === 6
@@ -1337,7 +1341,7 @@ export default function Teacher() {
                                     `input[name='attendance-${student.id}-${date.toISOString()}'][value='K']`
                                   ).checked = false;
                                 }}
-                                style={{ color: 'green' }}
+                                style={{ color: 'blue' }}
                               />
                               <input
                                 type="checkbox"
@@ -1365,11 +1369,31 @@ export default function Teacher() {
               <div className="flex justify-center mt-4 space-x-4">
                 <button
                   className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700"
-                  onClick={() => alert('Đã lưu điểm danh')}
+                  onClick={() => {
+                    students.forEach((student) => {
+                      recentDays.forEach((date) => {
+                        const attendance = document.querySelector(
+                          `input[name='attendance-${student.id}-${date.toISOString()}']:checked`
+                        );
+                        if (attendance) {
+                          handleUpdateAttendance(student, date, attendance.value);
+                        }
+                      });
+                    });
+                  }}
                 >
                   Lưu
                 </button>
-                <button className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700">Hủy</button>
+                <button
+                  className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700"
+                  onClick={() => {
+                    document
+                      .querySelectorAll('input[type="checkbox"]')
+                      .forEach((checkbox) => (checkbox.checked = false));
+                  }}
+                >
+                  Hủy
+                </button>
               </div>
             </div>
           )}
