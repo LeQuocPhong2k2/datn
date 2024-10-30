@@ -3,6 +3,7 @@ import React from 'react';
 import { useEffect, useState } from 'react';
 import { IoWarningOutline } from 'react-icons/io5';
 import { Toaster, toast } from 'react-hot-toast';
+import { IoMdCheckboxOutline } from 'react-icons/io';
 
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 
@@ -12,6 +13,7 @@ import {
   getSubjectNotInSchedule,
   deleteSchedule,
   updateSchedule,
+  getTeacherSchedule,
 } from '../../../api/Schedules';
 import { getGiaoVienByDepartment, getGiaoVienByClassNameAndSchoolYear } from '../../../api/Teacher';
 
@@ -19,12 +21,18 @@ import Modal from 'react-modal';
 Modal.setAppElement('#root');
 
 export default function TeachingAssignment() {
+  const getCurrentYear = () => {
+    const date = new Date();
+    const year = date.getFullYear();
+    return `${year}-${year + 1}`;
+  };
   const [assignmentInput, setAssignmentInput] = useState({
     grade: '1',
     className: '1A1',
-    schoolYear: '',
+    schoolYear: getCurrentYear(),
     subjectCode: '',
     teacherID: '',
+    teacherName: '',
     title: '',
   });
   const [teacher, setTeacher] = useState([]);
@@ -39,6 +47,8 @@ export default function TeachingAssignment() {
   const [checkBoxTimeSlotUpdate, setCheckBoxTimeSlotUpdate] = useState([]);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [scheduleId, setScheduleId] = useState('');
+  const [timeSlots, setTimeSlots] = useState([]);
+  const [showSelectedTimeSlot, setShowSelectedTimeSlot] = useState(false);
   /**
    *
    * @param {*} index
@@ -59,6 +69,7 @@ export default function TeachingAssignment() {
    */
   useEffect(() => {
     handlePageLoading();
+    setShowSelectedTimeSlot(false);
   }, []);
   /**
    * handle page loading
@@ -80,6 +91,7 @@ export default function TeachingAssignment() {
       schoolYear: `${year}-${year + 1}`,
     }));
   }, []);
+
   /**
    *handleGetSchedulesByClass
    */
@@ -101,35 +113,38 @@ export default function TeachingAssignment() {
         if (response) {
           setSchedules(response.schedules);
         }
-      } catch (error) {
-        console.error('Get schedules by class error:', error);
-      }
-    };
-    fetchGetSchedulesByClass();
-  }, [assignmentInput.className, assignmentInput.schoolYear]);
-  /**
-   *
-   */
-  useEffect(() => {
-    const fetchTeacherByClassNameAndSchoolYear = async () => {
-      try {
-        const response = await getGiaoVienByClassNameAndSchoolYear(
+        const responseTeacher = await getGiaoVienByClassNameAndSchoolYear(
           assignmentInput.className,
           assignmentInput.schoolYear
         );
-        if (response && response.length > 0) {
-          setTeacher(response);
+        if (responseTeacher) {
+          setTeacher(responseTeacher);
         } else {
           setTeacher([]);
         }
       } catch (error) {
-        console.error('Get teacher by class name and school year error:', error);
+        setTeacher([]);
+        console.error('Get schedules by class error:', error);
       }
     };
-    fetchTeacherByClassNameAndSchoolYear();
-    handlePageLoading();
-  }, [assignmentInput.className, assignmentInput.schoolYear]);
+    const fetchGetTeacherClass = async () => {
+      try {
+        const responseTeacher = await getGiaoVienByClassNameAndSchoolYear(
+          assignmentInput.className,
+          assignmentInput.schoolYear
+        );
+        if (responseTeacher) {
+          setTeacher(responseTeacher);
+        }
+      } catch (error) {
+        console.error('Get schedules by class error:', error);
+      }
+    };
 
+    fetchGetTeacherClass();
+    fetchGetSchedulesByClass();
+    setTimeSlots(generateTimeSlots(false, []));
+  }, [assignmentInput.className, assignmentInput.schoolYear]);
   /**
    *
    * @param {*} e
@@ -139,16 +154,38 @@ export default function TeachingAssignment() {
     const grade = handleSplitClassNameToGrade(value);
     setAssignmentInput({
       ...assignmentInput,
-      grade,
+      grade: grade,
       [name]: value,
     });
-    setTeacher([]);
+    handlePageLoading();
+    setActiveSubjectAssignmentUpdate(-1);
+    setActiveSubjectAssignmentCreate(-1);
+    const fetchSubjectGrade = async () => {
+      try {
+        const response = await getSubjectNotInSchedule(grade, assignmentInput.schoolYear, value);
+        setSubjectGrade(response.subjectNotInSchedule);
+      } catch (error) {
+        console.error('Get subject by grade error :', error);
+      }
+    };
+    setAssignmentInput({
+      ...assignmentInput,
+      grade: grade,
+      className: value,
+      teacherID: '',
+      teacherName: '',
+      subjectCode: '',
+      title: '',
+    });
+    fetchSubjectGrade();
+    setShowSelectedTimeSlot(false);
+    setTimeSlots(generateTimeSlots(false, []));
   };
   /**
    *
    * @param {*} e
    */
-  const handleAssignmentInputChange = (e) => {
+  const handleAssignmentInputChange = async (e) => {
     const { name, value } = e.target;
     if (name === 'className') {
       const grade = handleSplitClassNameToGrade(value);
@@ -156,6 +193,12 @@ export default function TeachingAssignment() {
         ...assignmentInput,
         grade,
         [name]: value,
+      });
+    } else if (name === 'teacherID') {
+      setAssignmentInput({
+        ...assignmentInput,
+        [name]: value,
+        teacherName: e.target.options[e.target.selectedIndex].text,
       });
     } else {
       setAssignmentInput({
@@ -179,7 +222,11 @@ export default function TeachingAssignment() {
   useEffect(() => {
     const fetchSubjectGrade = async () => {
       try {
-        const response = await getSubjectNotInSchedule(assignmentInput.grade);
+        const response = await getSubjectNotInSchedule(
+          assignmentInput.grade,
+          assignmentInput.schoolYear,
+          assignmentInput.className
+        );
         setSubjectGrade(response.subjectNotInSchedule);
       } catch (error) {
         console.error('Get subject by grade error :', error);
@@ -195,16 +242,19 @@ export default function TeachingAssignment() {
     setActiveSubjectAssignmentCreate(index);
     setAssignmentInput({
       ...assignmentInput,
+      teacherID: '',
+      teacherName: '',
       subjectCode: subjectGrade[index].subjectCode,
       title: subjectGrade[index].subjectName,
     });
     setCheckBoxTimeSlotUpdate([]);
+    resetCheckboxes();
   };
   /**
    *
    * @param {*} index
    */
-  const handleSelectSubjectAssignmentUpdate = (index) => {
+  const handleSelectSubjectAssignmentUpdate = async (index) => {
     handleCancelSubjectAssignment();
     setActiveSubjectAssignmentUpdate(index);
     setAssignmentInput({
@@ -212,6 +262,7 @@ export default function TeachingAssignment() {
       subjectCode: schedules[index].subject.subjectCode,
       title: schedules[index].subject.subjectName,
       teacherID: schedules[index].scheduleTeacher._id,
+      teacherName: schedules[index].scheduleTeacher.userName,
     });
     setSemester1(schedules[index].semester1);
     setSemester2(schedules[index].semester2);
@@ -223,6 +274,14 @@ export default function TeachingAssignment() {
         checked: true,
       }))
     );
+    try {
+      const response = await getTeacherSchedule(assignmentInput.teacherID, assignmentInput.schoolYear);
+      if (response) {
+        setTimeSlots(generateTimeSlots(true, response));
+      }
+    } catch (error) {
+      console.error('Get teacher schedule error:', error);
+    }
   };
   /**
    *
@@ -241,25 +300,27 @@ export default function TeachingAssignment() {
    * @param {*} index
    */
   const handleCancelSubjectAssignmentUpdate = (index) => {
+    setCheckBoxTimeSlotUpdate([]);
     setActiveSubjectAssignmentUpdate(-1);
+    setActiveSubjectAssignmentCreate(-1);
     setAssignmentInput({
       ...assignmentInput,
       subjectCode: '',
-      teacherID: '',
+      title: '',
     });
-    setCheckBoxTimeSlotUpdate([]);
   };
   /**
    *
    * @param {*} index
    */
   const handleCancelSubjectAssignment = (index) => {
+    setActiveSubjectAssignmentCreate(-1);
+    setActiveSubjectAssignmentUpdate(-1);
     setAssignmentInput({
       ...assignmentInput,
       subjectCode: '',
       teacherID: '',
     });
-    setActiveSubjectAssignmentCreate(-1);
     const timeSlotCheckboxs = document.querySelectorAll('.timeSlot-Checkbox');
     timeSlotCheckboxs.forEach((checkbox) => {
       checkbox.checked = false;
@@ -267,6 +328,10 @@ export default function TeachingAssignment() {
     document.querySelectorAll('.teacherID').forEach((checkbox) => {
       checkbox.value = '';
     });
+    document.querySelectorAll('.semesterCreate').forEach((checkbox) => {
+      checkbox.checked = false;
+    });
+    setShowSelectedTimeSlot(false);
   };
   /**
    *
@@ -318,7 +383,6 @@ export default function TeachingAssignment() {
         className: assignmentInput.className,
         schoolYear: assignmentInput.schoolYear,
       };
-
       try {
         const response = await createSchedule(
           schedule.scheduleTitle,
@@ -330,50 +394,44 @@ export default function TeachingAssignment() {
           semester1,
           semester2
         );
-
         if (response) {
-          toast.success('Tạo lịch giảng dạy thành công');
+          setShowSelectedTimeSlot(false);
           handlePageLoading();
-          const fetchSubjectGrade = async () => {
-            try {
-              const response = await getSubjectNotInSchedule(assignmentInput.grade);
-              setSubjectGrade(response.subjectNotInSchedule);
-            } catch (error) {
-              console.error('Get subject by grade error :', error);
+          try {
+            const responseSubjec = await getSubjectNotInSchedule(
+              assignmentInput.grade,
+              assignmentInput.schoolYear,
+              assignmentInput.className
+            );
+            if (responseSubjec) {
+              setSubjectGrade(responseSubjec.subjectNotInSchedule);
             }
-          };
-          const fetchSubjectGradeSchedulesByClass = async () => {
-            try {
-              const response = await getSchedulesByClass(assignmentInput.className, assignmentInput.schoolYear);
-              setSchedules(response.schedules);
-            } catch (error) {
-              console.error('Get subject by grade error :', error);
+            const responseSchedule = await getSchedulesByClass(assignmentInput.className, assignmentInput.schoolYear);
+            if (responseSchedule) {
+              setSchedules(responseSchedule.schedules);
             }
-          };
-          fetchSubjectGradeSchedulesByClass();
-          fetchSubjectGrade();
-          setActiveSubjectAssignmentCreate(-1);
-          resetCheckboxes();
-          document.querySelectorAll('.teacherID').forEach((select) => {
-            select.value = '';
-          });
-          document.querySelectorAll('.semester').forEach((checkbox) => {
-            checkbox.checked = false;
-          });
-          const timeSlotCheckboxs = document.querySelectorAll('.timeSlot-Checkbox');
-          timeSlotCheckboxs.forEach((checkbox) => {
-            checkbox.checked = false;
-          });
+            setActiveSubjectAssignmentCreate(-1);
+            resetCheckboxes();
+            document.querySelectorAll('.teacherID').forEach((select) => {
+              select.value = '';
+            });
+            document.querySelectorAll('.semester').forEach((checkbox) => {
+              checkbox.checked = false;
+            });
+            const timeSlotCheckboxs = document.querySelectorAll('.timeSlot-Checkbox');
+            timeSlotCheckboxs.forEach((checkbox) => {
+              checkbox.checked = false;
+            });
+            toast.success('Tạo lịch giảng dạy thành công');
+          } catch (error) {
+            console.error('Get subject by grade error :', error);
+          }
         }
       } catch (error) {
         console.error('Create schedule error:', error);
       }
     }
   };
-  /**
-   *
-   */
-
   /**
    *
    * @param {*} e
@@ -406,7 +464,7 @@ export default function TeachingAssignment() {
   };
 
   const scheduleDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-  const generateTimeSlots = () => {
+  const generateTimeSlots = (active, timesSlotInput) => {
     const timeSlots = [];
     const morningStartHour = 7 + 20 / 60; // 7:30 AM
     const morningEndHour = 10 + 30 / 60; // 10:30 AM
@@ -422,7 +480,7 @@ export default function TeachingAssignment() {
           scheduleDay: day,
           hour: formatTime(hour),
           lessonNumber,
-          isFree: handleCheckScheduleExist(day, lessonNumber),
+          isFree: handleCheckScheduleExist(day, lessonNumber, active, timesSlotInput),
         });
         lessonNumber++;
       }
@@ -432,7 +490,7 @@ export default function TeachingAssignment() {
           scheduleDay: day,
           hour: formatTime(hour),
           lessonNumber,
-          isFree: handleCheckScheduleExist(day, lessonNumber),
+          isFree: handleCheckScheduleExist(day, lessonNumber, active, timesSlotInput),
         });
         lessonNumber++;
       }
@@ -445,7 +503,7 @@ export default function TeachingAssignment() {
    * @param {*} lessonNumber
    * @returns
    */
-  const handleCheckScheduleExist = (day, lessonNumber) => {
+  const handleCheckScheduleExist = (day, lessonNumber, active, timesSlotInput) => {
     for (const schedule of schedules) {
       const scheduleExists = schedule.timesSlot.some(
         (slot) => parseInt(slot.lessonNumber) === lessonNumber && slot.scheduleDay === day
@@ -455,9 +513,20 @@ export default function TeachingAssignment() {
         return false;
       }
     }
+    if (active) {
+      for (const elm of timesSlotInput) {
+        const timeSlotExists = elm.timesSlot.some(
+          (slot) => parseInt(slot.lessonNumber) === lessonNumber && slot.scheduleDay === day
+        );
+
+        if (timeSlotExists) {
+          return false;
+        }
+      }
+    }
     return true;
   };
-  const timeSlots = generateTimeSlots();
+
   /**
    *
    * @param {*} scheduleId
@@ -472,7 +541,11 @@ export default function TeachingAssignment() {
         handleGetSchedulesByClass();
         const fetchSubjectGrade = async () => {
           try {
-            const response = await getSubjectNotInSchedule(assignmentInput.grade);
+            const response = await getSubjectNotInSchedule(
+              assignmentInput.grade,
+              assignmentInput.schoolYear,
+              assignmentInput.className
+            );
             setSubjectGrade(response.subjectNotInSchedule);
           } catch (error) {
             console.error('Get subject by grade error :', error);
@@ -531,11 +604,14 @@ export default function TeachingAssignment() {
 
         if (response) {
           toast.success('Cập nhật lịch học thành công');
-          handlePageLoading();
           handleGetSchedulesByClass();
           const fetchSubjectGrade = async () => {
             try {
-              const response = await getSubjectNotInSchedule(assignmentInput.grade);
+              const response = await getSubjectNotInSchedule(
+                assignmentInput.grade,
+                assignmentInput.schoolYear,
+                assignmentInput.className
+              );
               setSubjectGrade(response.subjectNotInSchedule);
             } catch (error) {
               console.error('Get subject by grade error :', error);
@@ -554,11 +630,40 @@ export default function TeachingAssignment() {
           document.querySelectorAll('.checkbox-lesson').forEach((checkbox) => {
             checkbox.checked = false;
           });
+          handlePageLoading();
+          setShowSelectedTimeSlot(false);
         }
       } catch (error) {
         console.error('Update schedule error:', error);
       }
     }
+  };
+
+  const handleSelectedTimeSlot = async () => {
+    if (activeSubjectAssignmentCreate === -1 && activeSubjectAssignmentUpdate === -1) {
+      toast.error('Vui lòng chọn môn học');
+      return false;
+    }
+
+    if (assignmentInput.teacherID === '') {
+      toast.error('Vui lòng chọn giáo viên');
+      return false;
+    }
+
+    if (semester1 === false && semester2 === false) {
+      toast.error('Vui lòng chọn học kỳ');
+      return false;
+    }
+
+    try {
+      const response = await getTeacherSchedule(assignmentInput.teacherID, assignmentInput.schoolYear);
+      if (response) {
+        setTimeSlots(generateTimeSlots(true, response));
+      }
+    } catch (error) {
+      console.error('Get teacher schedule error:', error);
+    }
+    setShowSelectedTimeSlot(true);
   };
 
   return (
@@ -570,7 +675,7 @@ export default function TeachingAssignment() {
         contentLabel="Search Teacher"
         style={{
           overlay: {
-            backgroundColor: 'rgba(0, 0, 0, 0.3)', // Change overlay background color here
+            backgroundColor: 'rgba(0, 0, 0, 0.03)', // Change overlay background color here
           },
           content: {
             top: '50%',
@@ -706,7 +811,7 @@ export default function TeachingAssignment() {
               <input
                 className="w-full p-2 border border-gray-300 rounded bg-gray-100"
                 type="text"
-                value={teacher.length === 0 ? 'Chưa có giáo viên' : teacher[0].userName}
+                value={!teacher ? 'Chưa có giáo viên' : teacher.userName}
                 disabled
               />
             </div>
@@ -719,7 +824,7 @@ export default function TeachingAssignment() {
             </div> */}
           </div>
           <div>
-            <span className="font-medium">3. Chọn môn học phân công*</span>
+            <span className="font-medium">2. Chọn môn học phân công giảng dạy*</span>
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full border border-gray-300">
@@ -765,8 +870,9 @@ export default function TeachingAssignment() {
                     <td className="py-2 px-2 border border-b border-gray-300 text-left">
                       {activeSubjectAssignmentUpdate === index ? (
                         <select
+                          onChange={(e) => handleAssignmentInputChange(e)}
                           name="teacherID"
-                          id="tenGiaoVien"
+                          id="tenGiaoVienUpdate"
                           className="teacherID h-10 w-full p-2 border border-gray-300 rounded"
                           defaultValue={schedule.scheduleTeacher._id}
                         >
@@ -777,7 +883,9 @@ export default function TeachingAssignment() {
                             </option>
                           ) : (
                             teacherByDepartment.map((teacher) => (
-                              <option value={teacher._id}>{teacher.userName}</option>
+                              <option selected={teacher._id === schedule.scheduleTeacher._id} value={teacher._id}>
+                                {teacher.userName}
+                              </option>
                             ))
                           )}
                         </select>
@@ -792,6 +900,7 @@ export default function TeachingAssignment() {
                           <input
                             name="semester1"
                             className="semester"
+                            checked={semester1}
                             onChange={(e) => handleSetSemester(e)}
                             type="checkbox"
                           />
@@ -807,6 +916,7 @@ export default function TeachingAssignment() {
                         <div className="flex items-center justify-center">
                           <input
                             name="semester2"
+                            checked={semester2}
                             className="semester"
                             onChange={(e) => handleSetSemester(e)}
                             type="checkbox"
@@ -943,7 +1053,7 @@ export default function TeachingAssignment() {
                         <input
                           disabled={activeSubjectAssignmentCreate === index ? false : true}
                           name="semester1"
-                          className="semester"
+                          className="semesterCreate"
                           onChange={(e) => handleSetSemester(e)}
                           type="checkbox"
                         />
@@ -954,7 +1064,7 @@ export default function TeachingAssignment() {
                         <input
                           disabled={activeSubjectAssignmentCreate === index ? false : true}
                           name="semester2"
-                          className="semester"
+                          className="semesterCreate"
                           onChange={(e) => handleSetSemester(e)}
                           type="checkbox"
                         />
@@ -973,14 +1083,12 @@ export default function TeachingAssignment() {
                               onClick={() => handleCancelSubjectAssignment(index)}
                               className="bg-red-500 hover:bg-red-700 text-white font-medium py-1 px-2 rounded"
                             >
-                              {/* <MdOutlineCancel /> */}
                               Hủy
                             </button>
                             <button
                               onClick={() => handleSaveAssignment(index)}
                               className="bg-green-500 hover:bg-green-700 text-white font-medium py-1 px-2 rounded"
                             >
-                              {/* <MdOutlineSave /> */}
                               Lưu
                             </button>
                           </div>
@@ -1000,265 +1108,258 @@ export default function TeachingAssignment() {
               </tbody>
             </table>
           </div>
-
           <div>
-            <span className="font-medium">3. Danh sách các tiết học trống</span>
+            {/* <span className="font-medium">3. Danh sách các tiết học trống</span> */}
+            <button
+              onClick={handleSelectedTimeSlot}
+              className="flex items-center gap-2 bg-blue-500 hover:bg-blue-700 text-white font-medium py-1 px-2 rounded"
+            >
+              <IoMdCheckboxOutline />
+              Chọn tiết học
+            </button>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6">
-            <div>
-              <label className="font-medium" htmlFor="name2">
-                Thứ 2
-              </label>
-              <ul>
-                {timeSlots
-                  .filter((slot) => slot.scheduleDay === 'Monday')
-                  .map((slot, index) => (
-                    <li key={index} className="border-t border-l p-1">
-                      {slot.isFree ? (
-                        <label>
-                          <input
-                            className="timeSlot-Checkbox"
-                            onChange={() => handleCheckboxChange(slot.scheduleDay, slot.lessonNumber)}
-                            type="checkbox"
-                          />
-                          <span className="px-1">
-                            {slot.hour} - Tiết:{slot.lessonNumber}
-                          </span>
-                        </label>
-                      ) : (
-                        <div>
-                          {activeSubjectAssignmentUpdate >= 0 &&
-                            checkBoxTimeSlotUpdate.some(
-                              (timeSlot) =>
-                                timeSlot.scheduleDay === slot.scheduleDay &&
-                                parseInt(timeSlot.lessonNumber) === parseInt(slot.lessonNumber)
-                            ) && (
-                              <input
-                                type="checkbox"
-                                checked={checkBoxTimeSlotUpdate.some(
-                                  (timeSlot) =>
-                                    timeSlot.scheduleDay === slot.scheduleDay &&
-                                    parseInt(timeSlot.lessonNumber) === parseInt(slot.lessonNumber) &&
-                                    timeSlot.checked
-                                )}
-                                onChange={() => handleCheckboxChange(slot.scheduleDay, slot.lessonNumber)}
-                              />
-                            )}
-                          <span className="text-red-500">
-                            <span className="px-1">
-                              {slot.hour} - Tiết:{slot.lessonNumber}
+          {showSelectedTimeSlot && (
+            <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 pb-20">
+              <div>
+                <label className="font-medium" htmlFor="name2">
+                  Thứ 2
+                </label>
+                <ul>
+                  {timeSlots
+                    .filter((slot) => slot.scheduleDay === 'Monday')
+                    .map((slot, index) => (
+                      <li key={index} className="border-t border-l p-1">
+                        {slot.isFree ? (
+                          <label>
+                            <input
+                              className="timeSlot-Checkbox cursor-pointer"
+                              onChange={() => handleCheckboxChange(slot.scheduleDay, slot.lessonNumber)}
+                              type="checkbox"
+                            />
+                            <span className="px-1">Tiết:{slot.lessonNumber}</span>
+                          </label>
+                        ) : (
+                          <div>
+                            {activeSubjectAssignmentUpdate >= 0 &&
+                              checkBoxTimeSlotUpdate.some(
+                                (timeSlot) =>
+                                  timeSlot.scheduleDay === slot.scheduleDay &&
+                                  parseInt(timeSlot.lessonNumber) === parseInt(slot.lessonNumber)
+                              ) && (
+                                <input
+                                  type="checkbox"
+                                  className="cursor-pointer"
+                                  checked={checkBoxTimeSlotUpdate.some(
+                                    (timeSlot) =>
+                                      timeSlot.scheduleDay === slot.scheduleDay &&
+                                      parseInt(timeSlot.lessonNumber) === parseInt(slot.lessonNumber) &&
+                                      timeSlot.checked
+                                  )}
+                                  onChange={() => handleCheckboxChange(slot.scheduleDay, slot.lessonNumber)}
+                                />
+                              )}
+                            <span className="text-red-500">
+                              <span className="px-1">Tiết:{slot.lessonNumber}</span>
                             </span>
-                          </span>
-                        </div>
-                      )}
-                    </li>
-                  ))}
-              </ul>
-            </div>
-            <div>
-              <label className="font-medium" htmlFor="name2">
-                Thứ 3
-              </label>
-              <ul>
-                {timeSlots
-                  .filter((slot) => slot.scheduleDay === 'Tuesday')
-                  .map((slot, index) => (
-                    <li key={index} className="border-t border-l p-1">
-                      {slot.isFree ? (
-                        <label>
-                          <input
-                            className="timeSlot-Checkbox"
-                            onChange={() => handleCheckboxChange(slot.scheduleDay, slot.lessonNumber)}
-                            type="checkbox"
-                          />
-                          <span className="px-1">
-                            {slot.hour} - Tiết:{slot.lessonNumber}
-                          </span>
-                        </label>
-                      ) : (
-                        <div>
-                          {activeSubjectAssignmentUpdate >= 0 &&
-                            checkBoxTimeSlotUpdate.some(
-                              (timeSlot) =>
-                                timeSlot.scheduleDay === slot.scheduleDay &&
-                                parseInt(timeSlot.lessonNumber) === parseInt(slot.lessonNumber)
-                            ) && (
-                              <input
-                                type="checkbox"
-                                checked={checkBoxTimeSlotUpdate.some(
-                                  (timeSlot) =>
-                                    timeSlot.scheduleDay === slot.scheduleDay &&
-                                    parseInt(timeSlot.lessonNumber) === parseInt(slot.lessonNumber) &&
-                                    timeSlot.checked
-                                )}
-                                onChange={() => handleCheckboxChange(slot.scheduleDay, slot.lessonNumber)}
-                              />
-                            )}
-                          <span className="text-red-500">
-                            <span className="px-1">
-                              {slot.hour} - Tiết:{slot.lessonNumber}
+                          </div>
+                        )}
+                      </li>
+                    ))}
+                </ul>
+              </div>
+              <div>
+                <label className="font-medium" htmlFor="name2">
+                  Thứ 3
+                </label>
+                <ul>
+                  {timeSlots
+                    .filter((slot) => slot.scheduleDay === 'Tuesday')
+                    .map((slot, index) => (
+                      <li key={index} className="border-t border-l p-1">
+                        {slot.isFree ? (
+                          <label>
+                            <input
+                              className="timeSlot-Checkbox cursor-pointer"
+                              onChange={() => handleCheckboxChange(slot.scheduleDay, slot.lessonNumber)}
+                              type="checkbox"
+                            />
+                            <span className="px-1">Tiết:{slot.lessonNumber}</span>
+                          </label>
+                        ) : (
+                          <div>
+                            {activeSubjectAssignmentUpdate >= 0 &&
+                              checkBoxTimeSlotUpdate.some(
+                                (timeSlot) =>
+                                  timeSlot.scheduleDay === slot.scheduleDay &&
+                                  parseInt(timeSlot.lessonNumber) === parseInt(slot.lessonNumber)
+                              ) && (
+                                <input
+                                  type="checkbox"
+                                  className="cursor-pointer"
+                                  checked={checkBoxTimeSlotUpdate.some(
+                                    (timeSlot) =>
+                                      timeSlot.scheduleDay === slot.scheduleDay &&
+                                      parseInt(timeSlot.lessonNumber) === parseInt(slot.lessonNumber) &&
+                                      timeSlot.checked
+                                  )}
+                                  onChange={() => handleCheckboxChange(slot.scheduleDay, slot.lessonNumber)}
+                                />
+                              )}
+                            <span className="text-red-500">
+                              <span className="px-1">Tiết:{slot.lessonNumber}</span>
                             </span>
-                          </span>
-                        </div>
-                      )}
-                    </li>
-                  ))}
-              </ul>
-            </div>
+                          </div>
+                        )}
+                      </li>
+                    ))}
+                </ul>
+              </div>
 
-            <div>
-              <label className="font-medium" htmlFor="name2">
-                Thứ 4
-              </label>
-              <ul>
-                {timeSlots
-                  .filter((slot) => slot.scheduleDay === 'Wednesday')
-                  .map((slot, index) => (
-                    <li key={index} className="border-t border-l p-1">
-                      {slot.isFree ? (
-                        <label>
-                          <input
-                            className="timeSlot-Checkbox"
-                            onChange={() => handleCheckboxChange(slot.scheduleDay, slot.lessonNumber)}
-                            type="checkbox"
-                          />
-                          <span className="px-1">
-                            {slot.hour} - Tiết:{slot.lessonNumber}
-                          </span>
-                        </label>
-                      ) : (
-                        <div>
-                          {activeSubjectAssignmentUpdate >= 0 &&
-                            checkBoxTimeSlotUpdate.some(
-                              (timeSlot) =>
-                                timeSlot.scheduleDay === slot.scheduleDay &&
-                                parseInt(timeSlot.lessonNumber) === parseInt(slot.lessonNumber)
-                            ) && (
-                              <input
-                                type="checkbox"
-                                checked={checkBoxTimeSlotUpdate.some(
-                                  (timeSlot) =>
-                                    timeSlot.scheduleDay === slot.scheduleDay &&
-                                    parseInt(timeSlot.lessonNumber) === parseInt(slot.lessonNumber) &&
-                                    timeSlot.checked
-                                )}
-                                onChange={() => handleCheckboxChange(slot.scheduleDay, slot.lessonNumber)}
-                              />
-                            )}
-                          <span className="text-red-500">
-                            <span className="px-1">
-                              {slot.hour} - Tiết:{slot.lessonNumber}
+              <div>
+                <label className="font-medium" htmlFor="name2">
+                  Thứ 4
+                </label>
+                <ul>
+                  {timeSlots
+                    .filter((slot) => slot.scheduleDay === 'Wednesday')
+                    .map((slot, index) => (
+                      <li key={index} className="border-t border-l p-1">
+                        {slot.isFree ? (
+                          <label>
+                            <input
+                              className="timeSlot-Checkbox cursor-pointer"
+                              onChange={() => handleCheckboxChange(slot.scheduleDay, slot.lessonNumber)}
+                              type="checkbox"
+                            />
+                            <span className="px-1">Tiết:{slot.lessonNumber}</span>
+                          </label>
+                        ) : (
+                          <div>
+                            {activeSubjectAssignmentUpdate >= 0 &&
+                              checkBoxTimeSlotUpdate.some(
+                                (timeSlot) =>
+                                  timeSlot.scheduleDay === slot.scheduleDay &&
+                                  parseInt(timeSlot.lessonNumber) === parseInt(slot.lessonNumber)
+                              ) && (
+                                <input
+                                  type="checkbox"
+                                  className="cursor-pointer"
+                                  checked={checkBoxTimeSlotUpdate.some(
+                                    (timeSlot) =>
+                                      timeSlot.scheduleDay === slot.scheduleDay &&
+                                      parseInt(timeSlot.lessonNumber) === parseInt(slot.lessonNumber) &&
+                                      timeSlot.checked
+                                  )}
+                                  onChange={() => handleCheckboxChange(slot.scheduleDay, slot.lessonNumber)}
+                                />
+                              )}
+                            <span className="text-red-500">
+                              <span className="px-1">Tiết:{slot.lessonNumber}</span>
                             </span>
-                          </span>
-                        </div>
-                      )}
-                    </li>
-                  ))}
-              </ul>
-            </div>
+                          </div>
+                        )}
+                      </li>
+                    ))}
+                </ul>
+              </div>
 
-            <div>
-              <label className="font-medium" htmlFor="name2">
-                Thứ 5
-              </label>
-              <ul>
-                {timeSlots
-                  .filter((slot) => slot.scheduleDay === 'Thursday')
-                  .map((slot, index) => (
-                    <li key={index} className="border-t border-l p-1">
-                      {slot.isFree ? (
-                        <label>
-                          <input
-                            className="timeSlot-Checkbox"
-                            onChange={() => handleCheckboxChange(slot.scheduleDay, slot.lessonNumber)}
-                            type="checkbox"
-                          />
-                          <span className="px-1">
-                            {slot.hour} - Tiết:{slot.lessonNumber}
-                          </span>
-                        </label>
-                      ) : (
-                        <div>
-                          {activeSubjectAssignmentUpdate >= 0 &&
-                            checkBoxTimeSlotUpdate.some(
-                              (timeSlot) =>
-                                timeSlot.scheduleDay === slot.scheduleDay &&
-                                parseInt(timeSlot.lessonNumber) === parseInt(slot.lessonNumber)
-                            ) && (
-                              <input
-                                type="checkbox"
-                                checked={checkBoxTimeSlotUpdate.some(
-                                  (timeSlot) =>
-                                    timeSlot.scheduleDay === slot.scheduleDay &&
-                                    parseInt(timeSlot.lessonNumber) === parseInt(slot.lessonNumber) &&
-                                    timeSlot.checked
-                                )}
-                                onChange={() => handleCheckboxChange(slot.scheduleDay, slot.lessonNumber)}
-                              />
-                            )}
-                          <span className="text-red-500">
-                            <span className="px-1">
-                              {slot.hour} - Tiết:{slot.lessonNumber}
+              <div>
+                <label className="font-medium" htmlFor="name2">
+                  Thứ 5
+                </label>
+                <ul>
+                  {timeSlots
+                    .filter((slot) => slot.scheduleDay === 'Thursday')
+                    .map((slot, index) => (
+                      <li key={index} className="border-t border-l p-1">
+                        {slot.isFree ? (
+                          <label>
+                            <input
+                              className="timeSlot-Checkbox cursor-pointer"
+                              onChange={() => handleCheckboxChange(slot.scheduleDay, slot.lessonNumber)}
+                              type="checkbox"
+                            />
+                            <span className="px-1">Tiết:{slot.lessonNumber}</span>
+                          </label>
+                        ) : (
+                          <div>
+                            {activeSubjectAssignmentUpdate >= 0 &&
+                              checkBoxTimeSlotUpdate.some(
+                                (timeSlot) =>
+                                  timeSlot.scheduleDay === slot.scheduleDay &&
+                                  parseInt(timeSlot.lessonNumber) === parseInt(slot.lessonNumber)
+                              ) && (
+                                <input
+                                  type="checkbox"
+                                  className="cursor-pointer"
+                                  checked={checkBoxTimeSlotUpdate.some(
+                                    (timeSlot) =>
+                                      timeSlot.scheduleDay === slot.scheduleDay &&
+                                      parseInt(timeSlot.lessonNumber) === parseInt(slot.lessonNumber) &&
+                                      timeSlot.checked
+                                  )}
+                                  onChange={() => handleCheckboxChange(slot.scheduleDay, slot.lessonNumber)}
+                                />
+                              )}
+                            <span className="text-red-500">
+                              <span className="px-1">Tiết:{slot.lessonNumber}</span>
                             </span>
-                          </span>
-                        </div>
-                      )}
-                    </li>
-                  ))}
-              </ul>
-            </div>
+                          </div>
+                        )}
+                      </li>
+                    ))}
+                </ul>
+              </div>
 
-            <div>
-              <label className="font-medium" htmlFor="name2">
-                Thứ 6
-              </label>
-              <ul>
-                {timeSlots
-                  .filter((slot) => slot.scheduleDay === 'Friday')
-                  .map((slot, index) => (
-                    <li key={index} className="border-t border-l border-r p-1">
-                      {slot.isFree ? (
-                        <label>
-                          <input
-                            className="timeSlot-Checkbox"
-                            onChange={() => handleCheckboxChange(slot.scheduleDay, slot.lessonNumber)}
-                            type="checkbox"
-                          />
-                          <span className="px-1">
-                            {slot.hour} - Tiết:{slot.lessonNumber}
-                          </span>
-                        </label>
-                      ) : (
-                        <div>
-                          {activeSubjectAssignmentUpdate >= 0 &&
-                            checkBoxTimeSlotUpdate.some(
-                              (timeSlot) =>
-                                timeSlot.scheduleDay === slot.scheduleDay &&
-                                parseInt(timeSlot.lessonNumber) === parseInt(slot.lessonNumber)
-                            ) && (
-                              <input
-                                type="checkbox"
-                                checked={checkBoxTimeSlotUpdate.some(
-                                  (timeSlot) =>
-                                    timeSlot.scheduleDay === slot.scheduleDay &&
-                                    parseInt(timeSlot.lessonNumber) === parseInt(slot.lessonNumber) &&
-                                    timeSlot.checked
-                                )}
-                                onChange={() => handleCheckboxChange(slot.scheduleDay, slot.lessonNumber)}
-                              />
-                            )}
-                          <span className="text-red-500">
-                            <span className="px-1">
-                              {slot.hour} - Tiết:{slot.lessonNumber}
+              <div>
+                <label className="font-medium" htmlFor="name2">
+                  Thứ 6
+                </label>
+                <ul>
+                  {timeSlots
+                    .filter((slot) => slot.scheduleDay === 'Friday')
+                    .map((slot, index) => (
+                      <li key={index} className="border-t border-l border-r p-1">
+                        {slot.isFree ? (
+                          <label>
+                            <input
+                              className="timeSlot-Checkbox cursor-pointer"
+                              onChange={() => handleCheckboxChange(slot.scheduleDay, slot.lessonNumber)}
+                              type="checkbox"
+                            />
+                            <span className="px-1">Tiết:{slot.lessonNumber}</span>
+                          </label>
+                        ) : (
+                          <div>
+                            {activeSubjectAssignmentUpdate >= 0 &&
+                              checkBoxTimeSlotUpdate.some(
+                                (timeSlot) =>
+                                  timeSlot.scheduleDay === slot.scheduleDay &&
+                                  parseInt(timeSlot.lessonNumber) === parseInt(slot.lessonNumber)
+                              ) && (
+                                <input
+                                  type="checkbox"
+                                  className="cursor-pointer"
+                                  checked={checkBoxTimeSlotUpdate.some(
+                                    (timeSlot) =>
+                                      timeSlot.scheduleDay === slot.scheduleDay &&
+                                      parseInt(timeSlot.lessonNumber) === parseInt(slot.lessonNumber) &&
+                                      timeSlot.checked
+                                  )}
+                                  onChange={() => handleCheckboxChange(slot.scheduleDay, slot.lessonNumber)}
+                                />
+                              )}
+                            <span className="text-red-500">
+                              <span className="px-1">Tiết:{slot.lessonNumber}</span>
                             </span>
-                          </span>
-                        </div>
-                      )}
-                    </li>
-                  ))}
-              </ul>
+                          </div>
+                        )}
+                      </li>
+                    ))}
+                </ul>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
     </>

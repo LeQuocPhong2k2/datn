@@ -203,7 +203,7 @@ const XemChiTietLopHoc = ({
   const handleSearchByName = async (e) => {
     setStudentName(e.target.value);
     try {
-      const res = await getStudentByNameAndAcademicYearAndGradeAndClassName(e.target.value);
+      const res = await getStudentByNameAndAcademicYearAndGradeAndClassName(e.target.value, classes[classId]._id);
       setStudentsSearch(res);
       setShowComponet({
         ...iShowComponet,

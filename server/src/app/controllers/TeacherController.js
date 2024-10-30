@@ -1,6 +1,10 @@
 require("dotenv").config({ path: "../../../../.env" });
 const Teacher = require("../models/Teacher");
 const Class = require("../models/Class");
+const Schedule = require("../models/Schedule");
+const mongoose = require("mongoose");
+const ObjectId = mongoose.Types.ObjectId;
+const Account = require("../models/Account");
 
 const GiaoVienController = {
   /**
@@ -84,6 +88,13 @@ const GiaoVienController = {
         return res.status(400).json({ error: "Số điện thoại đã tồn tại" });
       }
 
+      const newAccount = new Account({
+        userName: sdt,
+        password: sdt,
+        role: "Teacher",
+      });
+
+      await newAccount.save();
       await newGiaoVien.save();
       console.log("Thêm giáo viên thành công:", newGiaoVien);
       res.status(200).json({ message: "Thêm giáo viên thành công" });
@@ -110,31 +121,14 @@ const GiaoVienController = {
     const { className, schoolYear } = req.body;
     try {
       console.log("Đang truy vấn giáo viên theo lớp học...", className);
-      const result = await Teacher.aggregate([
-        {
-          $lookup: {
-            from: "Class",
-            localField: "_id",
-            foreignField: "homeRoomTeacher",
-            as: "class",
-          },
-        },
-        {
-          $match: {
-            $and: [{ "class.className": className }, { "class.academicYear": schoolYear }],
-          },
-        },
-        {
-          $project: {
-            _id: 1,
-            userName: 1,
-            department: 1,
-            phoneNumber: 1,
-          },
-        },
-      ]);
-
-      res.status(200).json(result);
+      const classInfo = await Class.findOne({ className: className, academicYear: schoolYear });
+      if (!classInfo) {
+        return res.status(404).json({ message: "Không tìm thấy lớp học" });
+      } else {
+        console.log("classInfo: ", classInfo);
+        const result = await Teacher.findOne({ _id: classInfo.homeRoomTeacher });
+        res.status(200).json(result);
+      }
     } catch (error) {
       console.error("Lỗi khi truy vấn giáo viên theo lớp học:", error);
       res.status(500).json({ error: error.message });
@@ -176,6 +170,29 @@ const GiaoVienController = {
       res.status(200).json(result);
     } catch (error) {
       console.error("Lỗi khi truy vấn giáo viên theo phoneNumber:", error);
+      res.status(500).json({ error: error.message });
+    }
+  },
+
+  getTeacherSchedule: async (req, res) => {
+    const { teacherId, schoolYear } = req.body;
+    console.log("Đang truy vấn lịch giáo viên...", teacherId);
+    console.log("Năm học:", schoolYear);
+
+    try {
+      const result = await Schedule.aggregate([
+        {
+          $match: {
+            scheduleTeacher: new ObjectId(teacherId),
+            schoolYear: schoolYear,
+          },
+        },
+      ]);
+
+      console.log("Kết quả truy vấn getTeacherSchedule:", result);
+      res.status(200).json(result);
+    } catch (error) {
+      console.error("Lỗi khi truy vấn lịch giáo viên:", error);
       res.status(500).json({ error: error.message });
     }
   },

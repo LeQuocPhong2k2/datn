@@ -29,10 +29,8 @@ export default function QuanLyGiaoVien({ functionType }) {
   const handleSubmit = async () => {
     if (validateInput()) {
       try {
-        addGiaoVien(teacherInfo);
-
+        await addGiaoVien(teacherInfo);
         toast.success('Thêm giáo viên thành công');
-
         setTeacherInfo({
           hoTen: '',
           namSinh: '',

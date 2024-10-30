@@ -475,13 +475,13 @@ const ClassController = {
       const homeRoomTeacher = classInfo.homeRoomTeacher;
 
       // Filter students with status "Đang học"
-      const filteredStudentList = classInfo.studentList.filter((student) => student.status === "Đang học");
-      console.log("Danh sách học sinh trong lớp:", classInfo.studentList);
+      let studentList = [];
+      for (let i = 0; i < classInfo.studentList.length; i++) {
+        const student = await Student.findById(classInfo.studentList[i]);
+        studentList.push(student);
+      }
 
-      // Update the student list to only include students with status "Đang học"
-      // const studentList = filteredStudentList;
-
-      const studentList = classInfo.studentList;
+      studentList = studentList.filter((student) => student.status === "Đang học");
 
       const splitAcademicYear = classInfo.academicYear.split("-");
       const newAcademicYear = parseInt(splitAcademicYear[1]) + 1;
@@ -515,7 +515,7 @@ const ClassController = {
 
       console.log("Lớp mới:", newClass);
 
-      // await newClass.save();
+      await newClass.save();
       res.status(200).json({ message: "Tự động nâng lớp thành công" });
     } catch (error) {
       console.error("Lỗi khi tự động nâng lớp:", error);

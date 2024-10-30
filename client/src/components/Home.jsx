@@ -26,7 +26,7 @@ import { refreshAccessToken } from '../api/auth';
 export default function Home() {
   const [accounts, setAccounts] = useState([]);
   useEffect(() => {
-    document.title = 'Home';
+    document.title = 'Admin';
     const accountId = localStorage.getItem('_id');
     const res = getAccountById(accountId);
     res
@@ -102,7 +102,7 @@ export default function Home() {
                 <div className="font-medium">
                   <div>{accounts.userName}</div>
                   <div className="text-sm text-gray-500">
-                    {accounts.role === 'Admin' ? 'Người quản trị hệ thống' : accounts.role}
+                    {accounts.role === 'Admin' ? 'Administrator' : accounts.role}
                   </div>
                 </div>
               </div>
