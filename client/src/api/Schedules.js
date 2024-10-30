@@ -48,12 +48,14 @@ async function getSchedulesByClass(className, schoolYear) {
   }
 }
 
-async function getSubjectNotInSchedule(grade) {
+async function getSubjectNotInSchedule(grade, schoolYear, className) {
   try {
     const response = await axios.post(
       'http://localhost:3000/schedules/getSubjectNotInSchedule',
       {
         grade,
+        schoolYear,
+        className,
       },
       {
         headers: {
@@ -124,4 +126,29 @@ async function updateSchedule(
   }
 }
 
-export { createSchedule, getSchedulesByClass, getSubjectNotInSchedule, deleteSchedule, updateSchedule };
+async function getTeacherSchedule(teacherId, schoolYear) {
+  try {
+    const response = await axios.post(
+      'http://localhost:3000/teachers/getTeacherSchedule',
+      { teacherId, schoolYear },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Get teacher schedule error:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+}
+
+export {
+  createSchedule,
+  getSchedulesByClass,
+  getSubjectNotInSchedule,
+  deleteSchedule,
+  updateSchedule,
+  getTeacherSchedule,
+};

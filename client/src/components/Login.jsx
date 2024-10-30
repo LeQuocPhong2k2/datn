@@ -67,6 +67,11 @@ export default function Login() {
       } else if (response.account.role === 'Student') {
         // nếu không phải Admin thì chuyển hướng đến trang student
         window.location.href = '/student';
+      } else if (response.account.role === 'Teacher') {
+        // lưu biến userName của teacher vào localStorage với tên gọi là phoneNumber
+        localStorage.setItem('phoneNumberTeacher', response.account.userName);
+        // nếu không phải Admin thì chuyển hướng đến trang teacher
+        window.location.href = '/teacher';
       }
     } catch (error) {
       // hiển thị thông báo lỗi theo từng status

@@ -336,7 +336,7 @@ export default function ListClass({ filterClass, action }) {
       }
     });
     if (!check && countChecked > 0) {
-      toast.error('Lớp học được chọn phải có năm học là năm học trước');
+      toast.error('Lớp học không hợp lệ');
       return;
     }
     classUpId.forEach(async (index) => {

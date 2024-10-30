@@ -35,10 +35,10 @@ async function getStudentByCode(code) {
   // search students
 }
 
-async function getStudentByNameAndAcademicYearAndGradeAndClassName(userName) {
+async function getStudentByNameAndAcademicYearAndGradeAndClassName(userName, classId) {
   const response = await axios.post(
     'http://localhost:3000/students/getStudentByNameAndAcademicYearAndGradeAndClassName',
-    { userName },
+    { userName, classId },
     {
       headers: {
         'Content-Type': 'application/json',
@@ -116,7 +116,6 @@ async function changePassword(userName, oldPassword, newPassword) {
   );
   return response;
 }
-
 async function getStudentByAccountId(accountId) {
   const response = await axios.post(
     `${API_URL}/students/getStudentByAccountId`,

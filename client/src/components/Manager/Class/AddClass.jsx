@@ -472,7 +472,7 @@ export default function QuanLyGiaoVien({ functionType }) {
             </span>
           </div>
           <div>
-            <span className="font-medium">1. Thông tin chung</span>
+            <span className="font-medium">1. Thông tin chung*</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
             <div>
@@ -533,7 +533,7 @@ export default function QuanLyGiaoVien({ functionType }) {
               <FiSearch onClick={handleSearchTeacher} className="absolute right-2 top-9 cursor-pointer" />
             </div>
             <div>
-              <label htmlFor="name1">Ngày bắt đầu lớp học</label>
+              <label htmlFor="name1">Ngày bắt đầu lớp học*</label>
               <input
                 type="text"
                 id="ngayBatDau"
