@@ -85,6 +85,7 @@ async function getGiaoVienByPhoneNumber(phoneNumber) {
     throw error;
   }
 }
+async function getGiaoVienByClassNameAndSchoolYear(className, schoolYear) {}
 
 export {
   addGiaoVien,
@@ -92,4 +93,5 @@ export {
   getGiaoVienChuaPhanCongChuNhiem,
   getGiaoVienByDepartment,
   getGiaoVienByPhoneNumber,
+  getGiaoVienByClassNameAndSchoolYear,
 };
