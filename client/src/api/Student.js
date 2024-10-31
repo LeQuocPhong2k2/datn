@@ -35,10 +35,10 @@ async function getStudentByCode(code) {
   // search students
 }
 
-async function getStudentByNameAndAcademicYearAndGradeAndClassName(userName) {
+async function getStudentByNameAndAcademicYearAndGradeAndClassName(userName, classId) {
   const response = await axios.post(
     'http://localhost:3000/students/getStudentByNameAndAcademicYearAndGradeAndClassName',
-    { userName },
+    { userName, classId },
     {
       headers: {
         'Content-Type': 'application/json',

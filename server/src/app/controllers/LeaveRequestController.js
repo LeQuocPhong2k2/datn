@@ -53,6 +53,7 @@ const LeaveRequestController = {
       res.status(500).json({ message: 'Internal server error' })
     }
   },
+
   // get all leave requests by student id
   getLeaveRequestsByStudentId: async (req, res) => {
     try {

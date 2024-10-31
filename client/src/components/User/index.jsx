@@ -33,7 +33,7 @@ export default function Student() {
   // HÃY TẠO console.log về studentInfo để xem thông tin học sinh
   // console.log('setStudentInfo');
   useEffect(() => {
-    document.title = 'Trang chủ học sinh';
+    document.title = 'Học sinh';
     const accountId = localStorage.getItem('_id');
     const resStudent = getStudentByAccountId(accountId);
     resStudent

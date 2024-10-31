@@ -17,5 +17,10 @@ router.post(
   '/getGiaoVienByPhoneNumber',
   GiaoVienController.getGiaoVienByPhoneNumber
 )
+router.post(
+  '/getGiaoVienByClassNameAndSchoolYear',
+  GiaoVienController.getGiaoVienByClassNameAndSchoolYear
+)
+router.post('/getTeacherSchedule', GiaoVienController.getTeacherSchedule)
 
 module.exports = router

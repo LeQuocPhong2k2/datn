@@ -5,6 +5,7 @@ import { PiExport } from 'react-icons/pi';
 import { IoIosArrowForward } from 'react-icons/io';
 import { IoCloseCircleOutline } from 'react-icons/io5';
 import { CiImport } from 'react-icons/ci';
+import { IoArrowUndoSharp } from 'react-icons/io5';
 
 import { getStudentByNameAndAcademicYearAndGradeAndClassName } from '../../../api/Student';
 import { importNewProfileStudent, getDsHocSinhByLopHoc } from '../../../api/Class';
@@ -202,7 +203,7 @@ const XemChiTietLopHoc = ({
   const handleSearchByName = async (e) => {
     setStudentName(e.target.value);
     try {
-      const res = await getStudentByNameAndAcademicYearAndGradeAndClassName(e.target.value);
+      const res = await getStudentByNameAndAcademicYearAndGradeAndClassName(e.target.value, classes[classId]._id);
       setStudentsSearch(res);
       setShowComponet({
         ...iShowComponet,
@@ -240,10 +241,10 @@ const XemChiTietLopHoc = ({
 
       try {
         await importNewProfileStudent(
-          classes[classId]._id,
           studentInfo,
           classes[classId].academicYear,
-          classes[classId].grade
+          classes[classId].grade,
+          classes[classId].className
         );
         const res = getDsHocSinhByLopHoc(classes[classId]._id);
         res.then((data) => {
@@ -263,12 +264,12 @@ const XemChiTietLopHoc = ({
       <div className="pb-5">
         <span
           onClick={handleBackDsLopHoc}
-          className="w-fit text-lg font-medium flex items-center justify-start gap-1 text-blue-500 cursor-pointer"
+          className="w-fit text-2xl font-medium flex items-center justify-start gap-1 text-blue-500 cursor-pointer"
         >
-          Danh sách lớp học
+          <IoArrowUndoSharp />
         </span>
         <span className="text-lg font-medium flex items-center justify-start gap-1">
-          Xem thông tin chi tiết lớp học {classes[classId].className}
+          Thông tin chi tiết lớp học {classes[classId].className}
         </span>
         <span
           className="

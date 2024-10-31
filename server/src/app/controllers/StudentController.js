@@ -5,28 +5,40 @@ const Class = require('../models/Class')
 const Teacher = require('../models/Teacher')
 const Account = require('../models/Account')
 
+const mongoose = require('mongoose')
+const ObjectId = mongoose.Types.ObjectId
+
 const StudentController = {
   getStudentByNameAndAcademicYearAndGradeAndClassName: async (req, res) => {
-    const { userName } = req.body
+    const { userName, classId } = req.body
     try {
       console.log('Thông tin tìm kiếm:', userName)
 
-      const students = await Student.find({
-        userName: { $regex: String(userName), $options: 'i' },
-      })
+      const classes = await Class.find({ _id: classId }).select('studentList')
+      console.log('Danh sách lớp học:', classes)
 
-      //sort theo tên học sinh
-      students.sort((a, b) => a.lastName.localeCompare(b.lastName))
+      let studentIds = []
+      if (classes.length > 0) {
+        const studentPromises = classes[0].studentList.map((studentId) =>
+          Student.findOne({
+            _id: new ObjectId(studentId),
+            userName: { $regex: String(userName), $options: 'i' },
+          }).lean()
+        )
 
-      if (students.length === 0) {
+        const students = await Promise.all(studentPromises)
+        studentIds = students.filter((student) => student !== null)
+      }
+
+      studentIds.sort((a, b) => a.lastName.localeCompare(b.lastName))
+
+      if (studentIds.length === 0) {
         console.log('Không tìm thấy học sinh')
         return res.status(404).json({ message: 'Không tìm thấy học sinh' })
       }
 
-      console.log(
-        `Tìm kiếm thành công, đã tìm thấy ${students.length} học sinh`
-      )
-      res.status(200).json(students)
+      // console.log(`Tìm kiếm thành công, đã tìm thấy ${students.length} học sinh`);
+      res.status(200).json(studentIds)
     } catch (error) {
       console.error('Lỗi khi tìm kiếm học sinh:', error)
       res.status(500).json({ error: error.message })

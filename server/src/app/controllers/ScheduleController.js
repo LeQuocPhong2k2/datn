@@ -50,7 +50,7 @@ const ScheduleController = {
   },
 
   async getSubjectNotInSchedule(req, res) {
-    const { grade } = req.body;
+    const { grade, schoolYear, className } = req.body;
     try {
       const subjects = await Subject.aggregate([
         {
@@ -82,7 +82,10 @@ const ScheduleController = {
           },
         },
       ]);
-      const schedules = await Schedule.find();
+      const schedules = await Schedule.find({
+        schoolYear: schoolYear,
+        className: className,
+      });
       const subjectNotInSchedule = subjects.filter((subject) => {
         return !schedules.some((schedule) => schedule.subject.toString() === subject._id.toString());
       });
