@@ -612,6 +612,32 @@ const ClassController = {
       res.status(500).json({ error: error.message })
     }
   },
+  // get danh sách học sinh qua tên lớp và năm học hiện tại va +1 kiẻu như 2024-2025
+  getStudentListByClassNameAndAcademicYear: async (req, res) => {
+    const { className, academicYear } = req.body
+    try {
+      const classInfo = await Class.findOne({
+        className: className,
+        academicYear: academicYear,
+      })
+      if (!classInfo) {
+        return res.status(404).json({ message: 'Không tìm thấy lớp học' })
+      }
+
+      // Lấy danh sách học sinh từ classInfo
+      const students = await Student.find({
+        _id: { $in: classInfo.studentList },
+      }).select('_id studentCode userName ')
+      console.log('số lượng học sinh trong lớp:', students.length)
+      // chỉ lấy các trường cần thiết là _id, studentCode, userName
+
+      // Trả về danh sách học sinh
+      res.status(200).json(students)
+    } catch (error) {
+      console.error('Lỗi khi lấy danh sách học sinh:', error)
+      res.status(500).json({ error: error.message })
+    }
+  },
 }
 
 /**

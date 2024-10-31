@@ -8,7 +8,7 @@ import { getLeaveRequestsByTeacherId, updateLeaveRequest } from '../../api/Leave
 import { changePassword } from '../../api/Accounts';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-
+import { getStudentListByClassNameAndAcademicYear } from '../../api/Class';
 export default function Teacher() {
   useEffect(() => {
     document.title = 'Trang chủ giáo viên';
@@ -185,11 +185,16 @@ export default function Teacher() {
       return date;
     });
   };
-
-  // Cập nhật recentDays khi selectedDate thay đổi
+  // Cập nhật recentDays khi selectedDate hoặc selectedClass thay đổi
   useEffect(() => {
     setRecentDays(calculateRecentDays(selectedDate));
   }, [selectedDate]);
+  // useEffect kiểm tra xem có selectedClass chưa nếu có thì gọi sự kiện handleSelectClass
+  useEffect(() => {
+    if (selectedClass === '1A1') {
+      handleSelectClass(selectedClass);
+    }
+  }, [selectedClass]);
 
   const [attendanceData, setAttendanceData] = useState({});
 
@@ -207,6 +212,24 @@ export default function Teacher() {
     alert(
       `Đã cập nhật điểm danh cho học sinh ${student.name} ngày ${date.toISOString().slice(0, 10)} với trạng thái ${status}`
     );
+  };
+
+  // sự kiện hiển thị danh sách học sinh theo lớp học
+  const [showStudentList, setShowStudentList] = useState(false);
+
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState('2024-2025');
+  const [studentList, setStudentList] = useState([]);
+  const handleSelectClass = async (selectedClass) => {
+    try {
+      const response = await getStudentListByClassNameAndAcademicYear(selectedClass, selectedAcademicYear);
+
+      setStudentList(response.data);
+      console.log(`Danh sách học sinh lớp ${selectedClass} :`, response.data);
+      setShowStudentList(true);
+    } catch (error) {
+      console.error('Lỗi lấy danh sách học sinh:', error);
+      setShowStudentList(false);
+    }
   };
 
   return (
@@ -1265,7 +1288,11 @@ export default function Teacher() {
                     <select
                       className="border border-gray-300 p-1 rounded"
                       value={selectedClass}
-                      onChange={(e) => setSelectedClass(e.target.value)}
+                      onChange={(e) => {
+                        const newClass = e.target.value; // Lưu giá trị mới vào biến
+                        setSelectedClass(newClass); // Cập nhật selectedClass
+                        handleSelectClass(newClass); // Gọi hàm với giá trị mới
+                      }}
                     >
                       {Array.from({ length: 5 }, (_, i) => i + 1).map((grade) =>
                         Array.from({ length: 5 }, (_, j) => `A${j + 1}`).map((className) => (
@@ -1285,13 +1312,6 @@ export default function Teacher() {
                       className="border border-gray-300 p-1 rounded"
                       placeholderText="DD/MM/YYYY"
                     />
-                  </div>
-                  <div className="flex items-center">
-                    <label className="mr-2">Buổi :</label>
-                    <select className="border border-gray-300 p-1 rounded">
-                      <option>Sáng</option>
-                      <option>Chiều</option>
-                    </select>
                   </div>
                 </div>
               </div>
