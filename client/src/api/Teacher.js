@@ -85,6 +85,7 @@ async function getGiaoVienByPhoneNumber(phoneNumber) {
     throw error;
   }
 }
+async function getGiaoVienByClassNameAndSchoolYear(className, schoolYear) {}
 
 async function getGiaoVienByClassNameAndSchoolYear(className, schoolYear) {
   try {

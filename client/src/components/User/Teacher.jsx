@@ -1252,8 +1252,8 @@ export default function Teacher() {
               <b>
                 {' '}
                 <p className="text-center">
-                  <span className="text-blue-700">CheckBox trên : Vắng có phép</span>,{' '}
-                  <span className="text-red-700">CheckBox dưới : Vắng không phép</span>,{' '}
+                  <span className="text-blue-700">CheckBox trên : Vắng có phép (VCP)</span>,{' '}
+                  <span className="text-red-700">CheckBox dưới : Vắng không phép(VKP)</span>,{' '}
                   <span className="text-yellow-700">Màu vàng nhạt: Thứ bảy</span>,{' '}
                   <span className="text-green-700">Màu xanh nhạt: Chủ Nhật</span>
                 </p>
