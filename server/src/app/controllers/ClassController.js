@@ -529,7 +529,6 @@ const ClassController = {
       res.status(500).json({ error: error.message });
     }
   },
-
   autoUpClass: async (req, res) => {
     const { classId } = req.body;
     try {
