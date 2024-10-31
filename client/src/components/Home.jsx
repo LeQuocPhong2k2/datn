@@ -26,7 +26,7 @@ import { refreshAccessToken } from '../api/auth';
 export default function Home() {
   const [accounts, setAccounts] = useState([]);
   useEffect(() => {
-    document.title = 'Trang Admin';
+    document.title = 'Admin';
     const accountId = localStorage.getItem('_id');
     const res = getAccountById(accountId);
     res
