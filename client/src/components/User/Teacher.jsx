@@ -6,6 +6,8 @@ import Cookies from 'js-cookie';
 import { getGiaoVienByPhoneNumber } from '../../api/Teacher';
 import { getLeaveRequestsByTeacherId, updateLeaveRequest } from '../../api/LeaveRequest';
 import { changePassword } from '../../api/Accounts';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 export default function Teacher() {
   useEffect(() => {
@@ -155,7 +157,57 @@ export default function Teacher() {
   // phần sự kiệN cho nhập điểm học sinh\
   const [grade, setGrade] = useState(1); // Default grade is 1
   const [selectedSemester, setSelectedSemester] = useState('Semester 1');
-  const [examType, setExamType] = useState('Midterm'); // Default exam type is Midterm
+
+  // phần sự kiện dành cho chỗ điểm danh
+
+  const [selectedClass, setSelectedClass] = useState('1A1');
+  const students = [
+    { id: 1, name: 'Trần Hải Đăng', studentCode: 'STD001', data: [] },
+    { id: 2, name: 'Huỳnh Thị Hồng Đào', studentCode: 'STD002', data: [] },
+    { id: 3, name: 'Nguyễn Thị Hạnh Đào', studentCode: 'STD003', data: [] },
+    { id: 4, name: 'Nguyễn Hữu Đạt', studentCode: 'STD004', data: [] },
+    { id: 5, name: 'Trần Ngọc Dương', studentCode: 'STD005', data: ['P', 'K'] },
+    { id: 6, name: 'Hoàng Học Sinh', studentCode: 'STD006', data: [] },
+    { id: 7, name: 'Nguyễn Văn Nam Anh', studentCode: 'STD007', data: [] },
+    { id: 8, name: 'Ngọc Anh Thư', studentCode: 'STD008', data: [] },
+  ];
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [recentDays, setRecentDays] = useState([]);
+
+  // Hàm tính toán các ngày dựa trên selectedDate, đảm bảo tính toán đúng tháng của ngày đó
+  const calculateRecentDays = (baseDate) => {
+    const currentDate = new Date(baseDate);
+    const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+    return Array.from({ length: daysInMonth }, (_, i) => {
+      const date = new Date(firstDayOfMonth);
+      date.setDate(i + 1);
+      return date;
+    });
+  };
+
+  // Cập nhật recentDays khi selectedDate thay đổi
+  useEffect(() => {
+    setRecentDays(calculateRecentDays(selectedDate));
+  }, [selectedDate]);
+
+  const [attendanceData, setAttendanceData] = useState({});
+
+  const handleAttendanceChange = (studentId, date, attendance) => {
+    setAttendanceData((prevData) => ({
+      ...prevData,
+      [studentId]: {
+        ...prevData[studentId],
+        [date.toISOString()]: attendance,
+      },
+    }));
+  };
+
+  const handleUpdateAttendance = (student, date, status) => {
+    alert(
+      `Đã cập nhật điểm danh cho học sinh ${student.name} ngày ${date.toISOString().slice(0, 10)} với trạng thái ${status}`
+    );
+  };
 
   return (
     <div className="font-sans bg-gray-100 min-h-screen">
@@ -461,34 +513,54 @@ export default function Teacher() {
                   <i className="fas fa-file-alt mr-2" style={{ color: '#f8c9be' }}></i>
                   <div className="text-gray-600">Đơn Xin Nghĩ Học </div>
                 </a>
+
+                <a
+                  href="#"
+                  onClick={() => {
+                    // setShowStudentProfile(true);
+                    setShowTeacherProfile(true);
+                    setActiveTab('attendance');
+                    setShowAllMenu(false);
+                  }}
+                  className="flex items-center"
+                  onMouseEnter={(e) => e.currentTarget.querySelector('div').classList.add('font-bold')}
+                  onMouseLeave={(e) => e.currentTarget.querySelector('div').classList.remove('font-bold')}
+                >
+                  <i className="fas fa-clipboard-list mr-2" style={{ color: '#e0e4f6' }}></i>
+                  <div className="text-gray-600">Điểm Danh </div>
+                </a>
                 {/* Thêm thông tin quá trình học tập ở đây */}
               </div>
             </div>
             <div className="mt-6"></div>
             <div className="mt-6">
               <h2 className="text-lg font-bold mb-2" style={{ color: '#0B6FA1' }}>
-                <i className="fas fa-chalkboard-teacher mr-2" style={{ color: '#0B6FA1' }}></i>Danh Sách Các Lớp Giảng
-                dạy
+                <i className="fas fa-chalkboard-teacher mr-2" style={{ color: '#0B6FA1' }}></i>
+                Danh Sách Các Lớp Giảng Dạy
               </h2>
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="bg-[#429AB8] text-white">
+                    <th className="border p-2">Lớp</th>
                     <th className="border p-2">Môn Học</th>
-                    <th className="border p-2">Giáo Viên</th>
+                    <th className="border p-2">Thời Gian</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td className="border p-2">Tiếng Anh</td>
-                    <td className="border p-2">Hồ Kim Oanh</td>
+                    <td className="border p-2">Lớp 1A2</td>
+                    <td className="border p-2">Toán</td>
+                    <td className="border p-2">Thứ Hai, 08:00 - 09:30</td>
                   </tr>
                   <tr>
-                    <td className="border p-2">Sinh học</td>
-                    <td className="border p-2">Trần Thanh Danh</td>
+                    <td className="border p-2">Lớp 4B</td>
+                    <td className="border p-2">Tiếng Việt</td>
+                    <td className="border p-2">Thứ Ba, 10:00 - 11:30</td>
                   </tr>
                   <tr>
-                    <td className="border p-2">Âm nhạc</td>
-                    <td className="border p-2">Trần Thanh Linh</td>
+                    <td className="border p-2">Lớp 5C</td>
+                    <td className="border p-2">Khoa Học</td>
+                    <td className="border p-2">Thứ Tư, 13:00 - 14:30</td>
                   </tr>
                 </tbody>
               </table>
@@ -583,7 +655,7 @@ export default function Teacher() {
         </div>
       )}
       {showTeacherProfile && ( // phần dưới body
-        <div className={`w-[100%] mx-auto bg-white p-6 rounded shadow ${window.innerWidth > 768 ? 'mt-4' : 'mt-0'}`}>
+        <div className={`w-[90%] mx-auto bg-white p-6 rounded shadow ${window.innerWidth > 768 ? 'mt-4' : 'mt-0'}`}>
           <div className="flex space-x-2 mb-4 md:space-x-4 justify-center ">
             <div
               className={`tab ${activeTab === 'profile' ? 'active' : ''} ${window.innerWidth <= 768 ? 'text-sm p-2' : ' p-3'}`}
@@ -673,6 +745,24 @@ export default function Teacher() {
             >
               Đơn nghỉ học
             </div>
+
+            <div
+              className={`tab ${activeTab === 'attendance' ? 'active' : ''} ${window.innerWidth <= 768 ? 'text-sm p-2' : ' p-3'}`}
+              onClick={() => setActiveTab('attendance')}
+              style={{
+                backgroundColor: activeTab === 'attendance' ? '#0B6FA1' : '#929498',
+                borderRadius: '5%',
+                padding: '10px',
+                color: 'white',
+                boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.1)',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#0B6FA1')}
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.backgroundColor = activeTab === 'attendance' ? '#0B6FA1' : '#929498')
+              }
+            >
+              Điểm Danh
+            </div>
           </div>
 
           {activeTab === 'profile' && (
@@ -758,7 +848,7 @@ export default function Teacher() {
               <h2 className="text-xl font-bold mb-4 text-center">Nhập Điểm Cho Học Sinh Tiểu Học</h2>
 
               {/* Form nhập khối, lớp, môn học, học kỳ */}
-              <div className="grid grid-cols-4 gap-4 mb-6">
+              <div className="grid grid-cols-2 gap-4 mb-6">
                 <div>
                   <label className="block mb-2">Khối</label>
                   <select
@@ -1153,6 +1243,163 @@ export default function Teacher() {
                   ))
                 )}
               </div>
+            </div>
+          )}
+          {activeTab === 'attendance' && (
+            <div className="container mx-auto mt-4">
+              <h1 className="text-center text-xl font-bold">BẢNG ĐIỂM DANH LỚP {selectedClass} </h1>
+
+              <b>
+                {' '}
+                <p className="text-center">
+                  <span className="text-blue-700">CheckBox trên : Vắng có phép</span>,{' '}
+                  <span className="text-red-700">CheckBox dưới : Vắng không phép</span>,{' '}
+                  <span className="text-yellow-700">Màu vàng nhạt: Thứ bảy</span>,{' '}
+                  <span className="text-green-700">Màu xanh nhạt: Chủ Nhật</span>
+                </p>
+              </b>
+              <div className="flex justify-center p-4">
+                <div className="flex space-x-4">
+                  <div className="flex items-center">
+                    <label className="mr-2">Lớp : </label>
+                    <select
+                      className="border border-gray-300 p-1 rounded"
+                      value={selectedClass}
+                      onChange={(e) => setSelectedClass(e.target.value)}
+                    >
+                      {Array.from({ length: 5 }, (_, i) => i + 1).map((grade) =>
+                        Array.from({ length: 5 }, (_, j) => `A${j + 1}`).map((className) => (
+                          <option key={`${grade}${className}`} value={`${grade}${className}`}>
+                            {`${grade}${className}`}
+                          </option>
+                        ))
+                      )}
+                    </select>
+                  </div>
+                  <div className="flex items-center">
+                    <label className="mr-2">Ngày :</label>
+                    <DatePicker
+                      selected={selectedDate}
+                      onChange={(date) => setSelectedDate(date)}
+                      dateFormat="dd/MM/yyyy"
+                      className="border border-gray-300 p-1 rounded"
+                      placeholderText="DD/MM/YYYY"
+                    />
+                  </div>
+                  <div className="flex items-center">
+                    <label className="mr-2">Buổi :</label>
+                    <select className="border border-gray-300 p-1 rounded">
+                      <option>Sáng</option>
+                      <option>Chiều</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <table className="table-auto w-full border-collapse border border-gray-400 mt-4">
+                <thead>
+                  <tr style={{ backgroundColor: '#e0e0e0' }}>
+                    <th className="border border-gray-400 px-2 py-1">STT</th>
+                    <th className="border border-gray-400 px-2 py-1 whitespace-nowrap">Họ và tên</th>
+                    {recentDays.map((day, index) => (
+                      <th key={index} className="border border-gray-400 px-2 py-1" style={{ width: '25px' }}>
+                        {day.getDate()}
+                      </th>
+                    ))}
+                    <th className="border border-gray-400 px-2 py-1">P</th>
+                    <th className="border border-gray-400 px-2 py-1">K</th>
+                    <th className="border border-gray-400 px-2 py-1">TS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {students.map((student, index) => (
+                    <tr key={index} className="hover:bg-[#E5E7EB]">
+                      <td className="border border-gray-400 px-2 py-1 text-center">{index + 1}</td>
+                      <td className="border border-gray-400 px-2 py-1 whitespace-nowrap">{student.name}</td>
+                      {recentDays.map((date, dayIndex) => (
+                        <td
+                          key={dayIndex}
+                          className="border border-gray-400 px-1 py-1 text-center "
+                          style={{
+                            backgroundColor:
+                              date.getDay() === 6
+                                ? '#ffffcc' // Thứ Bảy
+                                : date.getDay() === 0
+                                  ? '#ccffcc' // Chủ Nhật
+                                  : 'transparent',
+                            width: '25px', // Corrected width
+                          }}
+                        >
+                          {date.getDay() !== 6 && date.getDay() !== 0 ? (
+                            <>
+                              <input
+                                type="checkbox"
+                                name={`attendance-${student.id}-${date.toISOString()}`}
+                                value="P"
+                                onChange={(e) => {
+                                  handleAttendanceChange(student.id, date, e.target.checked ? 'P' : '');
+                                  document.querySelector(
+                                    `input[name='attendance-${student.id}-${date.toISOString()}'][value='K']`
+                                  ).checked = false;
+                                }}
+                                style={{ color: 'blue' }}
+                              />
+                              <input
+                                type="checkbox"
+                                name={`attendance-${student.id}-${date.toISOString()}`}
+                                value="K"
+                                onChange={(e) => {
+                                  handleAttendanceChange(student.id, date, e.target.checked ? 'K' : '');
+                                  document.querySelector(
+                                    `input[name='attendance-${student.id}-${date.toISOString()}'][value='P']`
+                                  ).checked = false;
+                                }}
+                                style={{ color: 'red' }}
+                              />
+                            </>
+                          ) : null}
+                        </td>
+                      ))}
+                      <td className="border border-gray-400 px-2 py-1 text-center">0</td>
+                      <td className="border border-gray-400 px-2 py-1 text-center">0</td>
+                      <td className="border border-gray-400 px-2 py-1 text-center">0</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="flex justify-center mt-4 space-x-4">
+                <button
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700"
+                  onClick={() => {
+                    students.forEach((student) => {
+                      recentDays.forEach((date) => {
+                        const attendance = document.querySelector(
+                          `input[name='attendance-${student.id}-${date.toISOString()}']:checked`
+                        );
+                        if (attendance) {
+                          handleUpdateAttendance(student, date, attendance.value);
+                        }
+                      });
+                    });
+                  }}
+                >
+                  Lưu
+                </button>
+                <button
+                  className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700"
+                  onClick={() => {
+                    document
+                      .querySelectorAll('input[type="checkbox"]')
+                      .forEach((checkbox) => (checkbox.checked = false));
+                  }}
+                >
+                  Hủy
+                </button>
+              </div>
+            </div>
+          )}
+          {activeTab === 'lesson' && (
+            <div>
+              <h3>Nội dung cho Bài Học Trên Lớp</h3>
             </div>
           )}
         </div>
