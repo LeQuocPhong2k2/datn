@@ -8,9 +8,6 @@ const Account = require("../models/Account");
 const mongoose = require("mongoose");
 const ObjectId = mongoose.Types.ObjectId;
 
-const mongoose = require("mongoose");
-const ObjectId = mongoose.Types.ObjectId;
-
 const StudentController = {
   getStudentByNameAndAcademicYearAndGradeAndClassName: async (req, res) => {
     const { userName, classId } = req.body;
