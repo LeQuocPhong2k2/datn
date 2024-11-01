@@ -1,9 +1,9 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL; // Lấy URL từ biến môi trường giá tị của nó là http://localhost:3000
+const API_URL = process.env.REACT_APP_API_URL;
 
 async function addStudent(student) {
-  const response = await axios.post('http://localhost:3000/students/addStudent', student, {
+  const response = await axios.post(API_URL + '/students/addStudent', student, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -13,7 +13,7 @@ async function addStudent(student) {
 
 async function getAllStudents() {
   try {
-    const response = await axios.get('http://localhost:3000/students/getAllStudents');
+    const response = await axios.get(API_URL + '/students/getAllStudents');
     console.log('Get all students response:', response);
     return response.data;
   } catch (error) {
@@ -23,7 +23,7 @@ async function getAllStudents() {
 
 async function getStudentByCode(code) {
   const response = await axios.post(
-    'http://localhost:3000/students/getStudentByCode',
+    API_URL + '/students/getStudentByCode',
     { studentCode: code },
     {
       headers: {
@@ -37,7 +37,7 @@ async function getStudentByCode(code) {
 
 async function getStudentByNameAndAcademicYearAndGradeAndClassName(userName, classId) {
   const response = await axios.post(
-    'http://localhost:3000/students/getStudentByNameAndAcademicYearAndGradeAndClassName',
+    API_URL + '/students/getStudentByNameAndAcademicYearAndGradeAndClassName',
     { userName, classId },
     {
       headers: {

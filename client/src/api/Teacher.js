@@ -1,10 +1,10 @@
 import axios from 'axios';
 
-const HOST = process.env.HOST_SERVER;
+const API_URL = process.env.REACT_APP_API_URL;
 
 async function addGiaoVien(giaoVien) {
   try {
-    const response = await axios.post('http://localhost:3000/teachers/addGiaoVien', giaoVien, {
+    const response = await axios.post(API_URL + '/teachers/addGiaoVien', giaoVien, {
       headers: {
         'Content-Type': 'application/json',
       },
@@ -19,7 +19,7 @@ async function addGiaoVien(giaoVien) {
 
 async function getAllGiaoViens() {
   try {
-    const response = await axios.get('http://localhost:3000/teachers/getAllGiaoViens');
+    const response = await axios.get(API_URL + '/teachers/getAllGiaoViens');
     console.log('Get all teachers response:', response);
     return response.data;
   } catch (error) {
@@ -32,7 +32,7 @@ async function getGiaoVienChuaPhanCongChuNhiem(namHoc) {
   try {
     console.log('Getting teachers without home room teacher...', namHoc);
     const response = await axios.post(
-      'http://localhost:3000/teachers/getGiaoVienChuaPhanCongChuNhiem',
+      API_URL + '/teachers/getGiaoVienChuaPhanCongChuNhiem',
       { namHoc },
       {
         headers: {
@@ -53,7 +53,7 @@ async function getGiaoVienChuaPhanCongChuNhiem(namHoc) {
 async function getGiaoVienByDepartment(department) {
   try {
     const response = await axios.post(
-      'http://localhost:3000/teachers/getGiaoVienByDepartment',
+      API_URL + '/teachers/getGiaoVienByDepartment',
       { department },
       {
         headers: {
@@ -71,7 +71,7 @@ async function getGiaoVienByDepartment(department) {
 async function getGiaoVienByPhoneNumber(phoneNumber) {
   try {
     const response = await axios.post(
-      'http://localhost:3000/teachers/getGiaoVienByPhoneNumber',
+      API_URL + '/teachers/getGiaoVienByPhoneNumber',
       { phoneNumber },
       {
         headers: {
@@ -85,12 +85,11 @@ async function getGiaoVienByPhoneNumber(phoneNumber) {
     throw error;
   }
 }
-async function getGiaoVienByClassNameAndSchoolYear(className, schoolYear) {}
 
 async function getGiaoVienByClassNameAndSchoolYear(className, schoolYear) {
   try {
     const response = await axios.post(
-      'http://localhost:3000/teachers/getGiaoVienByClassNameAndSchoolYear',
+      API_URL + '/teachers/getGiaoVienByClassNameAndSchoolYear',
       { className, schoolYear },
       {
         headers: {

@@ -1,9 +1,11 @@
 import axios from 'axios';
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 async function addSubject(subjectInfo) {
   try {
     const response = await axios.post(
-      'http://localhost:3000/subjects/addSubject',
+      API_URL + '/subjects/addSubject',
       {
         subjectName: subjectInfo.subjectName,
         subjectCode: subjectInfo.subjectCode,
@@ -27,7 +29,7 @@ async function addSubject(subjectInfo) {
 
 async function findAllSubject() {
   try {
-    const response = await axios.get('http://localhost:3000/subjects/findAllSubject');
+    const response = await axios.get(API_URL + '/subjects/findAllSubject');
     return response.data;
   } catch (error) {
     console.error('Find all subject error:', error.response ? error.response.data : error.message);
@@ -38,7 +40,7 @@ async function findAllSubject() {
 async function updateSubject(subjectInfo) {
   try {
     const response = await axios.post(
-      'http://localhost:3000/subjects/updateSubject',
+      API_URL + '/subjects/updateSubject',
       {
         subjectName: subjectInfo.subjectName,
         subjectCode: subjectInfo.subjectCode,
@@ -63,7 +65,7 @@ async function updateSubject(subjectInfo) {
 async function deleteSubject(subjectCode) {
   try {
     const response = await axios.post(
-      'http://localhost:3000/subjects/deleteSubject',
+      API_URL + '/subjects/deleteSubject',
       {
         subjectCode: subjectCode,
       },
@@ -83,7 +85,7 @@ async function deleteSubject(subjectCode) {
 async function getSubjectAssignments(subjectName) {
   try {
     const response = await axios.post(
-      'http://localhost:3000/subjects/getSubjectAssignments',
+      API_URL + '/subjects/getSubjectAssignments',
       { subjectName },
       {
         headers: {
@@ -101,7 +103,7 @@ async function getSubjectAssignments(subjectName) {
 async function getSubjectByGrade(grade) {
   try {
     const response = await axios.post(
-      'http://localhost:3000/subjects/getSubjectByGrade',
+      API_URL + '/subjects/getSubjectByGrade',
       { grade },
       {
         headers: {

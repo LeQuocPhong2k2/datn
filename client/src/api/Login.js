@@ -24,7 +24,7 @@ async function login(userName, password) {
 
 async function getAccountById(id) {
   const response = await axios.post(
-    'http://localhost:3000/accounts/findAccountById', // Đảm bảo port này đúng với port server của bạn
+    API_URL + '/accounts/findAccountById', // Đảm bảo port này đúng với port server của bạn
     {
       account_id: id,
     },
