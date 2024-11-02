@@ -182,6 +182,7 @@ export default function Teacher() {
   };
   useEffect(() => {
     setRecentDays(calculateRecentDays(attendanceDate));
+    handleResetAttendance();
   }, [attendanceDate]);
   // useEffect kiểm tra xem có selectedClass chưa nếu có thì gọi sự kiện handleSelectClass
   useEffect(() => {
@@ -512,14 +513,20 @@ export default function Teacher() {
                   <div className="flex flex-col md:flex-row justify-center space-y-2 md:space-y-0 md:space-x-4 break-words md:flex-wrap">
                     <div className="text-gray-600">
                       Lớp Chủ Nhiệm:{' '}
-                      <b>{teacherInfo.lopChuNhiem ? teacherInfo.lopChuNhiem[0].className : 'Chưa có lớp chủ nhiệm'}</b>
+                      <b>
+                        {teacherInfo.lopChuNhiem && teacherInfo.lopChuNhiem.length > 0
+                          ? teacherInfo.lopChuNhiem[0].className
+                          : 'Chưa có lớp chủ nhiệm'}
+                      </b>
                     </div>
 
                     <div className="text-gray-600">
                       Năm học :
                       <b>
                         {/* {studentInfo.studentCode} */}
-                        {teacherInfo.lopChuNhiem ? teacherInfo.lopChuNhiem[0].academicYear : 'Chưa có năm học'}
+                        {teacherInfo.lopChuNhiem && teacherInfo.lopChuNhiem.length > 0
+                          ? teacherInfo.lopChuNhiem[0].academicYear
+                          : 'Chưa có năm học'}
                       </b>
                     </div>
                   </div>
@@ -909,7 +916,9 @@ export default function Teacher() {
                       </div>
                       <div>
                         <strong>Lớp Chủ Nhiệm:</strong>
-                        {teacherInfo.lopChuNhiem ? teacherInfo.lopChuNhiem[0].className : 'Chưa có lớp chủ nhiệm'}
+                        {teacherInfo.lopChuNhiem && teacherInfo.lopChuNhiem.length > 0
+                          ? teacherInfo.lopChuNhiem[0].className
+                          : 'Chưa có lớp chủ nhiệm'}
                       </div>
                     </div>
                   </div>
@@ -1375,33 +1384,55 @@ export default function Teacher() {
                         selectedDate.setSeconds(0);
                         selectedDate.setMilliseconds(0);
                         const formattedDate = selectedDate.toISOString().split('T')[0]; // Chỉ lấy phần ngày
-                        console.log('Formatted Date:', formattedDate);
                         const dayOfWeek = selectedDate.getDay(); // Lấy ngày trong tuần
+
                         if (dayOfWeek !== 6 && dayOfWeek !== 0) {
-                          // Lặp qua tất cả học sinh
-                          studentList.forEach((student) => {
-                            // Tìm checkbox "Có Mặt" cho học sinh này và ngày đã chọn
-                            const checkbox = document.querySelectorAll(
-                              `input[type="checkbox"][name='attendance-${student._id}-${formattedDate}'][value='CM']`
-                            );
-                            console.log('Đã tìm thấy', checkbox.length, 'checkbox cho học sinh', student.userName);
-                            if (checkbox.length > 0) {
-                              checkbox.forEach((cb) => (cb.checked = true));
-                              // cập nhật lại hàm handleAttendanceChange
-                              handleAttendanceChange(student._id, selectedDate, 'CM');
-                            } else {
-                              console.log(
-                                `Không tìm thấy checkbox cho học sinh ${student.userName} vào ngày ${formattedDate}`
+                          const allChecked =
+                            document.querySelectorAll('input[type="checkbox"][value="CM"]:checked').length ===
+                            studentList.length;
+
+                          if (allChecked) {
+                            handleResetAttendance(); // Gọi sự kiện reset attendance nếu tất cả đã được chọn
+                          } else {
+                            // Lặp qua tất cả học sinh
+                            studentList.forEach((student) => {
+                              // Tìm checkbox cho học sinh này và ngày đã chọn
+                              const checkboxCM = document.querySelectorAll(
+                                `input[type="checkbox"][name='attendance-${student._id}-${formattedDate}'][value="CM"]`
                               );
-                            }
-                          });
+                              const checkboxVCP = document.querySelectorAll(
+                                `input[type="checkbox"][name='attendance-${student._id}-${formattedDate}'][value="VCP"]`
+                              );
+                              const checkboxVKP = document.querySelectorAll(
+                                `input[type="checkbox"][name='attendance-${student._id}-${formattedDate}'][value="VKP"]`
+                              );
+
+                              // Bỏ chọn các checkbox VCP và VKP
+                              checkboxVCP.forEach((cb) => (cb.checked = false));
+                              checkboxVKP.forEach((cb) => (cb.checked = false));
+
+                              // Đặt trạng thái checkbox CM thành đã chọn
+                              checkboxCM.forEach((cb) => {
+                                cb.checked = true; // Đặt trạng thái checkbox thành đã chọn
+                                handleAttendanceChange(student._id, selectedDate, 'CM'); // Cập nhật điểm danh
+                              });
+                            });
+                          }
                         } else {
                           alert('Không thể chọn ngày thứ Bảy hoặc Chủ Nhật.');
                         }
                       }}
-                      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                      className={`font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline text-white ${
+                        document.querySelectorAll('input[type="checkbox"][value="CM"]:checked').length ===
+                        studentList.length
+                          ? 'bg-green-500 hover:bg-green-700'
+                          : 'bg-blue-500 hover:bg-blue-700'
+                      }`}
                     >
-                      Check All
+                      {document.querySelectorAll('input[type="checkbox"][value="CM"]:checked').length ===
+                      studentList.length
+                        ? 'Uncheck All'
+                        : 'Check All'}
                     </button>
                   </div>
                 </div>
@@ -1416,9 +1447,9 @@ export default function Teacher() {
                         {day.getDate()}
                       </th>
                     ))}
-                    <th className="border border-gray-400 px-2 py-1">P</th>
-                    <th className="border border-gray-400 px-2 py-1">K</th>
-                    <th className="border border-gray-400 px-2 py-1">TS</th>
+                    <th className="border border-gray-400 px-2 py-1">CM</th>
+                    <th className="border border-gray-400 px-2 py-1">CP</th>
+                    <th className="border border-gray-400 px-2 py-1">KP</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1454,7 +1485,6 @@ export default function Teacher() {
                                 <>
                                   <input
                                     type="checkbox"
-                                    // name={`attendance-${student._id}-${vietnamDate.toISOString()}`}
                                     name={`attendance-${student._id}-${vietnamDate.toISOString().split('T')[0]}`} // Chỉ lấy phần ngày
                                     value="CM"
                                     onChange={(e) => {
@@ -1467,43 +1497,40 @@ export default function Teacher() {
                                         e.target.checked ? 'CM' : ''
                                       );
                                       handleAttendanceChange(student._id, vietnamDate, e.target.checked ? 'CM' : '');
-                                      document.querySelector(
-                                        `input[name='attendance-${student._id}-${vietnamDate.toISOString()}'][value='VKP']`
-                                      ).checked = false;
-                                      document.querySelector(
-                                        `input[name='attendance-${student._id}-${vietnamDate.toISOString()}'][value='VCP']`
-                                      ).checked = false;
+                                      // Tìm và uncheck các ô khác
+                                      const otherCheckboxes = document.querySelectorAll(
+                                        `input[name='attendance-${student._id}-${vietnamDate.toISOString().split('T')[0]}']:not([value='CM'])`
+                                      );
+                                      otherCheckboxes.forEach((checkbox) => (checkbox.checked = false));
                                     }}
                                     style={{ color: 'blue' }}
                                   />
 
                                   <input
                                     type="checkbox"
-                                    name={`attendance-${student._id}-${vietnamDate.toISOString()}`}
+                                    name={`attendance-${student._id}-${vietnamDate.toISOString().split('T')[0]}`}
                                     value="VCP"
                                     onChange={(e) => {
                                       handleAttendanceChange(student._id, vietnamDate, e.target.checked ? 'VCP' : '');
-                                      document.querySelector(
-                                        `input[name='attendance-${student._id}-${vietnamDate.toISOString()}'][value='VKP']`
-                                      ).checked = false;
-                                      document.querySelector(
-                                        `input[name='attendance-${student._id}-${vietnamDate.toISOString()}'][value='CM']`
-                                      ).checked = false;
+                                      // Tìm và uncheck các ô khác
+                                      const otherCheckboxes = document.querySelectorAll(
+                                        `input[name='attendance-${student._id}-${vietnamDate.toISOString().split('T')[0]}']:not([value='VCP'])`
+                                      );
+                                      otherCheckboxes.forEach((checkbox) => (checkbox.checked = false));
                                     }}
                                     style={{ color: 'green' }}
                                   />
                                   <input
                                     type="checkbox"
-                                    name={`attendance-${student._id}-${vietnamDate.toISOString()}`}
+                                    name={`attendance-${student._id}-${vietnamDate.toISOString().split('T')[0]}`}
                                     value="VKP"
                                     onChange={(e) => {
                                       handleAttendanceChange(student._id, vietnamDate, e.target.checked ? 'VKP' : '');
-                                      document.querySelector(
-                                        `input[name='attendance-${student._id}-${vietnamDate.toISOString()}'][value='VCP']`
-                                      ).checked = false;
-                                      document.querySelector(
-                                        `input[name='attendance-${student._id}-${vietnamDate.toISOString()}'][value='CM']`
-                                      ).checked = false;
+                                      // Tìm và uncheck các ô khác
+                                      const otherCheckboxes = document.querySelectorAll(
+                                        `input[name='attendance-${student._id}-${vietnamDate.toISOString().split('T')[0]}']:not([value='VKP'])`
+                                      );
+                                      otherCheckboxes.forEach((checkbox) => (checkbox.checked = false));
                                     }}
                                     style={{ color: 'red' }}
                                   />
