@@ -6,8 +6,11 @@ const Attendance = require('../models/Attendance')
 
 const AttendanceController = {
   createAttendance: async (req, res) => {
-    const { class_id, teacher_id, date } = req.body
-    const attendanceRecords = attendanceRecordsTest
+    const { class_id, teacher_id, date, attendanceRecords } = req.body
+    console.log('class_id được truyền qua là:', class_id)
+    console.log('teacher_id được truyền qua là:', teacher_id)
+    console.log('date được truyền qua là:', date)
+    console.log('attendanceRecords được truyền qua là:', attendanceRecords)
     try {
       const newAttendance = new Attendance({
         class_id,

@@ -8,6 +8,7 @@ const AttendanceSchema = new Schema(
     attendanceRecords: [
       {
         student_id: { type: Schema.Types.ObjectId, required: true },
+        student_name: { type: String },
         status: { type: String, required: true },
         reason: { type: String },
         leaveRequest_id: { type: Schema.Types.ObjectId }, // Optional field

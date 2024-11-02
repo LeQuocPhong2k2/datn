@@ -5,7 +5,7 @@ const API_URL = process.env.REACT_APP_API_URL;
 async function createAttendance(class_id, teacher_id, date, attendanceRecords) {
   try {
     const response = await axios.post(
-      `${API_URL}/attendance/create`,
+      `${API_URL}/attendance/createAttendance`,
       { class_id, teacher_id, date, attendanceRecords },
       {
         headers: {
