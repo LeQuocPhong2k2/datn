@@ -238,7 +238,7 @@ const UpdateClass = ({
 
   return (
     <div id="root" className="grid grid-flow-row gap-4 p-4 px-10 max-h-full relative">
-      <div className="flex items-center justify-start gap-2">
+      <div className="flex items-center justify-start gap-2 mb-5">
         <span
           onClick={handleBackDsLopHoc}
           className="font-medium flex items-center justify-start gap-1 text-blue-500 cursor-pointer"
