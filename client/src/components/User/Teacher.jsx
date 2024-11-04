@@ -195,15 +195,32 @@ export default function Teacher() {
 
   const handleAttendanceChange = (studentId, date, attendance) => {
     const vietnamDate = new Date(date);
-    vietnamDate.setHours(vietnamDate.getHours() + 7); // Adjust for Vietnam time zone
-    setAttendanceData((prevData) => ({
-      ...prevData,
-      [studentId]: {
-        ...prevData[studentId],
-        [vietnamDate.toISOString()]: attendance,
-      },
-    }));
+    vietnamDate.setHours(vietnamDate.getHours() + 7); // Điều chỉnh cho múi giờ Việt Nam
+    const dateKey = vietnamDate.toISOString().split('T')[0]; // Lấy khóa ngày, chỉ lấy phần ngày
+
+    setAttendanceData((prevData) => {
+      const updatedData = { ...prevData };
+
+      // Kiểm tra xem học sinh đã có trong attendanceData chưa
+      if (!updatedData[studentId]) {
+        updatedData[studentId] = {}; // Nếu chưa có, khởi tạo đối tượng cho học sinh
+      }
+
+      // Cập nhật giá trị cho ngày tương ứng
+      if (attendance) {
+        updatedData[studentId][dateKey] = attendance; // Cập nhật hoặc thêm mới
+      } else {
+        delete updatedData[studentId][dateKey]; // Xóa nếu không có trạng thái
+        // Nếu không còn mục nào, xóa học sinh khỏi attendanceData
+        if (Object.keys(updatedData[studentId]).length === 0) {
+          delete updatedData[studentId];
+        }
+      }
+
+      return updatedData;
+    });
   };
+
   // useEffect để log ra attendanceData
   useEffect(() => {
     console.log('attendanceData đang có là:', attendanceData);
@@ -237,6 +254,48 @@ export default function Teacher() {
     }
   };
 
+  // const handleUpdateAttendance = async () => {
+  //   const attendanceRecordsByDate = {}; // Mảng để lưu trữ thông tin điểm danh theo ngày
+
+  //   // Nhóm các bản ghi theo ngày
+  //   Object.entries(attendanceData).forEach(([studentId, dates]) => {
+  //     Object.entries(dates).forEach(([date, status]) => {
+  //       const dateISO = new Date(date).toISOString(); // Chuyển đổi ngày sang định dạng ISO
+
+  //       // Nếu chưa có ngày này trong attendanceRecordsByDate, khởi tạo mảng
+  //       if (!attendanceRecordsByDate[dateISO]) {
+  //         attendanceRecordsByDate[dateISO] = [];
+  //       }
+
+  //       // Thêm bản ghi vào mảng tương ứng với ngày
+  //       attendanceRecordsByDate[dateISO].push({
+  //         student_id: studentId,
+  //         student_name: studentList.find((student) => student._id === studentId)?.userName, // Tìm tên học sinh
+  //         status: status,
+  //         reason:
+  //           status === 'CM'
+  //             ? 'Học sinh có mặt'
+  //             : status === 'VCP'
+  //               ? 'Học sinh vắng có phép'
+  //               : 'Học sinh vắng không phép',
+  //       });
+  //     });
+  //   });
+
+  //   // Gọi hàm createAttendance cho từng ngày
+  //   for (const [dateISO, records] of Object.entries(attendanceRecordsByDate)) {
+  //     if (records.length > 0) {
+  //       try {
+  //         await createAttendance(selectedClass_id, teacherInfo._id, dateISO, records); // Gọi hàm tạo điểm danh
+  //         toast.success(`Điểm danh thành công cho ngày ${new Date(dateISO).toLocaleDateString('vi-VN')}`);
+  //         handleResetAttendance(); // Reset lại checkbox điểm danh
+  //       } catch (error) {
+  //         console.error('Lỗi khi tạo điểm danh:', error);
+  //         alert('Có lỗi xảy ra khi cập nhật điểm danh.');
+  //       }
+  //     }
+  //   }
+  // };
   const handleUpdateAttendance = async () => {
     const attendanceRecordsByDate = {}; // Mảng để lưu trữ thông tin điểm danh theo ngày
 
@@ -244,6 +303,7 @@ export default function Teacher() {
     Object.entries(attendanceData).forEach(([studentId, dates]) => {
       Object.entries(dates).forEach(([date, status]) => {
         const dateISO = new Date(date).toISOString(); // Chuyển đổi ngày sang định dạng ISO
+        console.log('dateISO được chuyển đổi là:', dateISO);
 
         // Nếu chưa có ngày này trong attendanceRecordsByDate, khởi tạo mảng
         if (!attendanceRecordsByDate[dateISO]) {
@@ -279,6 +339,7 @@ export default function Teacher() {
       }
     }
   };
+
   // resset checkbox diểm danh đã chọn
   const handleResetAttendance = () => {
     document.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => (checkbox.checked = false));
@@ -1379,7 +1440,8 @@ export default function Teacher() {
                     <button
                       onClick={() => {
                         const selectedDate = new Date(attendanceDate);
-                        selectedDate.setHours(selectedDate.getHours() + 7); // Điều chỉnh cho múi giờ Việt Nam
+                        selectedDate.getHours(0);
+                        // selectedDate.setHours(selectedDate.getHours() + 7); // Điều chỉnh cho múi giờ Việt Nam
                         selectedDate.setMinutes(0); // Đặt phút và giây về 0 để đúng giờ giấy
                         selectedDate.setSeconds(0);
                         selectedDate.setMilliseconds(0);
@@ -1414,6 +1476,7 @@ export default function Teacher() {
                               // Đặt trạng thái checkbox CM thành đã chọn
                               checkboxCM.forEach((cb) => {
                                 cb.checked = true; // Đặt trạng thái checkbox thành đã chọn
+
                                 handleAttendanceChange(student._id, selectedDate, 'CM'); // Cập nhật điểm danh
                               });
                             });
@@ -1488,20 +1551,19 @@ export default function Teacher() {
                                     name={`attendance-${student._id}-${vietnamDate.toISOString().split('T')[0]}`} // Chỉ lấy phần ngày
                                     value="CM"
                                     onChange={(e) => {
-                                      console.log(
-                                        'Ngày',
-                                        vietnamDate.toISOString(),
-                                        'Học sinh',
-                                        student._id,
-                                        'Điểm danh',
-                                        e.target.checked ? 'CM' : ''
-                                      );
-                                      handleAttendanceChange(student._id, vietnamDate, e.target.checked ? 'CM' : '');
-                                      // Tìm và uncheck các ô khác
-                                      const otherCheckboxes = document.querySelectorAll(
-                                        `input[name='attendance-${student._id}-${vietnamDate.toISOString().split('T')[0]}']:not([value='CM'])`
-                                      );
-                                      otherCheckboxes.forEach((checkbox) => (checkbox.checked = false));
+                                      const isChecked = e.target.checked;
+                                      if (isChecked) {
+                                        handleAttendanceChange(student._id, vietnamDate, 'CM');
+                                        document
+                                          .querySelectorAll(`input[name^="attendance-${student._id}"]`)
+                                          .forEach((checkbox) => {
+                                            if (checkbox.value !== 'CM') {
+                                              checkbox.checked = false;
+                                            }
+                                          });
+                                      } else {
+                                        handleAttendanceChange(student._id, vietnamDate, null);
+                                      }
                                     }}
                                     style={{ color: 'blue' }}
                                   />
@@ -1511,26 +1573,41 @@ export default function Teacher() {
                                     name={`attendance-${student._id}-${vietnamDate.toISOString().split('T')[0]}`}
                                     value="VCP"
                                     onChange={(e) => {
-                                      handleAttendanceChange(student._id, vietnamDate, e.target.checked ? 'VCP' : '');
-                                      // Tìm và uncheck các ô khác
-                                      const otherCheckboxes = document.querySelectorAll(
-                                        `input[name='attendance-${student._id}-${vietnamDate.toISOString().split('T')[0]}']:not([value='VCP'])`
-                                      );
-                                      otherCheckboxes.forEach((checkbox) => (checkbox.checked = false));
+                                      const isChecked = e.target.checked;
+                                      if (isChecked) {
+                                        handleAttendanceChange(student._id, vietnamDate, 'VCP');
+                                        document
+                                          .querySelectorAll(`input[name^="attendance-${student._id}"]`)
+                                          .forEach((checkbox) => {
+                                            if (checkbox.value !== 'VCP') {
+                                              checkbox.checked = false;
+                                            }
+                                          });
+                                      } else {
+                                        handleAttendanceChange(student._id, vietnamDate, null);
+                                      }
                                     }}
                                     style={{ color: 'green' }}
                                   />
+
                                   <input
                                     type="checkbox"
                                     name={`attendance-${student._id}-${vietnamDate.toISOString().split('T')[0]}`}
                                     value="VKP"
                                     onChange={(e) => {
-                                      handleAttendanceChange(student._id, vietnamDate, e.target.checked ? 'VKP' : '');
-                                      // Tìm và uncheck các ô khác
-                                      const otherCheckboxes = document.querySelectorAll(
-                                        `input[name='attendance-${student._id}-${vietnamDate.toISOString().split('T')[0]}']:not([value='VKP'])`
-                                      );
-                                      otherCheckboxes.forEach((checkbox) => (checkbox.checked = false));
+                                      const isChecked = e.target.checked;
+                                      if (isChecked) {
+                                        handleAttendanceChange(student._id, vietnamDate, 'VKP');
+                                        document
+                                          .querySelectorAll(`input[name^="attendance-${student._id}"]`)
+                                          .forEach((checkbox) => {
+                                            if (checkbox.value !== 'VKP') {
+                                              checkbox.checked = false;
+                                            }
+                                          });
+                                      } else {
+                                        handleAttendanceChange(student._id, vietnamDate, null);
+                                      }
                                     }}
                                     style={{ color: 'red' }}
                                   />
@@ -1551,14 +1628,7 @@ export default function Teacher() {
                 <button
                   className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700"
                   onClick={async () => {
-                    // kiểm tra ngày điểm danh đã chọn và học sinh đã chọn thì sẽ gửi lên handleAttendanceChange
-                    await Promise.all(
-                      Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(async (checkbox) => {
-                        const [studentId, date] = checkbox.name.split('-').slice(1);
-                        await handleAttendanceChange(studentId, new Date(date), checkbox.value);
-                      })
-                    );
-                    handleUpdateAttendance(); // Gọi hàm handleUpdateChange sau khi tất cả các thay đổi đã được áp dụng
+                    handleUpdateAttendance();
                   }}
                 >
                   Lưu
