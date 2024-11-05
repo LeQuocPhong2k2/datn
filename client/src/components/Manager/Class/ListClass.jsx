@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { FiSearch } from 'react-icons/fi';
 import { Toaster, toast } from 'react-hot-toast';
 import { IoSettingsSharp } from 'react-icons/io5';
+import Modal from 'react-modal';
 
 import 'react-datepicker/dist/react-datepicker.css';
 import { LuFilterX } from 'react-icons/lu';
@@ -20,6 +21,8 @@ import {
 
 import ViewClassDetail from './ViewClassDetail';
 import UpdateClass from './UpdateClass';
+
+Modal.setAppElement('#root');
 
 export default function ListClass({ filterClass, action }) {
   const [pageLoading, setPageLoading] = useState(true);
@@ -315,46 +318,80 @@ export default function ListClass({ filterClass, action }) {
    * handle auto up class
    */
   const handleAutoUpClass = async () => {
-    const checkedExport = document.querySelectorAll('input[name="checkedExport"]');
-    let countChecked = 0;
-    checkedExport.forEach((checkbox) => {
-      if (checkbox.checked) {
-        countChecked++;
-      }
-    });
-    if (countChecked === 0) {
-      toast.error('Vui lòng chọn lớp học');
-      return;
-    }
+    const namHocUpClass = parseInt(filter.namHoc.split('-')[0], 10);
     const date = new Date();
     const year = date.getFullYear();
-    let check = false;
-    classUpId.forEach((index) => {
-      if (classes[index].academicYear === `${year - 1}-${year}`) {
-        check = true;
-        return;
-      }
-    });
-    if (!check && countChecked > 0) {
-      toast.error('Lớp học không hợp lệ');
+    const namHocNow = year;
+
+    if (filter.namHoc === '') {
+      toast.error('Vui lòng chọn năm học', {
+        duration: 2000,
+        position: 'top-right',
+      });
       return;
     }
-    classUpId.forEach(async (index) => {
-      try {
-        const res = await autoUpClass(classes[index]._id);
-        console.log('Lên lớp:', res);
-        if (res.status === 200) {
-          toast.success('Lên lớp thành công');
-          handleSearchClass();
-        } else {
-          toast.error('Lên lớp thất bại');
-        }
-      } catch (error) {
-        if (error.status === 400) {
-          toast.error(`Lớp ${classes[index].className} đã được lên lớp!`);
-        }
+
+    if (namHocUpClass >= namHocNow) {
+      toast.error('Năm học không hợp lệ', {
+        duration: 2000,
+        position: 'top-right',
+      });
+      return;
+    }
+
+    try {
+      const res = await autoUpClass(filter.namHoc);
+      if (res.status === 200) {
+        toast.success('Lên lớp thành công');
+        handleSearchClass();
+      } else {
+        toast.error('Lên lớp thất bại');
       }
-    });
+    } catch (error) {
+      if (error.status === 400) {
+        toast.error(`đã được lên lớp!`);
+      }
+    }
+    // const checkedExport = document.querySelectorAll('input[name="checkedExport"]');
+    // let countChecked = 0;
+    // checkedExport.forEach((checkbox) => {
+    //   if (checkbox.checked) {
+    //     countChecked++;
+    //   }
+    // });
+    // if (countChecked === 0) {
+    //   toast.error('Vui lòng chọn lớp học');
+    //   return;
+    // }
+    // const date = new Date();
+    // const year = date.getFullYear();
+    // let check = false;
+    // classUpId.forEach((index) => {
+    //   if (classes[index].academicYear === `${year - 1}-${year}`) {
+    //     check = true;
+    //     return;
+    //   }
+    // });
+    // if (!check && countChecked > 0) {
+    //   toast.error('Lớp học không hợp lệ');
+    //   return;
+    // }
+    // classUpId.forEach(async (index) => {
+    //   try {
+    //     const res = await autoUpClass(classes[index]._id);
+    //     console.log('Lên lớp:', res);
+    //     if (res.status === 200) {
+    //       toast.success('Lên lớp thành công');
+    //       handleSearchClass();
+    //     } else {
+    //       toast.error('Lên lớp thất bại');
+    //     }
+    //   } catch (error) {
+    //     if (error.status === 400) {
+    //       toast.error(`Lớp ${classes[index].className} đã được lên lớp!`);
+    //     }
+    //   }
+    // });
   };
   /**
    *
@@ -409,18 +446,17 @@ export default function ListClass({ filterClass, action }) {
           </button>
         </div>
       )}
-      <Toaster toastOptions={{ duration: 2200 }} />
+      <Toaster toastOptions={{ duration: 2000 }} />
       {iShowComponet.classList && !pageLoading && (
-        <div id="root" className="grid grid-flow-row gap-4 p-4 px-10 max-h-full w-full overflow-auto relative">
-          <div className="pb-5">
-            <span className="text-lg font-medium flex items-center justify-start gap-1">Danh sách lớp học</span>
-            <span
-              className="
-              text-sm text-gray-500 font-normal flex items-center justify-start gap-1
-            "
-            >
-              Trang này cho phép bạn xem danh sách lớp học, xem chi tiết lớp học, chỉnh sửa thông tin lớp học.
+        <div id="root" className="grid grid-flow-row gap-2 p-4 px-10 max-h-full w-full overflow-auto relative">
+          <div>
+            <span className="text-2xl font-medium">Danh sách lớp học</span>
+          </div>
+          <div className="flex items-center justify-start gap-2 mb-5">
+            <span onClick={handleBackDsLopHoc} className="font-normal text-gray-500 hover:text-blue-500 cursor-pointer">
+              Trang chủ
             </span>
+            <span className="font-medium">/ Danh sách lớp học</span>
           </div>
           <div>
             <span className="font-medium">1. Bộ lọc tìm kiếm</span>
@@ -495,18 +531,18 @@ export default function ListClass({ filterClass, action }) {
             <span className="font-medium">2. Danh sách lớp học</span>
 
             <div className="flex justify-end items-center gap-4">
-              <div className="flex items-center justify-end relative dropdown-export" ref={dropdownRef}>
+              <div className="min-w-60 flex items-start justify-start relative dropdown-export" ref={dropdownRef}>
                 <button
                   disabled={classes.length === 0}
                   onClick={handleShowExportClass}
-                  className="relative flex items-center justify-center gap-2 border px-4 py-2 rounded"
+                  className="w-full relative flex items-center justify-start gap-2 border px-4 py-2 rounded bg-gray-500 text-white"
                 >
                   <IoSettingsSharp />
                   Chức năng
-                  <RiExpandLeftRightFill className="rotate-90" />
+                  <RiExpandLeftRightFill className="absolute top-3 right-3 rotate-90" />
                   {iShowExport && (
-                    <ul className="w-full absolute z-50 top-10 bg-white border rounded mt-1 p-2 slide-down">
-                      <li className="px-2 py-1 hover:bg-gray-100">
+                    <ul className="w-full absolute z-50 shadow-md top-10 right-0 bg-white border rounded mt-1 p-2 slide-down">
+                      <li className="px-2 py-1 text-left hover:bg-gray-100">
                         <a
                           href="#export-list-class"
                           onClick={() => handleExportClass('basic')}
@@ -515,12 +551,12 @@ export default function ListClass({ filterClass, action }) {
                           Xuất danh sách lớp học
                         </a>
                       </li>
-                      <li className="px-2 py-1 hover:bg-gray-100">
+                      <li className="px-2 py-1 text-left hover:bg-gray-100">
                         <a href="#list-student" className="hover:text-blue-600 text-gray-700">
                           Xuất danh sách học sinh
                         </a>
                       </li>
-                      <li className="px-2 py-1 hover:bg-gray-100">
+                      <li className="px-2 py-1 text-left hover:bg-gray-100">
                         <a
                           href="#list-student"
                           onClick={handleAutoUpClass}

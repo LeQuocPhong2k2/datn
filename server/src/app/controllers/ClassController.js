@@ -296,9 +296,15 @@ const ClassController = {
         return res.status(404).json({ message: "Không tìm thấy lớp học" });
       }
 
-      const studentExistClass = await Class.findOne({ studentList: student._id, academicYear: classInfo.academicYear });
+      const studentExistClass = await Class.findOne({
+        studentList: student._id,
+        academicYear: classInfo.academicYear,
+      });
       if (studentExistClass) {
-        return res.status(400).json({ message: "Học sinh đã có lớp trong năm học này", student: student });
+        return res.status(400).json({
+          message: "Học sinh đã có lớp trong năm học này",
+          student: student,
+        });
       }
 
       if (classInfo.studentList.length >= classInfo.maxStudents) {
@@ -462,17 +468,18 @@ const ClassController = {
       res.status(500).json({ error: error.message });
     }
   },
-
-  autoUpClass: async (req, res) => {
-    const { classId } = req.body;
+  // lấy dánh sách học sinh theo lớp chỉ lấy 1 vài trường là _id, studentCode, userName, và dateOfBirth
+  getListStudentByClassId: async (req, res) => {
+    const { idClass } = req.body;
+    console.log("ID lớp học:", idClass);
     try {
-      const classInfo = await Class.findOne({ _id: classId });
-      const grade = classInfo.grade;
-      const className = classInfo.className;
-      const classSession = classInfo.classSession;
-      const startDate = classInfo.startDate;
-      const maxStudents = classInfo.maxStudents;
-      const homeRoomTeacher = classInfo.homeRoomTeacher;
+      const students = await Class.findById(idClass).populate({
+        path: "studentList",
+        populate: {
+          path: "parents",
+          model: "Parent",
+        },
+      });
 
       // Filter students with status "Đang học"
       let studentList = [];
@@ -516,6 +523,68 @@ const ClassController = {
       console.log("Lớp mới:", newClass);
 
       await newClass.save();
+      res.status(200).json({ message: "Tự động nâng lớp thành công" });
+    } catch (error) {
+      console.error("Lỗi khi lấy danh sách học sinh:", error);
+      res.status(500).json({ error: error.message });
+    }
+  },
+  autoUpClass: async (req, res) => {
+    const { namHoc } = req.body;
+
+    try {
+      const classes = await Class.find({ academicYear: namHoc });
+
+      for (let i = 0; i < classes.length; i++) {
+        const classInfo = classes[i];
+        const grade = classInfo.grade;
+        const className = classInfo.className;
+        const classSession = classInfo.classSession;
+        const startDate = classInfo.startDate;
+        const maxStudents = classInfo.maxStudents;
+        const homeRoomTeacher = classInfo.homeRoomTeacher;
+
+        // Filter students with status "Đang học"
+        let studentList = [];
+        for (let i = 0; i < classInfo.studentList.length; i++) {
+          const student = await Student.findById(classInfo.studentList[i]);
+          studentList.push(student);
+        }
+
+        studentList = studentList.filter((student) => student.status === "Đang học");
+
+        const splitAcademicYear = classInfo.academicYear.split("-");
+        const newAcademicYear = parseInt(splitAcademicYear[1]) + 1;
+        const newAcademicYearString = splitAcademicYear[1] + "-" + newAcademicYear;
+
+        const newStartDate = new Date(startDate);
+        newStartDate.setFullYear(newStartDate.getFullYear() + 1);
+
+        const incrementedClassName = incrementClassName(className);
+
+        const newClass = new Class({
+          academicYear: newAcademicYearString,
+          grade: parseInt(grade) + 1,
+          className: incrementedClassName,
+          classSession: classSession,
+          startDate: newStartDate,
+          maxStudents: maxStudents,
+          homeRoomTeacher: homeRoomTeacher,
+          studentList: studentList,
+        });
+
+        const classExist = await Class.findOne({
+          academicYear: newAcademicYearString,
+          grade: parseInt(grade) + 1,
+          className: incrementedClassName,
+        });
+
+        if (classExist) {
+          continue;
+        }
+        await newClass.save();
+      }
+
       res.status(200).json({ message: "Tự động nâng lớp thành công" });
     } catch (error) {
       console.error("Lỗi khi tự động nâng lớp:", error);

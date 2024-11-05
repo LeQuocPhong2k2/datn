@@ -1,5 +1,7 @@
 import axios from 'axios';
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 async function createSchedule(
   scheduleTitle,
   scheduleTeacher,
@@ -12,7 +14,7 @@ async function createSchedule(
 ) {
   try {
     const response = await axios.post(
-      'http://localhost:3000/schedules/createSchedule',
+      API_URL + '/schedules/createSchedule',
       { scheduleTitle, scheduleTeacher, scheduleTimeSlot, subjectCode, className, schoolYear, semester1, semester2 },
       {
         headers: {
@@ -30,7 +32,7 @@ async function createSchedule(
 async function getSchedulesByClass(className, schoolYear) {
   try {
     const response = await axios.post(
-      'http://localhost:3000/schedules/getSchedulesByClass',
+      API_URL + '/schedules/getSchedulesByClass',
       {
         className,
         schoolYear,
@@ -51,7 +53,7 @@ async function getSchedulesByClass(className, schoolYear) {
 async function getSubjectNotInSchedule(grade, schoolYear, className) {
   try {
     const response = await axios.post(
-      'http://localhost:3000/schedules/getSubjectNotInSchedule',
+      API_URL + '/schedules/getSubjectNotInSchedule',
       {
         grade,
         schoolYear,
@@ -73,7 +75,7 @@ async function getSubjectNotInSchedule(grade, schoolYear, className) {
 async function deleteSchedule(scheduleId) {
   try {
     const response = await axios.post(
-      'http://localhost:3000/schedules/deleteSchedule',
+      API_URL + '/schedules/deleteSchedule',
       { scheduleId },
       {
         headers: {
@@ -101,7 +103,7 @@ async function updateSchedule(
 ) {
   try {
     const response = await axios.post(
-      'http://localhost:3000/schedules/updateSchedule',
+      API_URL + '/schedules/updateSchedule',
       {
         scheduleId,
         scheduleTitle,
@@ -129,7 +131,7 @@ async function updateSchedule(
 async function getTeacherSchedule(teacherId, schoolYear) {
   try {
     const response = await axios.post(
-      'http://localhost:3000/teachers/getTeacherSchedule',
+      API_URL + '/teachers/getTeacherSchedule',
       { teacherId, schoolYear },
       {
         headers: {

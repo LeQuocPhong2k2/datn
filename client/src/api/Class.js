@@ -1,9 +1,11 @@
 import axios from 'axios';
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 async function addLopHoc(lopHoc) {
   console.log('lopHoc', lopHoc);
   const response = await axios.post(
-    'http://localhost:3000/class/addClass',
+    API_URL + '/class/addClass',
     {
       namHoc: lopHoc.namHoc,
       khoiLop: lopHoc.khoiLop,
@@ -23,7 +25,7 @@ async function addLopHoc(lopHoc) {
 async function getLopHocByNamHocVaKhoi(namHoc, khoiLop) {
   try {
     const response = await axios.post(
-      'http://localhost:3000/class/getClassesByAcademicYearAndGrade',
+      API_URL + '/class/getClassesByAcademicYearAndGrade',
       { academicYear: namHoc, grade: khoiLop },
       {
         headers: {
@@ -40,7 +42,7 @@ async function getLopHocByNamHocVaKhoi(namHoc, khoiLop) {
 
 async function getLopHocByNamHocOrKhoiOrTenLopOrBuoiHoc(namHoc, khoiLop, tenLop, buoiHoc) {
   const response = await axios.post(
-    'http://localhost:3000/class/getClassesByAcademicYearOrGradeOrClassNameOrClassSession',
+    API_URL + '/class/getClassesByAcademicYearOrGradeOrClassNameOrClassSession',
     { academicYear: namHoc, grade: khoiLop, className: tenLop, classSession: buoiHoc },
     {
       headers: {
@@ -53,7 +55,7 @@ async function getLopHocByNamHocOrKhoiOrTenLopOrBuoiHoc(namHoc, khoiLop, tenLop,
 
 async function getDsHocSinhByLopHoc(idLopHoc) {
   const response = await axios.post(
-    'http://localhost:3000/class/getDsStudentByClass',
+    API_URL + '/class/getDsStudentByClass',
     { idClass: idLopHoc },
     {
       headers: {
@@ -66,7 +68,7 @@ async function getDsHocSinhByLopHoc(idLopHoc) {
 
 async function importNewProfileStudent(studentInfo, namHoc, khoiLop, tenLop) {
   const response = await axios.post(
-    'http://localhost:3000/class/importNewProfileStudent',
+    API_URL + '/class/importNewProfileStudent',
     {
       student: studentInfo,
       namHoc,
@@ -84,7 +86,7 @@ async function importNewProfileStudent(studentInfo, namHoc, khoiLop, tenLop) {
 
 async function importStudents(mshs, classId) {
   const response = await axios.post(
-    'http://localhost:3000/class/importStudents',
+    API_URL + '/class/importStudents',
     {
       mshs,
       classId,
@@ -100,7 +102,7 @@ async function importStudents(mshs, classId) {
 
 async function autoUpClass(classId) {
   const response = await axios.post(
-    'http://localhost:3000/class/autoUpClass',
+    API_URL + '/class/autoUpClass',
     { classId },
     {
       headers: {
@@ -113,7 +115,7 @@ async function autoUpClass(classId) {
 
 async function deleteClass(idClass) {
   const response = await axios.post(
-    'http://localhost:3000/class/deleteClass',
+    API_URL + '/class/deleteClass',
     { idClass },
     {
       headers: {

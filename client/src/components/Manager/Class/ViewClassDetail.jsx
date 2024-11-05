@@ -5,10 +5,12 @@ import { PiExport } from 'react-icons/pi';
 import { IoIosArrowForward } from 'react-icons/io';
 import { IoCloseCircleOutline } from 'react-icons/io5';
 import { CiImport } from 'react-icons/ci';
-import { IoArrowUndoSharp } from 'react-icons/io5';
+import { IoMdArrowRoundBack } from 'react-icons/io';
+
+import { Toaster, toast } from 'react-hot-toast';
 
 import { getStudentByNameAndAcademicYearAndGradeAndClassName } from '../../../api/Student';
-import { importNewProfileStudent, getDsHocSinhByLopHoc } from '../../../api/Class';
+import { getDsHocSinhByLopHoc, importStudents } from '../../../api/Class';
 
 import * as FileSaver from 'file-saver';
 import * as XLSX from 'xlsx';
@@ -240,20 +242,18 @@ const XemChiTietLopHoc = ({
       studentInfo.status = student['Trạng thái'];
 
       try {
-        await importNewProfileStudent(
-          studentInfo,
-          classes[classId].academicYear,
-          classes[classId].grade,
-          classes[classId].className
-        );
+        await importStudents(studentInfo.studentCode, classes[classId]._id);
         const res = getDsHocSinhByLopHoc(classes[classId]._id);
         res.then((data) => {
           setStudentList(data);
         });
-      } catch (error) {}
+      } catch (error) {
+        console.log(error);
+      }
 
       setImportProgress(Math.round(((index + 1) / totalStudents) * 100));
     }
+    toast.success('Import danh sách học sinh thành công');
   };
 
   return (
@@ -261,25 +261,16 @@ const XemChiTietLopHoc = ({
       id="root"
       className="grid grid-flow-row gap-2 p-4 px-10 max-h-full w-full overflow-auto relative custom-scrollbar"
     >
-      <div className="pb-5">
-        <span
-          onClick={handleBackDsLopHoc}
-          className="w-fit text-2xl font-medium flex items-center justify-start gap-1 text-blue-500 cursor-pointer"
-        >
-          <IoArrowUndoSharp />
-        </span>
-        <span className="text-lg font-medium flex items-center justify-start gap-1">
-          Thông tin chi tiết lớp học {classes[classId].className}
-        </span>
-        <span
-          className="
-              text-sm text-gray-500 font-normal flex items-center justify-start gap-1
-            "
-        >
-          Trang này cho phép bạn xem danh sách lớp học, xem chi tiết lớp học, chỉnh sửa thông tin lớp học.
-        </span>
+      <Toaster toastOptions={{ duration: 2000 }} />
+      <div>
+        <span className="text-2xl font-medium">Thông tin chi tiết lớp học {classes[classId].className}</span>
       </div>
-
+      <div className="flex items-center justify-start gap-2 mb-5">
+        <span onClick={handleBackDsLopHoc} className="font-normal text-gray-500 hover:text-blue-500 cursor-pointer">
+          Danh sách lớp học
+        </span>
+        <span className="font-medium">/ Thông tin chi tiết lớp học {classes[classId].className}</span>
+      </div>
       <div>
         <span className="font-medium">1. Thông tin chung</span>
       </div>
@@ -291,7 +282,6 @@ const XemChiTietLopHoc = ({
               <th className="py-2 px-2 border border-b border-gray-300 text-left">Khối lớp</th>
               <th className="py-2 px-2 border border-b border-gray-300 text-left">Tên lớp học</th>
               <th className="py-2 px-2 border border-b border-gray-300 text-left">Gv Chủ nhiệm</th>
-              <th className="py-2 px-2 border border-b border-gray-300 text-left">Buổi học</th>
               <th className="py-2 px-2 border border-b border-gray-300 text-left">Ngày bắt đầu lớp học</th>
               <th className="py-2 px-2 border border-b border-gray-300 text-left">Sỉ số tối đa</th>
               <th className="py-2 px-2 border border-b border-gray-300 text-left">Sỉ số hiện tại</th>
@@ -307,7 +297,6 @@ const XemChiTietLopHoc = ({
               <td className="py-2 px-2 border border-b border-gray-300 text-left">
                 {classes[classId].teacherInfo.userName}
               </td>
-              <td className="py-2 px-2 border border-b border-gray-300 text-left">{classes[classId].classSession}</td>
               <td className="py-2 px-2 border border-b border-gray-300 text-left">
                 {new Date(classes[classId].startDate).toLocaleDateString('en-GB')}
               </td>
@@ -351,30 +340,38 @@ const XemChiTietLopHoc = ({
             >
               <CiImport />
             </button>
-            <input className="h-full border-e border-y rounded-e px-2" type="file" onChange={handleFileUpload} />
+            <input
+              id="ipFile"
+              className="h-full border-e border-y rounded-e px-2"
+              type="file"
+              onChange={handleFileUpload}
+            />
           </div>
 
           <button
             onClick={() => setShowComponet({ ...iShowComponet, exportDetail: true })}
-            className="relative w-fit flex items-center justify-center gap-2 border px-4 py-2 rounded"
+            className="relative w-fit bg-gray-500 text-white flex items-center justify-center gap-2 border px-5 py-2 rounded"
           >
             <PiExport />
             Export danh sách học sinh
             {iShowComponet.exportDetail && (
-              <ul ref={dropdownRef} className="w-full absolute z-50 top-10 bg-white border rounded mt-1 p-2 slide-down">
-                <li className="text-start px-1 hover:bg-gray-200 ">
+              <ul
+                ref={dropdownRef}
+                className="w-full absolute z-50 py-2 shadow-xl bg-white top-10 border rounded mt-1 slide-down"
+              >
+                <li className="text-start py-1 hover:bg-gray-100">
                   <a
                     href="#export-class-detail"
-                    className="text-gray-700"
+                    className="p-3 hover:text-blue-600 text-gray-700"
                     onClick={() => handleExportClassDetails('basic')}
                   >
                     Xuất thông tin cơ bản
                   </a>
                 </li>
-                <li className="text-start px-1 hover:bg-gray-200 ">
+                <li className="text-start py-1 hover:bg-gray-100">
                   <a
                     href="#export-class-detail-all"
-                    className="text-gray-700"
+                    className="p-3 hover:text-blue-600 text-gray-700"
                     onClick={() => handleExportClassDetails('all')}
                   >
                     Xuất toàn bộ thông tin
@@ -394,7 +391,7 @@ const XemChiTietLopHoc = ({
               <th className="py-2 px-2 border border-b border-gray-300 text-left w-40">Họ và tên</th>
               <th className="py-2 px-2 border border-b border-gray-300 text-left w-40">Năm sinh</th>
               <th className="py-2 px-2 border border-b border-gray-300 text-left w-28">Giới tính</th>
-              <th className="py-2 px-2 border border-b border-gray-300 text-left w-40">Ngày vào trường</th>
+              <th className="py-2 px-2 border border-b border-gray-300 text-left w-40">Trạng thái</th>
               <th className="py-2 px-2 border border-b border-gray-300 text-left w-40">Số điện thoại</th>
               <th className="py-2 px-2 border border-b border-gray-300 text-left w-40">Địa chỉ</th>
               <th className="py-2 px-2 border border-b border-gray-300 text-left w-14"></th>
@@ -411,9 +408,7 @@ const XemChiTietLopHoc = ({
                       {new Date(student.dateOfBirth).toLocaleDateString('en-GB')}
                     </td>
                     <td className="py-2 px-2 border border-b border-gray-300 text-left">{student.gender}</td>
-                    <td className="py-2 px-2 border border-b border-gray-300 text-left">
-                      {new Date(student.dateOfEnrollment).toLocaleDateString('en-GB')}
-                    </td>
+                    <td className="py-2 px-2 border border-b border-gray-300 text-left">{student.status}</td>
                     <td className="py-2 px-2 border border-b border-gray-300 text-left">{student.phoneNumber}</td>
                     <td className="py-2 px-2 border border-b border-gray-300 text-left">{student.address}</td>
                     <td className="cursor-pointer py-2 px-2 border border-b border-gray-300 text-left">
@@ -435,9 +430,7 @@ const XemChiTietLopHoc = ({
                       {new Date(student.dateOfBirth).toLocaleDateString('en-GB')}
                     </td>
                     <td className="py-2 px-2 border border-b border-gray-300 text-left">{student.gender}</td>
-                    <td className="py-2 px-2 border border-b border-gray-300 text-left">
-                      {new Date(student.dateOfEnrollment).toLocaleDateString('en-GB')}
-                    </td>
+                    <td className="py-2 px-2 border border-b border-gray-300 text-left">{student.status}</td>
                     <td className="py-2 px-2 border border-b border-gray-300 text-left">{student.phoneNumber}</td>
                     <td className="py-2 px-2 border border-b border-gray-300 text-left">{student.address}</td>
                     <td className="cursor-pointer py-2 px-2 border border-b border-gray-300 text-left">
