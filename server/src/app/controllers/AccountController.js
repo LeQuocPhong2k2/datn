@@ -32,7 +32,7 @@ const AccountController = {
 
       // sử dụng jwt để tạo token với vai trò
       const token = jwt.sign({ id: account._id, role: account.role }, JWT_SECRET, {
-        expiresIn: "1m",
+        expiresIn: "1h",
       });
       // Tạo refresh token
       const refreshToken = jwt.sign({ id: account._id, role: account.role }, JWT_SECRET, {

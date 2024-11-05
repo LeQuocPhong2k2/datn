@@ -16,11 +16,6 @@ import InputScore from './InputScore';
 export default function Teacher() {
   useEffect(() => {
     document.title = 'Trang chủ giáo viên';
-    // kiểm tra xem có teacher_token trong cookie không
-    const teacherToken = Cookies.get('teacher_token');
-    if (!teacherToken) {
-      window.location.href = '/login';
-    }
   }, []);
   const phoneNumber = localStorage.getItem('phoneNumberTeacher');
   const [teacherInfo, setTeacherInfo] = useState({});
