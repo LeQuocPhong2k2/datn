@@ -6,7 +6,6 @@ import { useEffect, useState } from 'react';
 import Cookies from 'cookie-universal';
 import 'react-toastify/dist/ReactToastify.css';
 import { Toaster, toast } from 'react-hot-toast';
-import path from 'path-browserify';
 
 export default function Login() {
   useEffect(() => {
@@ -26,55 +25,27 @@ export default function Login() {
     }
 
     try {
-      // gọi api đăng nhập
       const response = await login(userName, password);
       toast.dismiss();
       toast.success('Đăng nhập thành công');
-
-      // lưu token vào cookie với tên khác nhau dựa trên vai trò
-      const tokenName =
-        response.account.role === 'Admin'
-          ? 'admin_token'
-          : response.account.role === 'Parent'
-            ? 'parent_token'
-            : response.account.role === 'Student'
-              ? 'student_token'
-              : response.account.role === 'Teacher'
-                ? 'teacher_token'
-                : 'default_token'; // Thêm trường hợp cho Parent và Student
-      cookies.set(tokenName, response.token, {
+      cookies.set('access_token', response.token, {
         path: '/',
         expires: new Date(Date.now() + 60 * 60 * 1000),
-      }); // 60 * 60 * 1000 = 1 giờ
-
-      // Lưu refresh token vào cookie (có thể thêm thuộc tính httpOnly từ server)
+      });
       cookies.set('refresh_token', response.account.refreshToken, {
         path: '/',
-        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 ngày
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       });
-
-      // lưu _id vào localStorage
       localStorage.setItem('_id', response.account.id);
-      // lưu studentCode vào Cookie lưu ý trong db userName là studentCode
-      cookies.set('studentCode', response.account.userName, {
-        path: '/',
-        expires: new Date(Date.now() + 7 * 60 * 60 * 1000),
-      }); // lưu studentCode vào Cookie trong 7 ngày
-
-      // kiểm tra respornse có role là gì nếu roel là  Admin thì chuyển hướng đến trang admin
+      localStorage.setItem('role', response.account.role);
       if (response.account.role === 'Admin') {
         window.location.href = '/';
-      } else if (response.account.role === 'Student') {
-        // nếu không phải Admin thì chuyển hướng đến trang student
+      } else if (response.account.role === 'Student' || response.account.role === 'Parent') {
         window.location.href = '/student';
       } else if (response.account.role === 'Teacher') {
-        // lưu biến userName của teacher vào localStorage với tên gọi là phoneNumber
-        localStorage.setItem('phoneNumberTeacher', response.account.userName);
-        // nếu không phải Admin thì chuyển hướng đến trang teacher
         window.location.href = '/teacher';
       }
     } catch (error) {
-      // hiển thị thông báo lỗi theo từng status
       if (error.response.status === 401) {
         toast.dismiss();
         toast.error('Tài khoản không tồn tại');

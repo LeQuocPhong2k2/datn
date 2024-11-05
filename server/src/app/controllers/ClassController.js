@@ -1,9 +1,9 @@
-require('dotenv').config({ path: '../../../../.env' })
-const Student = require('../models/Student')
-const Parent = require('../models/Parent')
-const Class = require('../models/Class')
-const Account = require('../models/Account')
-const socket = require('../../socket')
+require("dotenv").config({ path: "../../../../.env" });
+const Student = require("../models/Student");
+const Parent = require("../models/Parent");
+const Class = require("../models/Class");
+const Account = require("../models/Account");
+const socket = require("../../socket");
 
 const ClassController = {
   /**
@@ -13,13 +13,13 @@ const ClassController = {
    */
   getAllClasses: async (req, res) => {
     try {
-      console.log('Đang truy vấn tất cả lớp...')
-      const classes = await Class.find()
-      console.log('Kết quả truy vấn:', classes)
-      res.status(200).json(classes)
+      console.log("Đang truy vấn tất cả lớp...");
+      const classes = await Class.find();
+      console.log("Kết quả truy vấn:", classes);
+      res.status(200).json(classes);
     } catch (error) {
-      console.error('Lỗi khi truy vấn lớp:', error)
-      res.status(500).json({ error: error.message })
+      console.error("Lỗi khi truy vấn lớp:", error);
+      res.status(500).json({ error: error.message });
     }
   },
 
@@ -29,26 +29,26 @@ const ClassController = {
    * @param {*} res
    */
   getDsStudentByClass: async (req, res) => {
-    const { idClass } = req.body
-    console.log('ID lớp học:', idClass)
+    const { idClass } = req.body;
+    console.log("ID lớp học:", idClass);
     try {
       const students = await Class.findById(idClass).populate({
-        path: 'studentList',
+        path: "studentList",
         populate: {
-          path: 'parents',
-          model: 'Parent',
+          path: "parents",
+          model: "Parent",
         },
-      })
+      });
 
       // Sắp xếp danh sách học sinh theo tên
-      students.studentList.sort((a, b) => a.lastName.localeCompare(b.lastName))
+      students.studentList.sort((a, b) => a.lastName.localeCompare(b.lastName));
 
-      console.log(JSON.stringify(students, null, 2))
-      console.log('Danh sách học sinh trong lớp:', students)
-      res.status(200).json(students.studentList)
+      console.log(JSON.stringify(students, null, 2));
+      console.log("Danh sách học sinh trong lớp:", students);
+      res.status(200).json(students.studentList);
     } catch (error) {
-      console.error('Lỗi khi lấy danh sách học sinh:', error)
-      res.status(500).json({ error: error.message })
+      console.error("Lỗi khi lấy danh sách học sinh:", error);
+      res.status(500).json({ error: error.message });
     }
   },
 
@@ -57,76 +57,67 @@ const ClassController = {
    * @param {*} req
    * @param {*} res
    */
-  getClassesByAcademicYearOrGradeOrClassNameOrClassSession: async (
-    req,
-    res
-  ) => {
-    const { academicYear, grade, className, classSession } = req.body
-    console.log(
-      'Thông tin tìm kiếm:',
-      academicYear,
-      grade,
-      className,
-      classSession
-    )
+  getClassesByAcademicYearOrGradeOrClassNameOrClassSession: async (req, res) => {
+    const { academicYear, grade, className, classSession } = req.body;
+    console.log("Thông tin tìm kiếm:", academicYear, grade, className, classSession);
     try {
-      let query = {}
+      let query = {};
 
       if (academicYear) {
-        query.academicYear = academicYear
+        query.academicYear = academicYear;
       }
       if (grade) {
-        query.grade = grade
+        query.grade = grade;
       }
       if (className) {
-        query.className = { $regex: className, $options: 'i' }
+        query.className = { $regex: className, $options: "i" };
       }
       if (classSession) {
-        query.classSession = classSession
+        query.classSession = classSession;
       }
 
       const classes = await Class.aggregate([
         { $match: query },
         {
           $lookup: {
-            from: 'Teacher', // Tên của collection chứa thông tin giáo viên
-            localField: 'homeRoomTeacher', // Trường trong collection Class
-            foreignField: '_id', // Trường trong collection Teacher
-            as: 'teacherInfo', // Tên biến chứa thông tin giáo viên
+            from: "Teacher", // Tên của collection chứa thông tin giáo viên
+            localField: "homeRoomTeacher", // Trường trong collection Class
+            foreignField: "_id", // Trường trong collection Teacher
+            as: "teacherInfo", // Tên biến chứa thông tin giáo viên
           },
         },
         {
           $unwind: {
-            path: '$homeRoomTeacher',
+            path: "$homeRoomTeacher",
             preserveNullAndEmptyArrays: true, // Giữ lại các lớp không có giáo viên chủ nhiệm
           },
         },
         {
           $lookup: {
-            from: 'Student', // Tên của collection chứa thông tin học sinh
-            localField: 'studentList', // Trường trong collection Class chứa danh sách ID học sinh
-            foreignField: '_id', // Trường trong collection Student
-            as: 'students', // Tên biến chứa thông tin học sinh
+            from: "Student", // Tên của collection chứa thông tin học sinh
+            localField: "studentList", // Trường trong collection Class chứa danh sách ID học sinh
+            foreignField: "_id", // Trường trong collection Student
+            as: "students", // Tên biến chứa thông tin học sinh
           },
         },
         {
           $addFields: {
-            totalStudents: { $size: '$students' }, // Đếm số lượng học sinh trong lớp
+            totalStudents: { $size: "$students" }, // Đếm số lượng học sinh trong lớp
             maleStudents: {
               $size: {
                 $filter: {
-                  input: '$students',
-                  as: 'student',
-                  cond: { $eq: ['$$student.gender', 'Nam'] },
+                  input: "$students",
+                  as: "student",
+                  cond: { $eq: ["$$student.gender", "Nam"] },
                 },
               },
             },
             femaleStudents: {
               $size: {
                 $filter: {
-                  input: '$students',
-                  as: 'student',
-                  cond: { $eq: ['$$student.gender', 'Nữ'] },
+                  input: "$students",
+                  as: "student",
+                  cond: { $eq: ["$$student.gender", "Nữ"] },
                 },
               },
             },
@@ -145,7 +136,7 @@ const ClassController = {
             femaleStudents: 1,
             homeRoomTeacher: 1,
             teacherInfo: {
-              $arrayElemAt: ['$teacherInfo', 0],
+              $arrayElemAt: ["$teacherInfo", 0],
             },
           },
         },
@@ -156,13 +147,13 @@ const ClassController = {
             className: 1, // Sắp xếp theo className tăng dần
           },
         },
-      ])
+      ]);
 
-      console.log('Kết quả truy vấn:', classes)
-      res.status(200).json(classes)
+      console.log("Kết quả truy vấn:", classes);
+      res.status(200).json(classes);
     } catch (error) {
-      console.error('Lỗi khi lấy danh sách lớp học:', error)
-      res.status(500).json({ error: error.message })
+      console.error("Lỗi khi lấy danh sách lớp học:", error);
+      res.status(500).json({ error: error.message });
     }
   },
 
@@ -172,7 +163,7 @@ const ClassController = {
    * @param {*} res
    */
   getClassesByAcademicYearAndGrade: async (req, res) => {
-    const { academicYear, grade } = req.body
+    const { academicYear, grade } = req.body;
     try {
       const classes = await Class.aggregate([
         {
@@ -183,15 +174,15 @@ const ClassController = {
         },
         {
           $lookup: {
-            from: 'Teacher',
-            localField: 'homeRoomTeacher',
-            foreignField: '_id',
-            as: 'teacherInfo',
+            from: "Teacher",
+            localField: "homeRoomTeacher",
+            foreignField: "_id",
+            as: "teacherInfo",
           },
         },
         {
           $addFields: {
-            totalStudents: { $size: '$studentList' },
+            totalStudents: { $size: "$studentList" },
           },
         },
         {
@@ -205,16 +196,16 @@ const ClassController = {
             totalStudents: 1,
             homeRoomTeacher: 1,
             teacherInfo: {
-              $arrayElemAt: ['$teacherInfo', 0],
+              $arrayElemAt: ["$teacherInfo", 0],
             },
           },
         },
-      ])
-      console.log('Kết quả truy vấn:', classes)
-      res.status(200).json(classes)
+      ]);
+      console.log("Kết quả truy vấn:", classes);
+      res.status(200).json(classes);
     } catch (error) {
-      console.error('Lỗi khi lấy danh sách lớp học:', error)
-      res.status(500).json({ error: error.message })
+      console.error("Lỗi khi lấy danh sách lớp học:", error);
+      res.status(500).json({ error: error.message });
     }
   },
 
@@ -225,23 +216,16 @@ const ClassController = {
    * @returns
    */
   addClass: async (req, res) => {
-    const {
-      namHoc,
-      khoiLop,
-      tenLop,
-      idGiaoVienChuNhiem,
-      ngayBatDau,
-      typeFileImport,
-    } = req.body
+    const { namHoc, khoiLop, tenLop, idGiaoVienChuNhiem, ngayBatDau, typeFileImport } = req.body;
     try {
       // 1. Kiểm tra xem lớp đã tồn tại chưa
       const checkClass = await Class.findOne({
         academicYear: namHoc,
         grade: khoiLop,
         className: tenLop,
-      })
+      });
       if (checkClass) {
-        return res.status(400).json({ message: 'Lớp đã tồn tại' })
+        return res.status(400).json({ message: "Lớp đã tồn tại" });
       }
 
       // 2. Tạo lớp mới
@@ -253,18 +237,18 @@ const ClassController = {
         startDate: ngayBatDau,
         maxStudents: 40,
         studentList: [],
-      })
+      });
 
       // 3. Lưu lớp mới
-      console.log('Đang lưu lớp mới...')
-      await newClass.save()
+      console.log("Đang lưu lớp mới...");
+      await newClass.save();
 
       // 4. Trả về kết quả
-      console.log('Thêm lớp học thành công:', newClass)
-      res.status(200).json(newClass)
+      console.log("Thêm lớp học thành công:", newClass);
+      res.status(200).json(newClass);
     } catch (error) {
-      console.error('Lỗi khi thêm lớp học:', error)
-      res.status(500).json({ error: error.message })
+      console.error("Lỗi khi thêm lớp học:", error);
+      res.status(500).json({ error: error.message });
     }
   },
 
@@ -275,21 +259,21 @@ const ClassController = {
    * @returns
    */
   deleteClass: async (req, res) => {
-    const { idClass } = req.body
+    const { idClass } = req.body;
     try {
-      const classInfo = await Class.findById(idClass)
+      const classInfo = await Class.findById(idClass);
       if (!classInfo) {
-        return res.status(404).json({ message: 'Không tìm thấy lớp học' })
+        return res.status(404).json({ message: "Không tìm thấy lớp học" });
       }
 
       // 1. Xóa lớp
-      await Class.findByIdAndDelete(idClass)
+      await Class.findByIdAndDelete(idClass);
 
       // 2. Trả về kết quả
-      res.status(200).json({ message: 'Xóa lớp học thành công' })
+      res.status(200).json({ message: "Xóa lớp học thành công" });
     } catch (error) {
-      console.error('Lỗi khi xóa lớp học:', error)
-      res.status(500).json({ error: error.message })
+      console.error("Lỗi khi xóa lớp học:", error);
+      res.status(500).json({ error: error.message });
     }
   },
 
@@ -300,39 +284,39 @@ const ClassController = {
    * @returns
    */
   importStudents: async (req, res) => {
-    const { mshs, classId } = req.body
+    const { mshs, classId } = req.body;
     try {
-      const student = await Student.findOne({ studentCode: mshs })
+      const student = await Student.findOne({ studentCode: mshs });
       if (!student) {
-        return res.status(404).json({ message: 'Không tìm thấy học sinh' })
+        return res.status(404).json({ message: "Không tìm thấy học sinh" });
       }
 
-      const classInfo = await Class.findOne({ _id: classId })
+      const classInfo = await Class.findOne({ _id: classId });
       if (!classInfo) {
-        return res.status(404).json({ message: 'Không tìm thấy lớp học' })
+        return res.status(404).json({ message: "Không tìm thấy lớp học" });
       }
 
       const studentExistClass = await Class.findOne({
         studentList: student._id,
         academicYear: classInfo.academicYear,
-      })
+      });
       if (studentExistClass) {
         return res.status(400).json({
-          message: 'Học sinh đã có lớp trong năm học này',
+          message: "Học sinh đã có lớp trong năm học này",
           student: student,
-        })
+        });
       }
 
       if (classInfo.studentList.length >= classInfo.maxStudents) {
-        return res.status(405).json({ message: 'Sỉ số lớp đã đầy' })
+        return res.status(405).json({ message: "Sỉ số lớp đã đầy" });
       }
 
-      classInfo.studentList.push(student._id)
-      await classInfo.save()
-      res.status(200).json({ message: 'Import học sinh thành công' })
+      classInfo.studentList.push(student._id);
+      await classInfo.save();
+      res.status(200).json({ message: "Import học sinh thành công" });
     } catch (error) {
-      console.error('Lỗi khi import học sinh:', error)
-      res.status(500).json({ error: error.message })
+      console.error("Lỗi khi import học sinh:", error);
+      res.status(500).json({ error: error.message });
     }
   },
 
@@ -343,31 +327,29 @@ const ClassController = {
    * @returns
    */
   importNewProfileStudent: async (req, res) => {
-    const { student, namHoc, khoiLop, tenLop } = req.body
+    const { student, namHoc, khoiLop, tenLop } = req.body;
     try {
-      console.log('Thông tin học sinh namHoc:', req.body)
+      console.log("Thông tin học sinh namHoc:", req.body);
       // 1. kiểm tra học sinh có tồn tại
       const checkStudent = await Student.findOne({
         firstName: student.ho,
         lastName: student.ten,
         phoneNumber: student.sdt,
-      })
+      });
       if (checkStudent) {
-        return res
-          .status(400)
-          .json({ message: 'Hồ sơ học sinh đã tồn tại', student: checkStudent })
+        return res.status(400).json({ message: "Hồ sơ học sinh đã tồn tại", student: checkStudent });
       }
 
       // 2. Parent
-      let parent1 = null
-      let parent2 = null
-      let parent3 = null
-      let parents = []
+      let parent1 = null;
+      let parent2 = null;
+      let parent3 = null;
+      let parents = [];
       if (student.moiQuanHeKhac) {
         const checkParent = await Parent.findOne({
           userName: student.hoTenNguoiGiamHo,
           phoneNumber: student.sdtNguoiGiamHo,
-        })
+        });
         if (!checkParent) {
           parent1 = new Parent({
             userName: student.hoTenNguoiGiamHo,
@@ -375,72 +357,72 @@ const ClassController = {
             job: student.ngheNghiepNguoiGiamHo,
             phoneNumber: student.sdtNguoiGiamHo,
             relationship: student.moiQuanHe,
-          })
-          parents.push(parent1._id)
+          });
+          parents.push(parent1._id);
         } else {
-          parents.push(checkParent._id)
+          parents.push(checkParent._id);
         }
       } else {
         if (student.moiQuanHeCha) {
           const checkParent = await Parent.findOne({
             userName: student.hoTenCha,
             phoneNumber: student.sdtCha,
-          })
+          });
           if (!checkParent) {
             parent2 = new Parent({
               userName: student.hoTenCha,
               dateOfBirth: student.namSinhCha,
               job: student.ngheNghiepCha,
               phoneNumber: student.sdtCha,
-              relationship: 'Cha',
-            })
-            parents.push(parent2._id)
+              relationship: "Cha",
+            });
+            parents.push(parent2._id);
           } else {
-            parents.push(checkParent._id)
+            parents.push(checkParent._id);
           }
         }
         if (student.moiQuanHeMe) {
           const checkParent = await Parent.findOne({
             userName: student.hoTenMe,
             phoneNumber: student.sdtMe,
-          })
+          });
           if (!checkParent) {
             parent3 = new Parent({
               userName: student.hoTenMe,
               dateOfBirth: student.namSinhMe,
               job: student.ngheNghiepMe,
               phoneNumber: student.sdtMe,
-              relationship: 'Me',
-            })
-            parents.push(parent3._id)
+              relationship: "Me",
+            });
+            parents.push(parent3._id);
           } else {
-            parents.push(checkParent._id)
+            parents.push(checkParent._id);
           }
         }
       }
 
       // 3. Tạo học sinh
-      let studentCodeGen = ''
+      let studentCodeGen = "";
       do {
-        const yearOfEnrollment = new Date(student.ngayVaoTruong).getFullYear()
-        studentCodeGen = generateStudentID(yearOfEnrollment)
+        const yearOfEnrollment = new Date(student.ngayVaoTruong).getFullYear();
+        studentCodeGen = generateStudentID(yearOfEnrollment);
         const checkStudentCode = await Student.findOne({
           studentCode: studentCodeGen,
-        })
+        });
 
         if (!checkStudentCode) {
-          break
+          break;
         }
-      } while (true)
+      } while (true);
 
       // 4. Tạo tài khoản học sinh
       const accountStudent = new Account({
         userName: studentCodeGen,
         password: studentCodeGen,
-        role: 'Student',
-      })
+        role: "Student",
+      });
 
-      let hoTen = student.ho + ' ' + student.ten
+      let hoTen = student.ho + " " + student.ten;
       const newStudent = new Student({
         studentCode: studentCodeGen,
         userName: hoTen,
@@ -454,72 +436,68 @@ const ClassController = {
         relationshipOther: student.moiQuanHeKhac,
         parents: parents,
         account: accountStudent._id,
-        status: 'Đang học',
+        status: "Đang học",
         ethnicGroups: student.danToc,
-      })
+      });
 
       // 6. Cập nhật danh sách học sinh vào lớp
       const classInfo = await Class.findOne({
         academicYear: namHoc,
         grade: khoiLop,
         className: tenLop,
-      })
+      });
 
-      parent1 && (await parent1.save())
-      parent2 && (await parent2.save())
-      parent3 && (await parent3.save())
-      await accountStudent.save()
-      await newStudent.save()
+      parent1 && (await parent1.save());
+      parent2 && (await parent2.save());
+      parent3 && (await parent3.save());
+      await accountStudent.save();
+      await newStudent.save();
 
       if (!classInfo) {
-        return res.status(404).json({ message: 'Không tìm thấy lớp học' })
+        return res.status(404).json({ message: "Không tìm thấy lớp học" });
       } else {
         if (classInfo.studentList.length >= classInfo.maxStudents) {
-          return res
-            .status(405)
-            .json({ message: 'Sỉ số lớp đã đầy', student: newStudent })
+          return res.status(405).json({ message: "Sỉ số lớp đã đầy", student: newStudent });
         }
-        classInfo.studentList.push(newStudent._id)
-        await classInfo.save()
+        classInfo.studentList.push(newStudent._id);
+        await classInfo.save();
       }
-      res.status(200).json({ message: 'Import học sinh thành công' })
+      res.status(200).json({ message: "Import học sinh thành công" });
     } catch (error) {
-      console.error('Lỗi khi import học sinh:', error)
-      res.status(500).json({ error: error.message })
+      console.error("Lỗi khi import học sinh:", error);
+      res.status(500).json({ error: error.message });
     }
   },
   // lấy dánh sách học sinh theo lớp chỉ lấy 1 vài trường là _id, studentCode, userName, và dateOfBirth
   getListStudentByClassId: async (req, res) => {
-    const { idClass } = req.body
-    console.log('ID lớp học:', idClass)
+    const { idClass } = req.body;
+    console.log("ID lớp học:", idClass);
     try {
       const students = await Class.findById(idClass).populate({
-        path: 'studentList',
+        path: "studentList",
         populate: {
-          path: 'parents',
-          model: 'Parent',
+          path: "parents",
+          model: "Parent",
         },
-      })
+      });
 
       // Filter students with status "Đang học"
-      let studentList = []
+      let studentList = [];
       for (let i = 0; i < classInfo.studentList.length; i++) {
-        const student = await Student.findById(classInfo.studentList[i])
-        studentList.push(student)
+        const student = await Student.findById(classInfo.studentList[i]);
+        studentList.push(student);
       }
 
-      studentList = studentList.filter(
-        (student) => student.status === 'Đang học'
-      )
+      studentList = studentList.filter((student) => student.status === "Đang học");
 
-      const splitAcademicYear = classInfo.academicYear.split('-')
-      const newAcademicYear = parseInt(splitAcademicYear[1]) + 1
-      const newAcademicYearString = splitAcademicYear[1] + '-' + newAcademicYear
+      const splitAcademicYear = classInfo.academicYear.split("-");
+      const newAcademicYear = parseInt(splitAcademicYear[1]) + 1;
+      const newAcademicYearString = splitAcademicYear[1] + "-" + newAcademicYear;
 
-      const newStartDate = new Date(startDate)
-      newStartDate.setFullYear(newStartDate.getFullYear() + 1)
+      const newStartDate = new Date(startDate);
+      newStartDate.setFullYear(newStartDate.getFullYear() + 1);
 
-      const incrementedClassName = incrementClassName(className)
+      const incrementedClassName = incrementClassName(className);
 
       const newClass = new Class({
         academicYear: newAcademicYearString,
@@ -530,57 +508,117 @@ const ClassController = {
         maxStudents: maxStudents,
         homeRoomTeacher: homeRoomTeacher,
         studentList: studentList,
-      })
+      });
 
       const classExist = await Class.findOne({
         academicYear: newAcademicYearString,
         grade: parseInt(grade) + 1,
         className: incrementedClassName,
-      })
+      });
 
       if (classExist) {
-        return res.status(400).json({ message: 'Lớp đã tồn tại' })
+        return res.status(400).json({ message: "Lớp đã tồn tại" });
       }
 
-      console.log('Lớp mới:', newClass)
+      console.log("Lớp mới:", newClass);
 
-      await newClass.save()
-      res.status(200).json({ message: 'Tự động nâng lớp thành công' })
+      await newClass.save();
+      res.status(200).json({ message: "Tự động nâng lớp thành công" });
     } catch (error) {
-      console.error('Lỗi khi lấy danh sách học sinh:', error)
-      res.status(500).json({ error: error.message })
+      console.error("Lỗi khi lấy danh sách học sinh:", error);
+      res.status(500).json({ error: error.message });
     }
   },
   autoUpClass: async (req, res) => {
-    const { classId } = req.body
-    try {
-      const classInfo = await Class.findOne({ _id: classId })
-      const grade = classInfo.grade
-      const className = classInfo.className
-      const classSession = classInfo.classSession
-      const startDate = classInfo.startDate
-      const maxStudents = classInfo.maxStudents
-      const homeRoomTeacher = classInfo.homeRoomTeacher
+    const { namHoc } = req.body;
 
-      // Filter students with status "Đang học"
-      let studentList = []
-      for (let i = 0; i < classInfo.studentList.length; i++) {
-        const student = await Student.findById(classInfo.studentList[i])
-        studentList.push(student)
+    try {
+      const classes = await Class.find({ academicYear: namHoc });
+
+      for (let i = 0; i < classes.length; i++) {
+        const classInfo = classes[i];
+        const grade = classInfo.grade;
+        const className = classInfo.className;
+        const classSession = classInfo.classSession;
+        const startDate = classInfo.startDate;
+        const maxStudents = classInfo.maxStudents;
+        const homeRoomTeacher = classInfo.homeRoomTeacher;
+
+        // Filter students with status "Đang học"
+        let studentList = [];
+        for (let i = 0; i < classInfo.studentList.length; i++) {
+          const student = await Student.findById(classInfo.studentList[i]);
+          studentList.push(student);
+        }
+
+        studentList = studentList.filter((student) => student.status === "Đang học");
+
+        const splitAcademicYear = classInfo.academicYear.split("-");
+        const newAcademicYear = parseInt(splitAcademicYear[1]) + 1;
+        const newAcademicYearString = splitAcademicYear[1] + "-" + newAcademicYear;
+
+        const newStartDate = new Date(startDate);
+        newStartDate.setFullYear(newStartDate.getFullYear() + 1);
+
+        const incrementedClassName = incrementClassName(className);
+
+        const newClass = new Class({
+          academicYear: newAcademicYearString,
+          grade: parseInt(grade) + 1,
+          className: incrementedClassName,
+          classSession: classSession,
+          startDate: newStartDate,
+          maxStudents: maxStudents,
+          homeRoomTeacher: homeRoomTeacher,
+          studentList: studentList,
+        });
+
+        const classExist = await Class.findOne({
+          academicYear: newAcademicYearString,
+          grade: parseInt(grade) + 1,
+          className: incrementedClassName,
+        });
+
+        if (classExist) {
+          continue;
+        }
+        await newClass.save();
       }
 
-      studentList = studentList.filter(
-        (student) => student.status === 'Đang học'
-      )
+      res.status(200).json({ message: "Tự động nâng lớp thành công" });
+    } catch (error) {
+      console.error("Lỗi khi tự động nâng lớp:", error);
+      res.status(500).json({ error: error.message });
+    }
+  },
+  autoUpClass: async (req, res) => {
+    const { classId } = req.body;
+    try {
+      const classInfo = await Class.findOne({ _id: classId });
+      const grade = classInfo.grade;
+      const className = classInfo.className;
+      const classSession = classInfo.classSession;
+      const startDate = classInfo.startDate;
+      const maxStudents = classInfo.maxStudents;
+      const homeRoomTeacher = classInfo.homeRoomTeacher;
 
-      const splitAcademicYear = classInfo.academicYear.split('-')
-      const newAcademicYear = parseInt(splitAcademicYear[1]) + 1
-      const newAcademicYearString = splitAcademicYear[1] + '-' + newAcademicYear
+      // Filter students with status "Đang học"
+      let studentList = [];
+      for (let i = 0; i < classInfo.studentList.length; i++) {
+        const student = await Student.findById(classInfo.studentList[i]);
+        studentList.push(student);
+      }
 
-      const newStartDate = new Date(startDate)
-      newStartDate.setFullYear(newStartDate.getFullYear() + 1)
+      studentList = studentList.filter((student) => student.status === "Đang học");
 
-      const incrementedClassName = incrementClassName(className)
+      const splitAcademicYear = classInfo.academicYear.split("-");
+      const newAcademicYear = parseInt(splitAcademicYear[1]) + 1;
+      const newAcademicYearString = splitAcademicYear[1] + "-" + newAcademicYear;
+
+      const newStartDate = new Date(startDate);
+      newStartDate.setFullYear(newStartDate.getFullYear() + 1);
+
+      const incrementedClassName = incrementClassName(className);
 
       const newClass = new Class({
         academicYear: newAcademicYearString,
@@ -591,57 +629,57 @@ const ClassController = {
         maxStudents: maxStudents,
         homeRoomTeacher: homeRoomTeacher,
         studentList: studentList,
-      })
+      });
 
       const classExist = await Class.findOne({
         academicYear: newAcademicYearString,
         grade: parseInt(grade) + 1,
         className: incrementedClassName,
-      })
+      });
 
       if (classExist) {
-        return res.status(400).json({ message: 'Lớp đã tồn tại' })
+        return res.status(400).json({ message: "Lớp đã tồn tại" });
       }
 
-      console.log('Lớp mới:', newClass)
+      console.log("Lớp mới:", newClass);
 
-      await newClass.save()
-      res.status(200).json({ message: 'Tự động nâng lớp thành công' })
+      await newClass.save();
+      res.status(200).json({ message: "Tự động nâng lớp thành công" });
     } catch (error) {
-      console.error('Lỗi khi tự động nâng lớp:', error)
-      res.status(500).json({ error: error.message })
+      console.error("Lỗi khi tự động nâng lớp:", error);
+      res.status(500).json({ error: error.message });
     }
   },
   // get danh sách học sinh qua tên lớp và năm học hiện tại va +1 kiẻu như 2024-2025
   getStudentListByClassNameAndAcademicYear: async (req, res) => {
-    const { className, academicYear } = req.body
+    const { className, academicYear } = req.body;
     try {
       const classInfo = await Class.findOne({
         className: className,
         academicYear: academicYear,
-      })
+      });
       if (!classInfo) {
-        return res.status(404).json({ message: 'Không tìm thấy lớp học' })
+        return res.status(404).json({ message: "Không tìm thấy lớp học" });
       }
 
       // Lấy danh sách học sinh từ classInfo
       const students = await Student.find({
         _id: { $in: classInfo.studentList },
-      }).select('_id studentCode userName ')
-      console.log('số lượng học sinh trong lớp:', students.length)
+      }).select("_id studentCode userName ");
+      console.log("số lượng học sinh trong lớp:", students.length);
       // chỉ lấy các trường cần thiết là _id, studentCode, userName
 
       // Trả về danh sách học sinh
       res.status(200).json({
         class_id: classInfo._id,
         students: students,
-      })
+      });
     } catch (error) {
-      console.error('Lỗi khi lấy danh sách học sinh:', error)
-      res.status(500).json({ error: error.message })
+      console.error("Lỗi khi lấy danh sách học sinh:", error);
+      res.status(500).json({ error: error.message });
     }
   },
-}
+};
 
 /**
  * function tạo mã số sinh viên bao gồm 4 số đầu là năm nhập học và 6 số cuối là số ngẫu nhiên
@@ -649,11 +687,11 @@ const ClassController = {
  * @returns
  */
 function generateStudentID(yearOfEnrollment) {
-  const randomSixDigits = Math.floor(1000 + Math.random() * 9000)
+  const randomSixDigits = Math.floor(1000 + Math.random() * 9000);
 
-  const studentID = yearOfEnrollment.toString() + randomSixDigits.toString()
+  const studentID = yearOfEnrollment.toString() + randomSixDigits.toString();
 
-  return studentID
+  return studentID;
 }
 
 /**
@@ -663,18 +701,18 @@ function generateStudentID(yearOfEnrollment) {
  * @returns {string} - The incremented className.
  */
 function incrementClassName(className) {
-  const match = className.match(/^\d+[A-Za-z]\d+$/)
+  const match = className.match(/^\d+[A-Za-z]\d+$/);
   if (!match) {
-    throw new Error('Invalid className format')
+    throw new Error("Invalid className format");
   }
 
-  const grade = parseInt(className[0])
-  const prefix = className[1]
-  const number = parseInt(className[2], 10)
+  const grade = parseInt(className[0]);
+  const prefix = className[1];
+  const number = parseInt(className[2], 10);
 
-  const incrementedNumber = grade + 1
+  const incrementedNumber = grade + 1;
 
-  return `${incrementedNumber}${prefix}${number}`
+  return `${incrementedNumber}${prefix}${number}`;
 }
 
-module.exports = ClassController
+module.exports = ClassController;

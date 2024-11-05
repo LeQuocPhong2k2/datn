@@ -5,6 +5,7 @@ const Schedule = require("../models/Schedule");
 const SubjectController = {
   async getSubjectByGrade(req, res) {
     const { grade } = req.body;
+    console.log(req.body);
     try {
       const subject = await Subject.aggregate([
         {

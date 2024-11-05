@@ -210,3 +210,7 @@ code {
 .summary-cell-value {
   text-align: center;
 }
+
+.bg-popup {
+  background-color: rgba(0, 0, 0, 0.2);
+}

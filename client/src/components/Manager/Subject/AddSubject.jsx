@@ -180,17 +180,14 @@ export default function AddSubject() {
       handlePageLoading();
       fetchSubjects();
     } catch (error) {
-      toast.error(error.response.data.error);
+      toast.error(error);
     }
   };
 
   const fetchSubjects = async () => {
-    try {
-      const subjects = await findAllSubject();
-      setSubjects(subjects);
-    } catch (error) {
-      toast.error(error.response.data.error);
-    }
+    const subjects = await findAllSubject();
+    console.log(subjects);
+    setSubjects(subjects);
   };
 
   const handleOnchange = (e) => {

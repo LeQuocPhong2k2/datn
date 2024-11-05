@@ -1,6 +1,8 @@
 import axios from 'axios';
 const API_URL = process.env.REACT_APP_API_URL;
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 async function addLopHoc(lopHoc) {
   console.log('lopHoc', lopHoc);
   const response = await axios.post(

@@ -18,41 +18,18 @@ import ImportSubject from './Manager/Subject/ImportSubject';
 import AddSubject from './Manager/Subject/AddSubject';
 import TeachingAssignment from './Manager/Subject/TeachingAssignment';
 
-import Cookies from 'js-cookie';
-
 import { getAccountById } from '../api/Login';
-import { refreshAccessToken } from '../api/auth';
 
 export default function Home() {
   const [accounts, setAccounts] = useState([]);
   useEffect(() => {
     document.title = 'Admin';
     const accountId = localStorage.getItem('_id');
-    const res = getAccountById(accountId);
-    res
-      .then((data) => {
-        setAccounts(data);
-      })
-      .catch((error) => {
-        console.log(error);
-        window.location.href = '/login';
-      });
-  }, []);
-
-  useEffect(() => {
-    const admin_token = Cookies.get('admin_token');
-    const refresh_token = Cookies.get('refresh_token');
-    if (!admin_token || admin_token === 'undefined') {
-      if (refresh_token) {
-        refreshAccessToken(refresh_token)
-          .then((tokenName) => {})
-          .catch(() => {
-            window.location.href = '/login';
-          });
-      } else {
-        window.location.href = '/login';
-      }
-    }
+    const response = getAccountById(accountId);
+    console.log(response);
+    response.then((res) => {
+      setAccounts(res.data);
+    });
   }, []);
 
   const [selectedFunction, setSelectedFunction] = useState(null);

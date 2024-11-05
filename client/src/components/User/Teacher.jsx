@@ -10,6 +10,9 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { getStudentListByClassNameAndAcademicYear } from '../../api/Class';
 import { createAttendance } from '../../api/Attendance';
+
+import InputScore from './InputScore';
+
 export default function Teacher() {
   useEffect(() => {
     document.title = 'Trang chủ giáo viên';
