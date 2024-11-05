@@ -1390,114 +1390,102 @@ export default function Teacher() {
             </div>
           )}
           {activeTab === 'attendance' && (
-            <div className="container mx-auto mt-4">
-              <h1 className="text-center text-xl font-bold">BẢNG ĐIỂM DANH LỚP {selectedClass} </h1>
-              <span>
-                <span>
-                  <p className="text-center">
-                    <span className="text-blue-700">CheckBox trên : Có Mặt (CM)</span>,{' '}
-                    <span className="text-green-700">CheckBox giữa : Vắng có phép (VCP)</span>,{' '}
-                    <span className="text-red-700">CheckBox dưới : Vắng không phép(VKP)</span>,{' '}
-                    <span className="text-yellow-700">Màu vàng nhạt: Thứ bảy</span>,{' '}
-                    <span className="text-green-700">Màu xanh nhạt: Chủ Nhật</span>
-                  </p>
-                </span>
-              </span>
-              <div className="flex justify-center p-4">
-                <div className="flex space-x-4">
-                  <div className="flex items-center">
-                    <label className="mr-2">Lớp : </label>
-                    <select
-                      className="border border-gray-300 p-1 rounded"
-                      value={selectedClass}
-                      onChange={(e) => {
-                        const newClass = e.target.value; // Lưu giá trị mới vào biến
-                        setSelectedClass(newClass); // Cập nhật selectedClass
+            <div className="container mx-auto mt-4 p-4">
+              <h1 className="text-center text-xl font-bold">BẢNG ĐIỂM DANH LỚP {selectedClass}</h1>
+              <p className="text-center mb-4">
+                <span className="text-blue-700">CheckBox trên : Có Mặt (CM)</span>,{' '}
+                <span className="text-green-700">CheckBox giữa : Vắng có phép (VCP)</span>,{' '}
+                <span className="text-red-700">CheckBox dưới : Vắng không phép(VKP)</span>,{' '}
+                <span className="text-yellow-700">Màu vàng nhạt: Thứ bảy</span>,{' '}
+                <span className="text-green-700">Màu xanh nhạt: Chủ Nhật</span>
+              </p>
+              <div className="flex flex-col md:flex-row justify-center p-4 space-y-4 md:space-y-0 md:space-x-4">
+                <div className="flex items-center">
+                  <label className="mr-2">Lớp:</label>
+                  <select
+                    className="border border-gray-300 p-1 rounded"
+                    value={selectedClass}
+                    onChange={(e) => {
+                      const newClass = e.target.value; // Lưu giá trị mới vào biến
+                      setSelectedClass(newClass); // Cập nhật selectedClass
+                      handleSelectClass(newClass); // Gọi hàm với giá trị mới
+                    }}
+                  >
+                    {Array.from({ length: 5 }, (_, i) =>
+                      Array.from({ length: 5 }, (_, j) => `A${j + 1}`).map((className) => (
+                        <option key={`${i}${className}`} value={`${i + 1}${className}`}>
+                          {`${i + 1}${className}`}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                </div>
+                <div className="flex items-center">
+                  <label className="mr-2">Ngày:</label>
+                  <DatePicker
+                    selected={attendanceDate} // Sử dụng attendanceDate
+                    onChange={(date) => setAttendanceDate(date)} // Cập nhật attendanceDate
+                    dateFormat="dd/MM/yyyy"
+                    className="border border-gray-300 p-1 rounded w-full"
+                    placeholderText="DD/MM/YYYY"
+                  />
+                </div>
+                <div className="flex items-center">
+                  <button
+                    onClick={() => {
+                      const selectedDate = new Date(attendanceDate);
+                      selectedDate.setHours(0, 0, 0, 0); // Đặt giờ, phút, giây và mili giây về 0
+                      const formattedDate = selectedDate.toISOString().split('T')[0]; // Chỉ lấy phần ngày
+                      const dayOfWeek = selectedDate.getDay(); // Lấy ngày trong tuần
 
-                        handleSelectClass(newClass); // Gọi hàm với giá trị mới
-                      }}
-                    >
-                      {Array.from({ length: 5 }, (_, i) =>
-                        Array.from({ length: 5 }, (_, j) => `A${j + 1}`).map((className) => (
-                          <option key={`${i}${className}`} value={`${i + 1}${className}`}>
-                            {`${i + 1}${className}`}
-                          </option>
-                        ))
-                      )}
-                    </select>
-                  </div>
-                  <div className="flex items-center">
-                    <label className="mr-2">Ngày :</label>
-                    <DatePicker
-                      selected={attendanceDate} // Sử dụng attendanceDate
-                      onChange={(date) => setAttendanceDate(date)} // Cập nhật attendanceDate
-                      dateFormat="dd/MM/yyyy"
-                      className="border border-gray-300 p-1 rounded"
-                      placeholderText="DD/MM/YYYY"
-                    />
-                  </div>
-                  <div className="flex items-center">
-                    <button
-                      onClick={() => {
-                        const selectedDate = new Date(attendanceDate);
-                        selectedDate.getHours(0);
-                        // selectedDate.setHours(selectedDate.getHours() + 7); // Điều chỉnh cho múi giờ Việt Nam
-                        selectedDate.setMinutes(0); // Đặt phút và giây về 0 để đúng giờ giấy
-                        selectedDate.setSeconds(0);
-                        selectedDate.setMilliseconds(0);
-                        const formattedDate = selectedDate.toISOString().split('T')[0]; // Chỉ lấy phần ngày
-                        const dayOfWeek = selectedDate.getDay(); // Lấy ngày trong tuần
+                      if (dayOfWeek !== 6 && dayOfWeek !== 0) {
+                        const allChecked =
+                          document.querySelectorAll('input[type="checkbox"][value="CM"]:checked').length ===
+                          studentList.length;
 
-                        if (dayOfWeek !== 6 && dayOfWeek !== 0) {
-                          const allChecked =
-                            document.querySelectorAll('input[type="checkbox"][value="CM"]:checked').length ===
-                            studentList.length;
-
-                          if (allChecked) {
-                            handleResetAttendance(); // Gọi sự kiện reset attendance nếu tất cả đã được chọn
-                          } else {
-                            // Lặp qua tất cả học sinh
-                            studentList.forEach((student) => {
-                              // Tìm checkbox cho học sinh này và ngày đã chọn
-                              const checkboxCM = document.querySelectorAll(
-                                `input[type="checkbox"][name='attendance-${student._id}-${formattedDate}'][value="CM"]`
-                              );
-                              const checkboxVCP = document.querySelectorAll(
-                                `input[type="checkbox"][name='attendance-${student._id}-${formattedDate}'][value="VCP"]`
-                              );
-                              const checkboxVKP = document.querySelectorAll(
-                                `input[type="checkbox"][name='attendance-${student._id}-${formattedDate}'][value="VKP"]`
-                              );
-
-                              // Bỏ chọn các checkbox VCP và VKP
-                              checkboxVCP.forEach((cb) => (cb.checked = false));
-                              checkboxVKP.forEach((cb) => (cb.checked = false));
-
-                              // Đặt trạng thái checkbox CM thành đã chọn
-                              checkboxCM.forEach((cb) => {
-                                cb.checked = true; // Đặt trạng thái checkbox thành đã chọn
-
-                                handleAttendanceChange(student._id, selectedDate, 'CM'); // Cập nhật điểm danh
-                              });
-                            });
-                          }
+                        if (allChecked) {
+                          handleResetAttendance(); // Gọi sự kiện reset attendance nếu tất cả đã được chọn
                         } else {
-                          alert('Không thể chọn ngày thứ Bảy hoặc Chủ Nhật.');
+                          // Lặp qua tất cả học sinh
+                          studentList.forEach((student) => {
+                            // Tìm checkbox cho học sinh này và ngày đã chọn
+                            const checkboxCM = document.querySelectorAll(
+                              `input[type="checkbox"][name='attendance-${student._id}-${formattedDate}'][value="CM"]`
+                            );
+                            const checkboxVCP = document.querySelectorAll(
+                              `input[type="checkbox"][name='attendance-${student._id}-${formattedDate}'][value="VCP"]`
+                            );
+                            const checkboxVKP = document.querySelectorAll(
+                              `input[type="checkbox"][name='attendance-${student._id}-${formattedDate}'][value="VKP"]`
+                            );
+
+                            // Bỏ chọn các checkbox VCP và VKP
+                            checkboxVCP.forEach((cb) => (cb.checked = false));
+                            checkboxVKP.forEach((cb) => (cb.checked = false));
+
+                            // Đặt trạng thái checkbox CM thành đã chọn
+                            checkboxCM.forEach((cb) => {
+                              cb.checked = true; // Đặt trạng thái checkbox thành đã chọn
+                              handleAttendanceChange(student._id, selectedDate, 'CM'); // Cập nhật điểm danh
+                            });
+                          });
                         }
-                      }}
-                      className={`font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline text-white ${
-                        document.querySelectorAll('input[type="checkbox"][value="CM"]:checked').length ===
-                        studentList.length
-                          ? 'bg-green-500 hover:bg-green-700'
-                          : 'bg-blue-500 hover:bg-blue-700'
-                      }`}
-                    >
-                      {document.querySelectorAll('input[type="checkbox"][value="CM"]:checked').length ===
+                      } else {
+                        alert('Không thể chọn ngày thứ Bảy hoặc Chủ Nhật.');
+                      }
+                    }}
+                    className={`font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline text-white ${
+                      document.querySelectorAll('input[type="checkbox"][value="CM"]:checked').length ===
                       studentList.length
-                        ? 'Uncheck All'
-                        : 'Check All'}
-                    </button>
-                  </div>
+                        ? 'bg-green-500 hover:bg-green-700'
+                        : 'bg-blue-500 hover:bg-blue-700'
+                    }`}
+                  >
+                    {document.querySelectorAll('input[type="checkbox"][value="CM"]:checked').length ===
+                    studentList.length
+                      ? 'Uncheck All'
+                      : 'Check All'}
+                  </button>
                 </div>
               </div>
               <table className="table-auto w-full border-collapse border border-gray-400 mt-4">
@@ -1529,7 +1517,7 @@ export default function Teacher() {
                         <td className="border border-gray-400 px-2 py-1 whitespace-nowrap">{student.userName}</td>
                         {recentDays.map((date, dayIndex) => {
                           const vietnamDate = new Date(date);
-                          vietnamDate.setHours(vietnamDate.getHours() + 7); // Adjust for Vietnam time zone
+                          vietnamDate.setHours(vietnamDate.getHours() + 7); // Điều chỉnh cho múi giờ Việt Nam
                           return (
                             <td
                               key={dayIndex}
@@ -1541,7 +1529,7 @@ export default function Teacher() {
                                     : vietnamDate.getDay() === 0
                                       ? '#ccffcc' // Chủ Nhật
                                       : 'transparent',
-                                width: '25px', // Corrected width
+                                width: '25px', // Đặt chiều rộng
                               }}
                             >
                               {vietnamDate.getDay() !== 6 && vietnamDate.getDay() !== 0 ? (
@@ -1624,9 +1612,9 @@ export default function Teacher() {
                   )}
                 </tbody>
               </table>
-              <div className="flex justify-center mt-4 space-x-4">
+              <div className="flex flex-col md:flex-row justify-center mt-4 space-x-0 md:space-x-4">
                 <button
-                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700"
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 mb-2 md:mb-0"
                   onClick={async () => {
                     handleUpdateAttendance();
                   }}
