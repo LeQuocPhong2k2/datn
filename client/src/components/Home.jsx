@@ -21,14 +21,14 @@ import TeachingAssignment from './Manager/Subject/TeachingAssignment';
 import { getAccountById } from '../api/Login';
 
 export default function Home() {
-  const [accounts, setAccounts] = useState([]);
+  const [accounts, setAccounts] = useState({});
   useEffect(() => {
     document.title = 'Admin';
     const accountId = localStorage.getItem('_id');
     const response = getAccountById(accountId);
     console.log(response);
     response.then((res) => {
-      setAccounts(res.data);
+      setAccounts(res);
     });
   }, []);
 
