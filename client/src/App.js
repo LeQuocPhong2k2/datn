@@ -21,8 +21,8 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Home />} />
           {userRole === 'Admin' && <Route path="/" element={<Home />} />}
-          {userRole === 'Student' && <Route path="/" element={<Student />} />}
-          {userRole === 'Teacher' && <Route path="/" element={<Teacher />} />}
+          {userRole === 'Student' && <Route path="/student" element={<Student />} />}
+          {userRole === 'Teacher' && <Route path="/teacher" element={<Teacher />} />}
           <Route path="/forgot-password" element={<ForgotPassword />} />
         </Routes>
       </div>

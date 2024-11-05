@@ -43,6 +43,7 @@ export default function Login() {
       } else if (response.account.role === 'Student' || response.account.role === 'Parent') {
         window.location.href = '/student';
       } else if (response.account.role === 'Teacher') {
+        localStorage.setItem('phoneNumberTeacher', response.account.userName);
         window.location.href = '/teacher';
       }
     } catch (error) {

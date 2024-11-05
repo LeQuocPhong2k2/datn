@@ -15,14 +15,9 @@ import Schedule from './Schedule';
 
 export default function Student() {
   const [accounts, setAccounts] = useState([]);
-  useEffect(() => {
-    const student_token = Cookies.get('student_token'); // Lấy token từ cookie
-    if (!student_token) {
-      window.location.href = '/login'; // Nếu không có token, chuyển hướng về trang login
-    }
-  }, []);
+  const [studentInfo, setStudentInfo] = useState({});
+
   // gọi tới apiu getFullInfoStudentByCode đựa trên studentCode ở trong cookie
-  const studentCode = Cookies.get('studentCode');
   // const [studentInfo, setStudentInfo] = useState({});
   // useEffect(() => {
   //   getFullInfoStudentByCode(studentCode).then((res) => {
@@ -40,20 +35,17 @@ export default function Student() {
       .then((data) => {
         console.log(data);
         setAccounts(data);
+        getFullInfoStudentByCode(data.studentCode).then((res) => {
+          setStudentInfo(res);
+        });
       })
       .catch((error) => {
         console.log(error);
-        window.location.href = '/login';
       });
   }, []);
 
   // gọi tới apiu getFullInfoStudentByCode đựa trên studentCode ở trong cookie
-  const [studentInfo, setStudentInfo] = useState({});
-  useEffect(() => {
-    getFullInfoStudentByCode(accounts.studentCode).then((res) => {
-      setStudentInfo(res);
-    });
-  }, [accounts.studentCode]);
+
   // console.log('studentInfo là:', studentInfo);
   const [isMenuOpen, setMenuOpen] = useState(false); // Thêm state để quản lý menu
   // show thông tin toàn bộ menu (thông tin hồ sơ,ds giáo viên,thời khoá biểu,các thư mới nhất,bàio học gần đây)
