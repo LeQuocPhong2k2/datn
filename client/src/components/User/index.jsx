@@ -61,12 +61,14 @@ export default function Student() {
   const createdAt = '2024-09-07T00:00:00.000Z'; // Thay thế bằng thời gian gửi thực tế
   const createdAt1 = '2023-12-24T00:00:00.000Z'; // Thay thế bằng thời gian gửi thực tế
   const content = {
+    subject: 'Chúc Mừng Lễ giáng sinh 2023 ',
     text: 'Nhân dịp Lễ Giáng Sinh 2023 Chúc các thầy cô và các em học sinh có một kỳ nghỉ lễ vui vẻ và hạnh phúc bên gia đình và người thân. Chúc các em học sinh sẽ có một kỳ học mới đầy nhiệt huyết và hứng khởi. Merry Christmas and Happy New Year 2024!',
     link: 'https://www.youtube.com/watch?v=4YBGRGBj7_w',
     image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRVLAlmZuyO7OQx5a9lyBLhl_t1gwimPhrMhw&s',
   };
   const content1 = {
     // hãy viết text về họp phụ huynh
+    subject: 'Họp phụ huynh học sinh',
     text: ' Kính mời quý phụ huynh tham dự buổi họp phụ huynh học sinh vào lúc 7h30 ngày 10/10/2024 tại trường Tiểu học Nguyễn Bỉnh Khiêm. Đây là cơ hội để quý phụ huynh gặp gỡ và trò chuyện với giáo viên, cũng như nhận thông tin về quá trình học tập của con em mình. Hẹn gặp lại quý phụ huynh!',
     link: 'https://www.youtube.com/watch?v=4YBGRGBj7_w',
     image:
@@ -1651,7 +1653,7 @@ export default function Student() {
                   className="text-lg font-semibold mt-2 cursor-pointer text-blue-500"
                   onClick={() => setShowContent1(!showContent1)}
                 >
-                  Thông báo họp phụ huynh {/* Tiêu đề thông báo */}
+                  {content1.subject}
                 </h3>
                 {showContent1 && ( // Hiển thị nội dung khi nhấp vào tiêu đề
                   <div className="mt-2">

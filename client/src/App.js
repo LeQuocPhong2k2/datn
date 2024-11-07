@@ -8,21 +8,24 @@ import { useEffect, useState } from 'react';
 import './App.css';
 
 function App() {
-  const [userRole, setUserRole] = useState(null);
-  useEffect(() => {
-    const role = localStorage.getItem('role');
-    setUserRole(role);
-  }, []);
+  // const [userRole, setUserRole] = useState(null);
+  // useEffect(() => {
+  //   const role = localStorage.getItem('role');
+  //   setUserRole(role);
+  // }, []);
 
   return (
     <Router>
       <div>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/teacher" element={<Teacher />} />
+          <Route path="/student" element={<Student />} />
           <Route path="/" element={<Home />} />
-          {userRole === 'Admin' && <Route path="/" element={<Home />} />}
+          {/* {userRole === 'Admin' && <Route path="/" element={<Home />} />}
           {userRole === 'Student' && <Route path="/student" element={<Student />} />}
-          {userRole === 'Teacher' && <Route path="/teacher" element={<Teacher />} />}
+          {userRole === 'Teacher' && <Route path="/teacher" element={<Teacher />} />} */}
+
           <Route path="/forgot-password" element={<ForgotPassword />} />
         </Routes>
       </div>

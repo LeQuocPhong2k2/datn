@@ -168,20 +168,48 @@ export default function Teacher() {
   const [recentDays, setRecentDays] = useState([]);
 
   // Hàm tính toán các ngày dựa trên selectedDate, đảm bảo tính toán đúng tháng của ngày đó
-  const calculateRecentDays = (baseDate) => {
+  // const calculateRecentDays = (baseDate) => {
+  //   const currentDate = new Date(baseDate);
+  //   const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+  //   const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+  //   return Array.from({ length: daysInMonth }, (_, i) => {
+  //     const date = new Date(firstDayOfMonth);
+  //     date.setDate(i + 1);
+  //     return date;
+  //   });
+  // };
+  // useEffect(() => {
+  //   setRecentDays(calculateRecentDays(attendanceDate));
+  //   handleResetAttendance();
+  // }, [attendanceDate]);
+
+  const calculateRecentDays = (baseDate, isMobile) => {
     const currentDate = new Date(baseDate);
-    const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-    const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
-    return Array.from({ length: daysInMonth }, (_, i) => {
-      const date = new Date(firstDayOfMonth);
-      date.setDate(i + 1);
-      return date;
-    });
+    if (isMobile) {
+      // Nếu là di động, chỉ lấy 3 ngày: 1 ngày trước, ngày hiện tại và 1 ngày sau
+      return [
+        new Date(currentDate.setDate(currentDate.getDate() - 1)), // Ngày trước
+        new Date(currentDate.setDate(currentDate.getDate() + 1)), // Ngày hiện tại
+        new Date(currentDate.setDate(currentDate.getDate() + 1)), // Ngày sau
+      ];
+    } else {
+      // Nếu không phải di động, lấy tất cả các ngày trong tháng
+      const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+      const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+      return Array.from({ length: daysInMonth }, (_, i) => {
+        const date = new Date(firstDayOfMonth);
+        date.setDate(i + 1);
+        return date;
+      });
+    }
   };
+
   useEffect(() => {
-    setRecentDays(calculateRecentDays(attendanceDate));
+    const isMobile = window.innerWidth <= 768; // Kiểm tra nếu là màn hình di động
+    setRecentDays(calculateRecentDays(attendanceDate, isMobile)); // Cập nhật recentDays dựa trên kích thước màn hình
     handleResetAttendance();
   }, [attendanceDate]);
+
   // useEffect kiểm tra xem có selectedClass chưa nếu có thì gọi sự kiện handleSelectClass
   useEffect(() => {
     if (selectedClass === '1A1') {
@@ -252,48 +280,6 @@ export default function Teacher() {
     }
   };
 
-  // const handleUpdateAttendance = async () => {
-  //   const attendanceRecordsByDate = {}; // Mảng để lưu trữ thông tin điểm danh theo ngày
-
-  //   // Nhóm các bản ghi theo ngày
-  //   Object.entries(attendanceData).forEach(([studentId, dates]) => {
-  //     Object.entries(dates).forEach(([date, status]) => {
-  //       const dateISO = new Date(date).toISOString(); // Chuyển đổi ngày sang định dạng ISO
-
-  //       // Nếu chưa có ngày này trong attendanceRecordsByDate, khởi tạo mảng
-  //       if (!attendanceRecordsByDate[dateISO]) {
-  //         attendanceRecordsByDate[dateISO] = [];
-  //       }
-
-  //       // Thêm bản ghi vào mảng tương ứng với ngày
-  //       attendanceRecordsByDate[dateISO].push({
-  //         student_id: studentId,
-  //         student_name: studentList.find((student) => student._id === studentId)?.userName, // Tìm tên học sinh
-  //         status: status,
-  //         reason:
-  //           status === 'CM'
-  //             ? 'Học sinh có mặt'
-  //             : status === 'VCP'
-  //               ? 'Học sinh vắng có phép'
-  //               : 'Học sinh vắng không phép',
-  //       });
-  //     });
-  //   });
-
-  //   // Gọi hàm createAttendance cho từng ngày
-  //   for (const [dateISO, records] of Object.entries(attendanceRecordsByDate)) {
-  //     if (records.length > 0) {
-  //       try {
-  //         await createAttendance(selectedClass_id, teacherInfo._id, dateISO, records); // Gọi hàm tạo điểm danh
-  //         toast.success(`Điểm danh thành công cho ngày ${new Date(dateISO).toLocaleDateString('vi-VN')}`);
-  //         handleResetAttendance(); // Reset lại checkbox điểm danh
-  //       } catch (error) {
-  //         console.error('Lỗi khi tạo điểm danh:', error);
-  //         alert('Có lỗi xảy ra khi cập nhật điểm danh.');
-  //       }
-  //     }
-  //   }
-  // };
   const handleUpdateAttendance = async () => {
     const attendanceRecordsByDate = {}; // Mảng để lưu trữ thông tin điểm danh theo ngày
 
@@ -1486,6 +1472,132 @@ export default function Teacher() {
                   </button>
                 </div>
               </div>
+              {/* <table className="table-auto w-full border-collapse border border-gray-400 mt-4">
+                <thead>
+                  <tr style={{ backgroundColor: '#e0e0e0' }}>
+                    <th className="border border-gray-400 px-2 py-1">STT</th>
+                    <th className="border border-gray-400 px-2 py-1 whitespace-nowrap">Họ và tên</th>
+                    {recentDays.map((day, index) => (
+                      <th key={index} className="border border-gray-400 px-2 py-1" style={{ width: '25px' }}>
+                        {day.getDate()}
+                      </th>
+                    ))}
+                    <th className="border border-gray-400 px-2 py-1">CM</th>
+                    <th className="border border-gray-400 px-2 py-1">CP</th>
+                    <th className="border border-gray-400 px-2 py-1">KP</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {studentList.length === 0 ? (
+                    <tr>
+                      <td colSpan={recentDays.length + 5} className="text-center text-red-500">
+                        Không có danh sách học sinh cho lớp {selectedClass}.
+                      </td>
+                    </tr>
+                  ) : (
+                    studentList.map((student, index) => (
+                      <tr key={student._id} className="hover:bg-[#E5E7EB]">
+                        <td className="border border-gray-400 px-2 py-1 text-center">{index + 1}</td>
+                        <td className="border border-gray-400 px-2 py-1 whitespace-nowrap">{student.userName}</td>
+                        {recentDays.map((date, dayIndex) => {
+                          const vietnamDate = new Date(date);
+                          vietnamDate.setHours(vietnamDate.getHours() + 7); // Điều chỉnh cho múi giờ Việt Nam
+                          return (
+                            <td
+                              key={dayIndex}
+                              className="border border-gray-400 px-1 py-1 text-center"
+                              style={{
+                                backgroundColor:
+                                  vietnamDate.getDay() === 6
+                                    ? '#ffffcc' // Thứ Bảy
+                                    : vietnamDate.getDay() === 0
+                                      ? '#ccffcc' // Chủ Nhật
+                                      : 'transparent',
+                                width: '25px', // Đặt chiều rộng
+                              }}
+                            >
+                              {vietnamDate.getDay() !== 6 && vietnamDate.getDay() !== 0 ? (
+                                <>
+                                  <input
+                                    type="checkbox"
+                                    name={`attendance-${student._id}-${vietnamDate.toISOString().split('T')[0]}`} // Chỉ lấy phần ngày
+                                    value="CM"
+                                    onChange={(e) => {
+                                      const isChecked = e.target.checked;
+                                      if (isChecked) {
+                                        handleAttendanceChange(student._id, vietnamDate, 'CM');
+                                        document
+                                          .querySelectorAll(`input[name^="attendance-${student._id}"]`)
+                                          .forEach((checkbox) => {
+                                            if (checkbox.value !== 'CM') {
+                                              checkbox.checked = false;
+                                            }
+                                          });
+                                      } else {
+                                        handleAttendanceChange(student._id, vietnamDate, null);
+                                      }
+                                    }}
+                                    style={{ color: 'blue' }}
+                                  />
+
+                                  <input
+                                    type="checkbox"
+                                    name={`attendance-${student._id}-${vietnamDate.toISOString().split('T')[0]}`}
+                                    value="VCP"
+                                    onChange={(e) => {
+                                      const isChecked = e.target.checked;
+                                      if (isChecked) {
+                                        handleAttendanceChange(student._id, vietnamDate, 'VCP');
+                                        document
+                                          .querySelectorAll(`input[name^="attendance-${student._id}"]`)
+                                          .forEach((checkbox) => {
+                                            if (checkbox.value !== 'VCP') {
+                                              checkbox.checked = false;
+                                            }
+                                          });
+                                      } else {
+                                        handleAttendanceChange(student._id, vietnamDate, null);
+                                      }
+                                    }}
+                                    style={{ color: 'green' }}
+                                  />
+
+                                  <input
+                                    type="checkbox"
+                                    name={`attendance-${student._id}-${vietnamDate.toISOString().split('T')[0]}`}
+                                    value="VKP"
+                                    onChange={(e) => {
+                                      const isChecked = e.target.checked;
+                                      if (isChecked) {
+                                        handleAttendanceChange(student._id, vietnamDate, 'VKP');
+                                        document
+                                          .querySelectorAll(`input[name^="attendance-${student._id}"]`)
+                                          .forEach((checkbox) => {
+                                            if (checkbox.value !== 'VKP') {
+                                              checkbox.checked = false;
+                                            }
+                                          });
+                                      } else {
+                                        handleAttendanceChange(student._id, vietnamDate, null);
+                                      }
+                                    }}
+                                    style={{ color: 'red' }}
+                                  />
+                                </>
+                              ) : null}
+                            </td>
+                          );
+                        })}
+                        <td className="border border-gray-400 px-2 py-1 text-center">0</td>
+                        <td className="border border-gray-400 px-2 py-1 text-center">0</td>
+                        <td className="border border-gray-400 px-2 py-1 text-center">0</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table> */}
+
               <table className="table-auto w-full border-collapse border border-gray-400 mt-4">
                 <thead>
                   <tr style={{ backgroundColor: '#e0e0e0' }}>
@@ -1610,6 +1722,7 @@ export default function Teacher() {
                   )}
                 </tbody>
               </table>
+
               <div className="flex flex-col md:flex-row justify-center mt-4 space-x-0 md:space-x-4">
                 <button
                   className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 mb-2 md:mb-0"
