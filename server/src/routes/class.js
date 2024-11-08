@@ -14,4 +14,5 @@ router.post("/addClass", ClassController.addClass);
 router.post("/autoUpClass", ClassController.autoUpClass);
 router.post("/deleteClass", ClassController.deleteClass);
 router.post("/importStudents", ClassController.importStudents);
+router.post("/getStudentListByClassNameAndAcademicYear", ClassController.getStudentListByClassNameAndAcademicYear);
 module.exports = router;

@@ -317,7 +317,7 @@ export default function Student() {
   };
 
   return (
-    <div className="font-sans bg-gray-100 min-h-screen">
+    <div className="font-sans bg-gray-100 ">
       <header className="bg-white p-4 border-b border-gray-300 flex justify-between items-center">
         <Toaster toastOptions={{ duration: 2200 }} />
         <a href="/student">

@@ -75,6 +75,11 @@ export default function ListClass({ filterClass, action }) {
     searchStudent: false,
     exportDetail: false,
   });
+
+  useEffect(() => {
+    handleSearchClass();
+  }, [filter.namHoc, filter.khoiLop, filter.tenLop]);
+
   /**
    * get class list
    */
@@ -521,9 +526,9 @@ export default function ListClass({ filterClass, action }) {
                 <button onClick={handleClearFilters} className="text-xl gap-2 bg-red-500 text-white px-4 py-2 rounded">
                   <LuFilterX />
                 </button>
-                <button onClick={handleSearchClass} className="text-xl gap-2 bg-blue-500 text-white px-4 py-2 rounded">
+                {/* <button onClick={handleSearchClass} className="text-xl gap-2 bg-blue-500 text-white px-4 py-2 rounded">
                   <FiSearch />
-                </button>
+                </button> */}
               </div>
             </div>
           </div>

@@ -39,7 +39,7 @@ export default function Login() {
       localStorage.setItem('_id', response.account.id);
       localStorage.setItem('role', response.account.role);
       if (response.account.role === 'Admin') {
-        window.location.href = '/';
+        window.location.href = '/admin';
       } else if (response.account.role === 'Student' || response.account.role === 'Parent') {
         window.location.href = '/student';
       } else if (response.account.role === 'Teacher') {

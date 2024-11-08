@@ -344,17 +344,19 @@ export default function Teacher() {
     setAttendanceData([]);
   };
   return (
-    <div className="font-sans bg-gray-100 min-h-screen">
-      <header className="bg-white p-4 border-b border-gray-300 flex justify-between items-center">
+    <div className="h-screen max-w-[100%] font-sans bg-gray-100">
+      <header className="grid grid-flow-col items-center bg-white border-b border-gray-300 ">
         <Toaster toastOptions={{ duration: 2200 }} />
-        <a href="/teacher">
-          <img
-            src="https://i.imgur.com/jRMcFwo_d.png?maxwidth=520&shape=thumb&fidelity=high"
-            alt="SMAS Logo"
-            className="h-12"
-          />
-        </a>
-        <div className="flex items-center">
+        <div className="">
+          <a href="/teacher">
+            <img
+              src="https://i.imgur.com/jRMcFwo_d.png?maxwidth=520&shape=thumb&fidelity=high"
+              alt="SMAS Logo"
+              className="h-14 p-2"
+            />
+          </a>
+        </div>
+        <div className="flex items-center justify-end px-4">
           {/* Hiển thị menu cho màn hình desktop */}
           <div className="hidden md:flex items-center space-x-4">
             <span
@@ -795,7 +797,9 @@ export default function Teacher() {
         </div>
       )}
       {showTeacherProfile && ( // phần dưới body
-        <div className={`w-[90%] mx-auto bg-white p-6 rounded shadow ${window.innerWidth > 768 ? 'mt-4' : 'mt-0'}`}>
+        <div
+          className={`w-[90%] mx-auto overflow-y-scroll overflow-x-hidden max-h-[92%] bg-white p-6 rounded shadow ${window.innerWidth > 768 ? 'mt-4' : 'mt-0'}`}
+        >
           <div className="flex space-x-2 mb-4 md:space-x-4 justify-center ">
             <div
               className={`tab ${activeTab === 'profile' ? 'active' : ''} ${window.innerWidth <= 768 ? 'text-sm p-2' : ' p-3'}`}
@@ -985,132 +989,7 @@ export default function Teacher() {
               </div>
             </div>
           )}
-          {activeTab === 'academic' && (
-            <div className="w-[80%] mx-auto bg-white p-6 rounded shadow mt-4">
-              <h2 className="text-xl font-bold mb-4 text-center">Nhập Điểm Cho Học Sinh Tiểu Học</h2>
-
-              {/* Form nhập khối, lớp, môn học, học kỳ */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div>
-                  <label className="block mb-2">Khối</label>
-                  <select
-                    className="w-full p-2 border rounded"
-                    value={grade}
-                    onChange={(e) => setGrade(Number(e.target.value))}
-                  >
-                    <option value={1}>Khối 1</option>
-                    <option value={2}>Khối 2</option>
-                    <option value={3}>Khối 3</option>
-                    <option value={4}>Khối 4</option>
-                    <option value={5}>Khối 5</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block mb-2">Lớp</label>
-                  <select className="w-full p-2 border rounded" style={{ zIndex: 10 }}>
-                    {Array.from({ length: 5 }, (_, i) => i + 1).map((grade) =>
-                      Array.from({ length: 5 }, (_, j) => `A${j + 1}`).map((className) => (
-                        <option key={`${grade}${className}`} value={`${grade}${className}`}>
-                          {`${grade}${className}`}
-                        </option>
-                      ))
-                    )}
-                  </select>
-                </div>
-                <div>
-                  <label className="block mb-2">Môn học</label>
-                  <select className="w-full p-2 border rounded">
-                    <option>Tiếng Việt</option>
-                    <option>Toán</option>
-                    <option>Ngoại ngữ 1</option>
-                    <option>Đạo đức</option>
-                    <option>TN-XH</option>
-                    <option>Âm Nhạc</option>
-                    <option>Mĩ Thuật</option>
-                    <option>Tin học</option>
-                    <option>Giáo dục thể chất</option>
-                    <option>Hoạt động trải nghiệm</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block mb-2">Học kỳ</label>
-                  <div className="flex items-center space-x-4">
-                    <select className="w-full p-2 border rounded">
-                      <option>Học kỳ 1</option>
-                      <option>Học kỳ 2</option>
-                    </select>
-                    <select className="w-full p-2 border rounded">
-                      <option>Giữa kỳ</option>
-                      <option>Cuối kỳ</option>
-                    </select>
-                  </div>
-                </div>
-                <div>
-                  <label className="block mb-2">Nhập điểm từ file Excel</label>
-                  <input type="file" className="w-full p-2 border rounded" />
-                </div>
-              </div>
-
-              {/* Table nhập điểm */}
-              <div className="overflow-x-auto">
-                <table className="min-w-full border">
-                  <thead>
-                    <tr>
-                      <th className="border px-4 py-2">STT</th>
-                      <th className="border px-4 py-2">Họ và Tên</th>
-                      <th className="border px-4 py-2">Ngày Sinh</th>
-                      <th className="border px-4 py-2">Nhận Xét Giữa Kỳ</th>
-                      <th className="border px-4 py-2">Nhận Xét Cuối Kỳ</th>
-                      {/* Dựa trên lựa chọn học kỳ và khối để hiển thị thêm cột */}
-                      {selectedSemester === 'Cuối kỳ' && grade > 3 && (
-                        <>
-                          <th className="border px-4 py-2">Kiểm Tra Cuối Kỳ</th>
-                          <th className="border px-4 py-2">Xếp Loại Cuối Kỳ</th>
-                        </>
-                      )}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {/* Đây là ví dụ về một hàng điểm, bạn cần thêm logic để render nhiều học sinh */}
-                    <tr>
-                      <td className="border px-4 py-2">1</td>
-                      <td className="border px-4 py-2">Nguyễn Văn A</td>
-                      <td className="border px-4 py-2">01/01/2015</td>
-                      <td className="border px-4 py-2">
-                        <select className="w-full p-2 border rounded">
-                          <option>Hoàn thành tốt</option>
-                          <option>Hoàn thành</option>
-                          <option>Chưa hoàn thành</option>
-                        </select>
-                      </td>
-                      <td className="border px-4 py-2">
-                        <select className="w-full p-2 border rounded">
-                          <option>Hoàn thành tốt</option>
-                          <option>Hoàn thành</option>
-                          <option>Chưa hoàn thành</option>
-                        </select>
-                      </td>
-                      {/* Thêm ô kiểm tra nếu là cuối kỳ */}
-                      {selectedSemester === 'Cuối kỳ' && grade > 3 && (
-                        <>
-                          <td className="border px-4 py-2">
-                            <input type="number" className="w-full p-2 border rounded" placeholder="Điểm" />
-                          </td>
-                          <td className="border px-4 py-2">
-                            <select className="w-full p-2 border rounded">
-                              <option>Hoàn thành tốt</option>
-                              <option>Hoàn thành</option>
-                              <option>Chưa hoàn thành</option>
-                            </select>
-                          </td>
-                        </>
-                      )}
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
+          {activeTab === 'academic' && <InputScore />}
 
           {activeTab === 'notice' && (
             <div>
