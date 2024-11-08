@@ -1221,154 +1221,156 @@ export default function Teacher() {
                 {filteredRequests.length === 0 ? (
                   <p className="text-center text-gray-600">Hiện không có đơn xin nghỉ học nào.</p>
                 ) : (
-                  filteredRequests.map((request) => (
-                    <div key={request._id} className="p-1 ">
-                      {showTeacherLeaveRequests && (
-                        <div className="max-w-4xl mx-auto bg-white border shadow-md rounded-lg p-6">
-                          {/* Nội dung sơ lược */}
-                          <h3 className="text-center text-xl font-bold mb-4">Đơn xin nghỉ học</h3>
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <span className="font-semibold text-gray-700">Từ ngày:</span>{' '}
-                              {new Date(request.start_date).toLocaleDateString()}
-                              <span className="ml-4 font-semibold text-gray-700">Đến ngày:</span>{' '}
-                              {new Date(request.end_date).toLocaleDateString()}
-                            </div>
-                            <div>
-                              <span
-                                className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-sm whitespace-nowrap ${
-                                  request.status === 'pending'
-                                    ? 'bg-yellow-500 text-white'
+                  filteredRequests
+                    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at)) // Sắp xếp theo created_at giảm dần
+                    .map((request) => (
+                      <div key={request._id} className="p-1 ">
+                        {showTeacherLeaveRequests && (
+                          <div className="max-w-4xl mx-auto bg-white border shadow-md rounded-lg p-6">
+                            {/* Nội dung sơ lược */}
+                            <h3 className="text-center text-xl font-bold mb-4">Đơn xin nghỉ học</h3>
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <span className="font-semibold text-gray-700">Từ ngày:</span>{' '}
+                                {new Date(request.start_date).toLocaleDateString()}
+                                <span className="ml-4 font-semibold text-gray-700">Đến ngày:</span>{' '}
+                                {new Date(request.end_date).toLocaleDateString()}
+                              </div>
+                              <div>
+                                <span
+                                  className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-sm whitespace-nowrap ${
+                                    request.status === 'pending'
+                                      ? 'bg-yellow-500 text-white'
+                                      : request.status === 'approved'
+                                        ? 'bg-green-500 text-white'
+                                        : 'bg-red-500 text-white'
+                                  }`}
+                                  style={{ minWidth: '80px' }}
+                                >
+                                  {request.status === 'pending'
+                                    ? 'Chờ duyệt'
                                     : request.status === 'approved'
-                                      ? 'bg-green-500 text-white'
-                                      : 'bg-red-500 text-white'
-                                }`}
-                                style={{ minWidth: '80px' }}
-                              >
-                                {request.status === 'pending'
-                                  ? 'Chờ duyệt'
-                                  : request.status === 'approved'
-                                    ? 'Đã duyệt'
-                                    : 'Bị từ chối'}
-                              </span>
+                                      ? 'Đã duyệt'
+                                      : 'Bị từ chối'}
+                                </span>
+                              </div>
                             </div>
-                          </div>
 
-                          <div className="mt-2">
-                            <p>
-                              <span className="font-semibold text-gray-700">Lý do:</span> {request.reason}
-                            </p>
                             <div className="mt-2">
-                              <span className="font-semibold text-gray-700">Danh sách buổi nghỉ:</span>
-                              <ul className="list-disc list-inside ml-4">
-                                {request.sessions.map((session) => (
-                                  <li key={session._id}>
-                                    {new Date(session.date).toLocaleDateString('en-GB')}: {session.morning && 'Sáng'}{' '}
-                                    {session.afternoon && 'Chiều'}
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          </div>
-
-                          <div className="flex justify-end space-x-2 mt-4">
-                            <button
-                              className="bg-blue-500 text-white px-4 py-2 rounded"
-                              onClick={() => {
-                                setSelectedLeaveRequest(request);
-                                setShowFullInfoLeaveRequestSent(true);
-                                setShowTeacherLeaveRequests(false);
-                              }}
-                            >
-                              Xem chi tiết
-                            </button>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Hiển thị nội dung chi tiết khi showFullInfoLeaveRequestSent là true */}
-                      {showFullInfoLeaveRequestSent &&
-                        selectedLeaveRequest &&
-                        selectedLeaveRequest._id === request._id && (
-                          <div
-                            key={request._id + 'detail'}
-                            className="max-w-md mx-auto border bg-white shadow-md rounded-lg p-4 mt-6"
-                          >
-                            <div className="flex items-center mb-4 justify-between">
-                              <button
-                                onClick={() => {
-                                  setShowFullInfoLeaveRequestSent(false);
-                                  setShowTeacherLeaveRequests(true);
-                                }}
-                                className="mr-2"
-                              >
-                                <i className="fas fa-arrow-left text-blue-500"></i>
-                              </button>
-                              <h1 className="text-center text-blue-600 text-xl font-bold mx-auto">
-                                ĐƠN XIN PHÉP NGHỈ HỌC
-                              </h1>
-                            </div>
-
-                            <div className="mb-4">
-                              <h2 className="text-lg font-semibold">Người làm đơn</h2>
-                              <p>Tên phụ huynh: Nguyễn Văn B</p>
-                              <p>Phụ huynh của học sinh: Nguyễn Ánh Ngọc</p>
-                              <p>Lớp: 1A3</p>
-                            </div>
-
-                            <div className="mb-4">
-                              <h2 className="text-lg font-semibold">Thời gian nghỉ</h2>
-                              <ul className="list-disc list-inside">
-                                {selectedLeaveRequest.sessions.map((session) => (
-                                  <li key={session._id}>
-                                    {new Date(session.date).toLocaleDateString('en-GB')}: {session.morning && 'Sáng'}{' '}
-                                    {session.afternoon && 'Chiều'}
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-
-                            <div className="mb-4">
-                              <h2 className="text-lg font-semibold">Lý do :</h2>
-                              <p>{selectedLeaveRequest.reason}</p>
+                              <p>
+                                <span className="font-semibold text-gray-700">Lý do:</span> {request.reason}
+                              </p>
+                              <div className="mt-2">
+                                <span className="font-semibold text-gray-700">Danh sách buổi nghỉ:</span>
+                                <ul className="list-disc list-inside ml-4">
+                                  {request.sessions.map((session) => (
+                                    <li key={session._id}>
+                                      {new Date(session.date).toLocaleDateString('en-GB')}: {session.morning && 'Sáng'}{' '}
+                                      {session.afternoon && 'Chiều'}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
                             </div>
 
                             <div className="flex justify-end space-x-2 mt-4">
-                              {selectedLeaveRequest.status === 'pending' ? (
-                                <>
-                                  <button
-                                    className="bg-green-500 text-white px-4 py-2 rounded"
-                                    onClick={() => {
-                                      handleUpdateLeaveRequest(selectedLeaveRequest._id, 'approved');
-                                    }}
-                                  >
-                                    Đồng ý
-                                  </button>
-                                  <button
-                                    className="bg-red-500 text-white px-4 py-2 rounded"
-                                    onClick={() => {
-                                      handleUpdateLeaveRequest(selectedLeaveRequest._id, 'rejected');
-                                    }}
-                                  >
-                                    Từ chối
-                                  </button>
-                                </>
-                              ) : (
+                              <button
+                                className="bg-blue-500 text-white px-4 py-2 rounded"
+                                onClick={() => {
+                                  setSelectedLeaveRequest(request);
+                                  setShowFullInfoLeaveRequestSent(true);
+                                  setShowTeacherLeaveRequests(false);
+                                }}
+                              >
+                                Xem chi tiết
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Hiển thị nội dung chi tiết khi showFullInfoLeaveRequestSent là true */}
+                        {showFullInfoLeaveRequestSent &&
+                          selectedLeaveRequest &&
+                          selectedLeaveRequest._id === request._id && (
+                            <div
+                              key={request._id + 'detail'}
+                              className="max-w-md mx-auto border bg-white shadow-md rounded-lg p-4 mt-6"
+                            >
+                              <div className="flex items-center mb-4 justify-between">
                                 <button
                                   onClick={() => {
                                     setShowFullInfoLeaveRequestSent(false);
                                     setShowTeacherLeaveRequests(true);
                                   }}
-                                  className="bg-blue-500 text-white px-4 py-2 rounded"
+                                  className="mr-2"
                                 >
-                                  Trở về
+                                  <i className="fas fa-arrow-left text-blue-500"></i>
                                 </button>
-                              )}
+                                <h1 className="text-center text-blue-600 text-xl font-bold mx-auto">
+                                  ĐƠN XIN PHÉP NGHỈ HỌC
+                                </h1>
+                              </div>
+
+                              <div className="mb-4">
+                                <h2 className="text-lg font-semibold">Người làm đơn</h2>
+                                <p>Tên phụ huynh: Nguyễn Văn B</p>
+                                <p>Phụ huynh của học sinh: Nguyễn Ánh Ngọc</p>
+                                <p>Lớp: 1A3</p>
+                              </div>
+
+                              <div className="mb-4">
+                                <h2 className="text-lg font-semibold">Thời gian nghỉ</h2>
+                                <ul className="list-disc list-inside">
+                                  {selectedLeaveRequest.sessions.map((session) => (
+                                    <li key={session._id}>
+                                      {new Date(session.date).toLocaleDateString('en-GB')}: {session.morning && 'Sáng'}{' '}
+                                      {session.afternoon && 'Chiều'}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+
+                              <div className="mb-4">
+                                <h2 className="text-lg font-semibold">Lý do :</h2>
+                                <p>{selectedLeaveRequest.reason}</p>
+                              </div>
+
+                              <div className="flex justify-end space-x-2 mt-4">
+                                {selectedLeaveRequest.status === 'pending' ? (
+                                  <>
+                                    <button
+                                      className="bg-green-500 text-white px-4 py-2 rounded"
+                                      onClick={() => {
+                                        handleUpdateLeaveRequest(selectedLeaveRequest._id, 'approved');
+                                      }}
+                                    >
+                                      Đồng ý
+                                    </button>
+                                    <button
+                                      className="bg-red-500 text-white px-4 py-2 rounded"
+                                      onClick={() => {
+                                        handleUpdateLeaveRequest(selectedLeaveRequest._id, 'rejected');
+                                      }}
+                                    >
+                                      Từ chối
+                                    </button>
+                                  </>
+                                ) : (
+                                  <button
+                                    onClick={() => {
+                                      setShowFullInfoLeaveRequestSent(false);
+                                      setShowTeacherLeaveRequests(true);
+                                    }}
+                                    className="bg-blue-500 text-white px-4 py-2 rounded"
+                                  >
+                                    Trở về
+                                  </button>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        )}
-                    </div>
-                  ))
+                          )}
+                      </div>
+                    ))
                 )}
               </div>
             </div>
@@ -1418,8 +1420,9 @@ export default function Teacher() {
                   <button
                     onClick={() => {
                       const selectedDate = new Date(attendanceDate);
-                      selectedDate.setHours(0, 0, 0, 0); // Đặt giờ, phút, giây và mili giây về 0
+
                       const formattedDate = selectedDate.toISOString().split('T')[0]; // Chỉ lấy phần ngày
+                      // console.log(formattedDate);
                       const dayOfWeek = selectedDate.getDay(); // Lấy ngày trong tuần
 
                       if (dayOfWeek !== 6 && dayOfWeek !== 0) {
@@ -1436,6 +1439,9 @@ export default function Teacher() {
                             const checkboxCM = document.querySelectorAll(
                               `input[type="checkbox"][name='attendance-${student._id}-${formattedDate}'][value="CM"]`
                             );
+                            // lấy ra cái name của checkbox
+                            // const name = `attendance-${student._id}-${formattedDate}`;
+                            // console.log(name);
                             const checkboxVCP = document.querySelectorAll(
                               `input[type="checkbox"][name='attendance-${student._id}-${formattedDate}'][value="VCP"]`
                             );
@@ -1467,8 +1473,8 @@ export default function Teacher() {
                   >
                     {document.querySelectorAll('input[type="checkbox"][value="CM"]:checked').length ===
                     studentList.length
-                      ? 'Uncheck All'
-                      : 'Check All'}
+                      ? 'Bỏ chọn tất cả'
+                      : 'Có mặt cho tất cả'}
                   </button>
                 </div>
               </div>

@@ -6,20 +6,101 @@ import { IoMdCheckboxOutline } from 'react-icons/io';
 import Modal from 'react-modal';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import { createNotification } from '../../../api/Notifications';
+import { useEffect } from 'react';
+import { getAdministratorsbyAccountId } from '../../../api/Administrator';
+import { getStudentListByClassNameAndAcademicYear } from '../../../api/Class';
 Modal.setAppElement('#root');
-
 export default function AddNotification() {
+  // tạo 1 biến quản lý thông tin Admin
+  const [admin, setAdmin] = useState({});
+  // hàm lấy thông tin Admin
+  const accountId = localStorage.getItem('_id');
+  useEffect(() => {
+    getAdministratorsbyAccountId(accountId)
+      .then((res) => {
+        setAdmin(res.data[0]);
+      })
+      .catch((error) => {
+        console.error('Error fetching administrators:', error.response ? error.response.data : error.message);
+      });
+  }, [accountId]);
+  // sau khi lấy thông tin Admin, hiển thị thông tin Admin
+  useEffect(() => {
+    console.log('Thông tin Admin ở trang Noti là:', admin);
+  }, [admin]);
+
+  const [sender, setSender] = useState(''); // Thêm state cho người gửi
+  // setSender là admin_id được lưu trong localStorage
+  const admin_id = localStorage.getItem('admin_id');
+  useEffect(() => {
+    setSender(admin_id);
+  }, [admin_id]);
+
+  const [selectedReceiver, setSelectedReceiver] = useState('');
+  const [listIdReceivers, setListIdReceivers] = useState([]);
+  const [academicYear, setAcademicYear] = useState('2024-2025');
+  // khi mà selectedReceiver thay đổi, thì cập nhật listIdReceivers gọi tới hàm getStudentListByClassNameAndAcademicYear
+  useEffect(() => {
+    if (selectedReceiver && academicYear) {
+      getStudentListByClassNameAndAcademicYear(selectedReceiver, academicYear)
+        .then((res) => {
+          console.log('Kết quả khi chạy là ', res.data);
+          if (res.data.students && Array.isArray(res.data.students)) {
+            setListIdReceivers(res.data.students.map((student) => student._id));
+          } else {
+            console.error('students not found in response data');
+          }
+        })
+        .catch((error) => {
+          console.error('Error fetching students:', error.response ? error.response.data : error.message);
+        });
+    }
+  }, [selectedReceiver, academicYear]);
+
+  useEffect(() => {
+    console.log('List Id Receivers:', listIdReceivers);
+  }, [listIdReceivers]);
+
   const [subject, setSubject] = useState(''); // Thêm state cho subject
   const [text, setText] = useState(''); // Thêm state cho text
-  const [sender, setSender] = useState(''); // Thêm state cho người gửi
-  const [receiver, setReceiver] = useState(''); // Thêm state cho người nhận
   const [imageUrl, setImageUrl] = useState(''); // Thêm state cho imageUrl
   const [link, setlink] = useState(''); // Thêm state cho link
   // ... existing code ...
   const [dateTime, setDateTime] = useState(new Date()); // Khởi tạo dateTime với giá trị mặc định là ngày hiện tại
 
+  // hàm xử lý sự kiện thêm thông báo
   const handleAddNotification = () => {
-    toast.success(`Thông báo "${subject}" đã được thêm! với nội dung: ${text}`);
+    // tạo b iến content để lưu thông tin của thông báo gồm subject,text,link,imageUrl
+    const content = {
+      subject,
+      text,
+      link,
+      image: imageUrl,
+    };
+    // note sender_id là admin_id do đã lưu trong localStorage còn
+    // gọi tới sự kiện createNotification với các tham số sender_id, receiver_ids, content, notification_time
+    createNotification(admin_id, listIdReceivers, content, dateTime)
+      .then((res) => {
+        console.log('Notification created successfully:', res.data);
+        toast.success('Tạo thông báo thành công', {
+          icon: <IoMdCheckboxOutline />,
+        });
+      })
+      .catch((error) => {
+        console.error('Error creating notification:', error.response ? error.response.data : error.message);
+        toast.error('Tạo thông báo thất bại', {
+          icon: <IoWarningOutline />,
+        });
+      });
+  };
+  const handleReset = () => {
+    setImageUrl(null);
+    setSubject('');
+    setText('');
+    setlink('');
+    setSelectedReceiver('1A1');
+    setDateTime(new Date());
   };
 
   return (
@@ -38,7 +119,9 @@ export default function AddNotification() {
             <input
               type="text"
               name="from"
-              value={sender}
+              //value={sender}
+              value={admin.userName}
+              readOnly
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             />
           </div>
@@ -46,12 +129,21 @@ export default function AddNotification() {
             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="replyTo">
               Người nhận
             </label>
-            <input
-              type="text"
-              name="replyTo"
-              onChange={(e) => setReceiver(e.target.value)}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            />
+            <select
+              className="w-full p-2 border rounded"
+              style={{ zIndex: 10 }}
+              value={selectedReceiver}
+              onChange={(e) => setSelectedReceiver(e.target.value)}
+            >
+              {Array.from({ length: 5 }, (_, i) => i + 1).map((grade) =>
+                Array.from({ length: 5 }, (_, j) => `A${j + 1}`).map((className) => (
+                  <option key={`${grade}${className}`} value={`${grade}${className}`}>
+                    {`${grade}${className}`}
+                  </option>
+                ))
+              )}
+            </select>
+            {/* <p>Selected Receiver: {selectedReceiver}</p>  */}
           </div>
         </div>
 
@@ -62,6 +154,7 @@ export default function AddNotification() {
           <input
             type="text"
             name="subject"
+            value={subject}
             onChange={(e) => setSubject(e.target.value)}
             placeholder="Nhập tiêu đề Thông Báo"
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -73,6 +166,7 @@ export default function AddNotification() {
           </label>
           <textarea
             name="content"
+            value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder="Nhập nội dung thông báo."
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -132,7 +226,7 @@ export default function AddNotification() {
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-500 leading-tight focus:outline-none focus:shadow-outline"
           />
 
-          {imageUrl && <img src={imageUrl} alt="Selected Image" className="mt-2 w-1/2 h-auto" />}
+          {imageUrl && <img src={imageUrl} alt="Selected" className="mt-2 w-1/4 h-auto" />}
         </div>
 
         <div className="flex justify-center space-x-4">
@@ -144,13 +238,7 @@ export default function AddNotification() {
           </button>
           <button
             onClick={() => {
-              setImageUrl(null);
-              setSubject('');
-              setText('');
-              setSender('');
-              setlink('');
-              setReceiver('');
-              setDateTime(new Date());
+              handleReset();
             }}
             className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
           >

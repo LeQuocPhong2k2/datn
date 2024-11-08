@@ -6,6 +6,8 @@ const subjectsRouter = require('./subjects')
 const leaveRequestRouter = require('./leaveRequest')
 const schedulesRouter = require('./schedules')
 const attendanceRouter = require('./attendance')
+const NotificatioRouter = require('./notification')
+const AdministratorRouter = require('./administrator')
 function route(app) {
   app.use('/accounts', accountsRouter),
     app.use('/teachers', teachersRouter),
@@ -13,8 +15,10 @@ function route(app) {
     app.use('/students', studentsRouter),
     app.use('/subjects', subjectsRouter),
     app.use('/leaveRequest', leaveRequestRouter),
-    app.use('/schedules', schedulesRouter)
-  app.use('/attendance', attendanceRouter)
+    app.use('/schedules', schedulesRouter),
+    app.use('/attendance', attendanceRouter),
+    app.use('/notification', NotificatioRouter),
+    app.use('/administrator', AdministratorRouter)
 }
 
 module.exports = route

@@ -20,6 +20,7 @@ import TeachingAssignment from './Manager/Subject/TeachingAssignment';
 import AddNotification from './Manager/Notification/AddNotification';
 
 import { getAccountById } from '../api/Login';
+import { getAdministratorsbyAccountId } from '../api/Administrator';
 
 export default function Home() {
   const [accounts, setAccounts] = useState({});
@@ -33,6 +34,27 @@ export default function Home() {
     });
   }, []);
 
+  // gọi tới getAdministratorsbyAccountId từ account_id là _id trong localStorage và từ reponse lưu cái admin_id vào localStorage
+  const accountId = localStorage.getItem('_id');
+  useEffect(() => {
+    console.log('Account ID:', accountId);
+    if (accountId) {
+      getAdministratorsbyAccountId(accountId)
+        .then((res) => {
+          if (res.data && res.data.length > 0 && res.data[0]._id) {
+            localStorage.setItem('admin_id', res.data[0]._id);
+            // console.log('Administrator ID:', res.data[0]._id);
+          } else {
+            console.error('admin_id not found in response data');
+          }
+        })
+        .catch((error) => {
+          console.error('Error fetching administrator by account ID:', error);
+        });
+    } else {
+      console.error('Account ID not found in localStorage');
+    }
+  }, []);
   const [selectedFunction, setSelectedFunction] = useState(null);
   const [showSubMenus, setShowSubMenus] = useState({
     hocSinh: false,

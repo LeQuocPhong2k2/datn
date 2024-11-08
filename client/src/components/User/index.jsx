@@ -10,6 +10,7 @@ import { Toaster, toast } from 'react-hot-toast';
 import { createLeaveRequest, getLeaveRequestsByStudentId } from '../../api/LeaveRequest';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import { getAllNotifications } from '../../api/Notifications';
 
 import Schedule from './Schedule';
 
@@ -55,6 +56,8 @@ export default function Student() {
   // tạo phân trang học kỳ bên trong Tab Quá trình học tập
   const [activeTabAcademic, setactiveTabAcademic] = useState('tongket');
 
+  // chỗ sự kiện cho tab thông báo
+
   const [showContent, setShowContent] = useState(false);
   const [showContent1, setShowContent1] = useState(false);
   const senderName = 'Admin01'; // Thay thế bằng tên người gửi thực tế
@@ -74,6 +77,17 @@ export default function Student() {
     image:
       'https://www.canva.com/design/DAGTWH_JYfw/_ZLoUqEYAJgTzgSi6WQ3wQ/view?utm_content=DAGTWH_JYfw&utm_campaign=designshare&utm_medium=link&utm_source=editor',
   };
+
+  // gọi tới api get all notifications
+  const [notifications, setNotifications] = useState([]);
+  useEffect(() => {
+    getAllNotifications().then((res) => {
+      console.log('Notifications:', res.data);
+      setNotifications(res.data);
+    });
+  }, []);
+
+  // chỗ sự kiện đơn xin nghĩ học
   // data mẫu đơn nghĩ học
   const [leaveRequests, setLeaveRequests] = useState([]);
   // lưu trữ đơn nghỉ học được chọn
@@ -116,57 +130,6 @@ export default function Student() {
   const [showDetailLesson, setShowDetailLesson] = useState(false);
   const [showDetailLesson1, setShowDetailLesson1] = useState(false);
 
-  // 1 state quản lý khi bấm vào họ tên trên góc tay phải hiển thị mục là thông tin cá nhân,đổi mật khẩu,đăng xuất
-  // const [showProfile, setShowProfile] = useState(false);
-  // // 1 state h iển thị form thay đổi mật khẩu
-  // const [showChangePassword, setShowChangePassword] = useState(false);
-  // const [oldPassword, setOldPassword] = useState();
-  // const [newPassword, setNewPassword] = useState();
-  // const [confirmPassword, setConfirmPassword] = useState();
-
-  // // sự kiện khi bấm nút lưu mật khẩu
-  // const handleChangePassword = () => {
-  //   // kiểm tra có nhập đủ thông tin không
-
-  //   if (!oldPassword || !newPassword || !confirmPassword) {
-  //     toast.dismiss();
-  //     toast.error('Vui lòng nhập đầy đủ thông tin');
-  //     return;
-  //   }
-
-  //   // so sánh mật khẩu mới và mật khẩu xác nhận có giống nhau không
-  //   else if (newPassword !== confirmPassword) {
-  //     toast.dismiss();
-  //     toast.error('Mật khẩu xác nhận không đúng');
-  //     return;
-  //   } else {
-  //     // gọi tới api changePassword do userName trong studentInfo là tên còn trong account là mã học sinh nên ở đây truyền mã học sinh
-  //     changePassword(studentInfo.studentCode, oldPassword, newPassword)
-  //       .then((res) => {
-  //         toast.dismiss();
-  //         toast.success(res.data.message);
-  //         setShowChangePassword(false);
-  //       })
-  //       .catch((error) => {
-  //         alert(error);
-  //       });
-  //   }
-  // };
-  // 1 state hiển thị lên xuống thười khoá biểu ở màn hình chính
-  // const [showTimeTable, setShowTimeTable] = useState(true);
-  // // 1 state hiển thị thông báo notice ở màn hình chính
-  // const [showNotice, setShowNotice] = useState(true);
-  // // 1 state hiển thị thông báo bài học gần đây ở màn hình chính
-  // const [showLessonHome, setShowLessonHome] = useState(true);
-
-  // // phần state nghĩ học
-  // // Add these new state variables
-  // const [startDate, setStartDate] = useState('');
-
-  // const [endDate, setEndDate] = useState('');
-  // // định dạng DD/MM/YYYY
-
-  // const [selectedSessions, setSelectedSessions] = useState([]);
   // hàm xử lý tạo ngày nghĩ dựa trên ngày bắt đầu và ngày kết thúc
   function generateDateRange(start, end) {
     const dates = [];
@@ -609,6 +572,7 @@ export default function Student() {
                   <i className="fas fa-file-alt mr-2" style={{ color: '#f8c9be' }}></i>
                   <div className="text-gray-600">Tạo Đơn Xin Nghĩ Học </div>
                 </a>
+
                 <div
                   className="flex items-center"
                   onMouseEnter={(e) => e.currentTarget.querySelector('div').classList.add('font-bold')}
@@ -1634,74 +1598,62 @@ export default function Student() {
           )}
           {activeTab === 'notice' && (
             <div>
-              {/* Nội dung cho Thông báo */}
               <h2 className="text-xl font-bold mb-4">Thông Báo</h2>
-              {/* Thông báo họp phụ huynh */}
-              <div className="bg-white p-4 rounded-lg shadow-md mb-4">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <strong>Người gửi: </strong>
+              {notifications
+                .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                .map((notification, index) => (
+                  <div key={notification._id} className="bg-white p-4 rounded-lg shadow-md mb-4">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <strong>Người gửi: </strong>
+                        {/* {notification.sender_id}  */}
+                        Admin
+                      </div>
+                      <div>
+                        <strong>Thời gian: </strong>
+                        {new Date(notification.created_at).toLocaleString()}
+                      </div>
+                    </div>
+                    <h3
+                      className="text-lg font-semibold mt-2 cursor-pointer text-blue-500"
+                      onClick={() => setShowContent1(index === showContent1 ? null : index)}
+                    >
+                      {notification.content.subject}
+                    </h3>
+                    {showContent1 === index && (
+                      <div className="mt-2">
+                        <p>{notification.content.text}</p>
+                        {notification.content.image && (
+                          <div className="mt-2 flex justify-center">
+                            <img
+                              src={notification.content.image}
+                              alt="Thông báo"
+                              className="w-1/2 h-auto object-cover"
+                            />
+                          </div>
+                        )}
 
-                    {senderName}
-                  </div>
-                  <div>
-                    <strong>Thời gian: </strong>
-                    {new Date(createdAt).toLocaleString()} {/* Thay createdAt bằng thời gian gửi */}
-                  </div>
-                </div>
-                <h3
-                  className="text-lg font-semibold mt-2 cursor-pointer text-blue-500"
-                  onClick={() => setShowContent1(!showContent1)}
-                >
-                  {content1.subject}
-                </h3>
-                {showContent1 && ( // Hiển thị nội dung khi nhấp vào tiêu đề
-                  <div className="mt-2">
-                    <p>{content1.text}</p> {/* Nội dung thông báo */}
-                    {content1.image && (
-                      <div className="mt-2 flex justify-center">
-                        <img src={content1.image} alt="Thông báo" className="w-200 h-200 object-cover" />
+                        {notification.content.link && notification.content.link.trim() !== '' && (
+                          <div className="mt-2 flex justify-between">
+                            <b>
+                              <a
+                                href={notification.content.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-red-500"
+                              >
+                                Link liên kết
+                              </a>
+                            </b>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
-                )}
-              </div>
-              <div className="bg-white p-4 rounded-lg shadow-md mb-4">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <strong>Người gửi: </strong>
-
-                    {senderName}
-                  </div>
-                  <div>
-                    <strong>Thời gian: </strong>
-                    {new Date(createdAt1).toLocaleString()} {/* Thay createdAt bằng thời gian gửi */}
-                  </div>
-                </div>
-                <h3
-                  className="text-lg font-semibold mt-2 cursor-pointer text-blue-500"
-                  onClick={() => setShowContent(!showContent)}
-                >
-                  Chúc mừng lễ Giáng Sinh 2023 {/* Tiêu đề thông báo */}
-                </h3>
-                {showContent && ( // Hiển thị nội dung khi nhấp vào tiêu đề
-                  <div className="mt-2">
-                    <p>{content.text}</p> {/* Nội dung thông báo */}
-                    {content.link && (
-                      <a href={content.link} target="_blank" rel="noopener noreferrer" className="text-blue-500">
-                        Xem thêm
-                      </a>
-                    )}
-                    {content.image && (
-                      <div className="mt-2 flex justify-center">
-                        <img src={content.image} alt="Thông báo" className="w-200 h-200 object-cover" />
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+                ))}
             </div>
           )}
+
           {activeTab === 'leaveRequest' && (
             <div>
               <div className="flex space-x-4 mb-4 justify-center">
@@ -1730,71 +1682,73 @@ export default function Student() {
               {showLeaveRequestSent && (
                 <div className="max-w-4xl mx-auto bg-white border shadow-md rounded-lg p-6">
                   <h3 className="text-center text-xl font-bold mb-4">Tất cả đơn nghỉ học đã gửi</h3>
-
                   {leaveRequests.length === 0 ? (
                     <p className="text-center text-gray-600">Bạn chưa gửi đơn nghỉ học nào.</p>
                   ) : (
                     <div className="space-y-4">
-                      {leaveRequests.map((request, index) => (
-                        <div key={request._id} className="bg-gray-100 p-4 rounded-md border shadow-sm">
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <span className="font-semibold text-gray-700">Từ ngày:</span>{' '}
-                              {new Date(request.start_date).toLocaleDateString()} {/* Chỉnh lại start_date */}
-                              <span className="ml-4 font-semibold text-gray-700">Đến ngày:</span>{' '}
-                              {new Date(request.end_date).toLocaleDateString()} {/* Chỉnh lại end_date */}
-                            </div>
-                            <div>
-                              <span
-                                className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-sm whitespace-nowrap ${
-                                  request.status === 'pending'
-                                    ? 'bg-yellow-500 text-white'
+                      {leaveRequests
+                        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at)) // Sắp xếp theo created_at giảm dần
+                        .map((request, index) => (
+                          <div key={request._id} className="bg-gray-100 p-4 rounded-md border shadow-sm">
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <span className="font-semibold text-gray-700">Từ ngày:</span>{' '}
+                                {new Date(request.start_date).toLocaleDateString()} {/* Chỉnh lại start_date */}
+                                <span className="ml-4 font-semibold text-gray-700">Đến ngày:</span>{' '}
+                                {new Date(request.end_date).toLocaleDateString()} {/* Chỉnh lại end_date */}
+                              </div>
+                              <div>
+                                <span
+                                  className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-sm whitespace-nowrap ${
+                                    request.status === 'pending'
+                                      ? 'bg-yellow-500 text-white'
+                                      : request.status === 'approved'
+                                        ? 'bg-green-500 text-white'
+                                        : 'bg-red-500 text-white'
+                                  }`}
+                                  style={{ minWidth: '80px' }} // Đảm bảo phần tử có kích thước tối thiểu để không quá hẹp
+                                >
+                                  {request.status === 'pending'
+                                    ? 'Chờ duyệt'
                                     : request.status === 'approved'
-                                      ? 'bg-green-500 text-white'
-                                      : 'bg-red-500 text-white'
-                                }`}
-                                style={{ minWidth: '80px' }} // Đảm bảo phần tử có kích thước tối thiểu để không quá hẹp
-                              >
-                                {request.status === 'pending'
-                                  ? 'Chờ duyệt'
-                                  : request.status === 'approved'
-                                    ? 'Đã duyệt'
-                                    : 'Bị từ chối'}
-                              </span>
+                                      ? 'Đã duyệt'
+                                      : 'Bị từ chối'}
+                                </span>
+                              </div>
                             </div>
-                          </div>
 
-                          <div className="mt-2">
-                            <p>
-                              <span className="font-semibold text-gray-700">Lý do nghỉ:</span> {request.reason}
-                            </p>
                             <div className="mt-2">
-                              <span className="font-semibold text-gray-700">Danh sách buổi nghỉ:</span>
-                              <ul className="list-disc list-inside ml-4">
-                                {request.sessions.map((session) => (
-                                  <li key={session._id}>
-                                    {new Date(session.date).toLocaleDateString('en-GB')}: {/* Chỉnh lại session.date */}
-                                    {session.morning && 'Sáng'} {session.afternoon && 'Chiều'}
-                                  </li>
-                                ))}
-                              </ul>
+                              <p>
+                                <span className="font-semibold text-gray-700">Lý do nghỉ:</span> {request.reason}
+                              </p>
+                              <div className="mt-2">
+                                <span className="font-semibold text-gray-700">Danh sách buổi nghỉ:</span>
+                                <ul className="list-disc list-inside ml-4">
+                                  {request.sessions.map((session) => (
+                                    <li key={session._id}>
+                                      {new Date(session.date).toLocaleDateString('en-GB')}:{' '}
+                                      {/* Chỉnh lại session.date */}
+                                      {session.morning && 'Sáng'} {session.afternoon && 'Chiều'}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
+
+                            <div className="flex justify-end mt-4">
+                              <button
+                                className="bg-blue-500 text-white px-4 py-2 rounded"
+                                onClick={() => {
+                                  setShowFullInfoLeaveRequestSent(true);
+                                  setShowLeaveRequestSent(false);
+                                  setSelectedLeaveRequest(request); // Lưu đơn được chọn
+                                }}
+                              >
+                                Xem chi tiết
+                              </button>
                             </div>
                           </div>
-
-                          <div className="flex justify-end mt-4">
-                            <button
-                              className="bg-blue-500 text-white px-4 py-2 rounded"
-                              onClick={() => {
-                                setShowFullInfoLeaveRequestSent(true);
-                                setShowLeaveRequestSent(false);
-                                setSelectedLeaveRequest(request); // Lưu đơn được chọn
-                              }}
-                            >
-                              Xem chi tiết
-                            </button>
-                          </div>
-                        </div>
-                      ))}
+                        ))}
                     </div>
                   )}
                 </div>
