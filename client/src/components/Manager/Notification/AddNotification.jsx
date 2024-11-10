@@ -86,6 +86,7 @@ export default function AddNotification() {
         toast.success('Tạo thông báo thành công', {
           icon: <IoMdCheckboxOutline />,
         });
+        handleReset();
       })
       .catch((error) => {
         console.error('Error creating notification:', error.response ? error.response.data : error.message);
@@ -242,7 +243,7 @@ export default function AddNotification() {
             }}
             className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
           >
-            Reset
+            Nhập lại
           </button>
         </div>
       </div>
