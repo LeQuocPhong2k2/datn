@@ -168,20 +168,48 @@ export default function Teacher() {
   const [recentDays, setRecentDays] = useState([]);
 
   // Hàm tính toán các ngày dựa trên selectedDate, đảm bảo tính toán đúng tháng của ngày đó
-  const calculateRecentDays = (baseDate) => {
+  // const calculateRecentDays = (baseDate) => {
+  //   const currentDate = new Date(baseDate);
+  //   const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+  //   const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+  //   return Array.from({ length: daysInMonth }, (_, i) => {
+  //     const date = new Date(firstDayOfMonth);
+  //     date.setDate(i + 1);
+  //     return date;
+  //   });
+  // };
+  // useEffect(() => {
+  //   setRecentDays(calculateRecentDays(attendanceDate));
+  //   handleResetAttendance();
+  // }, [attendanceDate]);
+
+  const calculateRecentDays = (baseDate, isMobile) => {
     const currentDate = new Date(baseDate);
-    const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-    const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
-    return Array.from({ length: daysInMonth }, (_, i) => {
-      const date = new Date(firstDayOfMonth);
-      date.setDate(i + 1);
-      return date;
-    });
+    if (isMobile) {
+      // Nếu là di động, chỉ lấy 3 ngày: 1 ngày trước, ngày hiện tại và 1 ngày sau
+      return [
+        new Date(currentDate.setDate(currentDate.getDate() - 1)), // Ngày trước
+        new Date(currentDate.setDate(currentDate.getDate() + 1)), // Ngày hiện tại
+        new Date(currentDate.setDate(currentDate.getDate() + 1)), // Ngày sau
+      ];
+    } else {
+      // Nếu không phải di động, lấy tất cả các ngày trong tháng
+      const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+      const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+      return Array.from({ length: daysInMonth }, (_, i) => {
+        const date = new Date(firstDayOfMonth);
+        date.setDate(i + 1);
+        return date;
+      });
+    }
   };
+
   useEffect(() => {
-    setRecentDays(calculateRecentDays(attendanceDate));
+    const isMobile = window.innerWidth <= 768; // Kiểm tra nếu là màn hình di động
+    setRecentDays(calculateRecentDays(attendanceDate, isMobile)); // Cập nhật recentDays dựa trên kích thước màn hình
     handleResetAttendance();
   }, [attendanceDate]);
+
   // useEffect kiểm tra xem có selectedClass chưa nếu có thì gọi sự kiện handleSelectClass
   useEffect(() => {
     if (selectedClass === '1A1') {
@@ -252,48 +280,6 @@ export default function Teacher() {
     }
   };
 
-  // const handleUpdateAttendance = async () => {
-  //   const attendanceRecordsByDate = {}; // Mảng để lưu trữ thông tin điểm danh theo ngày
-
-  //   // Nhóm các bản ghi theo ngày
-  //   Object.entries(attendanceData).forEach(([studentId, dates]) => {
-  //     Object.entries(dates).forEach(([date, status]) => {
-  //       const dateISO = new Date(date).toISOString(); // Chuyển đổi ngày sang định dạng ISO
-
-  //       // Nếu chưa có ngày này trong attendanceRecordsByDate, khởi tạo mảng
-  //       if (!attendanceRecordsByDate[dateISO]) {
-  //         attendanceRecordsByDate[dateISO] = [];
-  //       }
-
-  //       // Thêm bản ghi vào mảng tương ứng với ngày
-  //       attendanceRecordsByDate[dateISO].push({
-  //         student_id: studentId,
-  //         student_name: studentList.find((student) => student._id === studentId)?.userName, // Tìm tên học sinh
-  //         status: status,
-  //         reason:
-  //           status === 'CM'
-  //             ? 'Học sinh có mặt'
-  //             : status === 'VCP'
-  //               ? 'Học sinh vắng có phép'
-  //               : 'Học sinh vắng không phép',
-  //       });
-  //     });
-  //   });
-
-  //   // Gọi hàm createAttendance cho từng ngày
-  //   for (const [dateISO, records] of Object.entries(attendanceRecordsByDate)) {
-  //     if (records.length > 0) {
-  //       try {
-  //         await createAttendance(selectedClass_id, teacherInfo._id, dateISO, records); // Gọi hàm tạo điểm danh
-  //         toast.success(`Điểm danh thành công cho ngày ${new Date(dateISO).toLocaleDateString('vi-VN')}`);
-  //         handleResetAttendance(); // Reset lại checkbox điểm danh
-  //       } catch (error) {
-  //         console.error('Lỗi khi tạo điểm danh:', error);
-  //         alert('Có lỗi xảy ra khi cập nhật điểm danh.');
-  //       }
-  //     }
-  //   }
-  // };
   const handleUpdateAttendance = async () => {
     const attendanceRecordsByDate = {}; // Mảng để lưu trữ thông tin điểm danh theo ngày
 
@@ -989,7 +975,132 @@ export default function Teacher() {
               </div>
             </div>
           )}
-          {activeTab === 'academic' && <InputScore />}
+          {activeTab === 'academic' && (
+            <div className="w-[80%] mx-auto bg-white p-6 rounded shadow mt-4">
+              <h2 className="text-xl font-bold mb-4 text-center">Nhập Điểm Cho Học Sinh Tiểu Học</h2>
+
+              {/* Form nhập khối, lớp, môn học, học kỳ */}
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div>
+                  <label className="block mb-2">Khối</label>
+                  <select
+                    className="w-full p-2 border rounded"
+                    value={grade}
+                    onChange={(e) => setGrade(Number(e.target.value))}
+                  >
+                    <option value={1}>Khối 1</option>
+                    <option value={2}>Khối 2</option>
+                    <option value={3}>Khối 3</option>
+                    <option value={4}>Khối 4</option>
+                    <option value={5}>Khối 5</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block mb-2">Lớp</label>
+                  <select className="w-full p-2 border rounded" style={{ zIndex: 10 }}>
+                    {Array.from({ length: 5 }, (_, i) => i + 1).map((grade) =>
+                      Array.from({ length: 5 }, (_, j) => `A${j + 1}`).map((className) => (
+                        <option key={`${grade}${className}`} value={`${grade}${className}`}>
+                          {`${grade}${className}`}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                </div>
+                <div>
+                  <label className="block mb-2">Môn học</label>
+                  <select className="w-full p-2 border rounded">
+                    <option>Tiếng Việt</option>
+                    <option>Toán</option>
+                    <option>Ngoại ngữ 1</option>
+                    <option>Đạo đức</option>
+                    <option>TN-XH</option>
+                    <option>Âm Nhạc</option>
+                    <option>Mĩ Thuật</option>
+                    <option>Tin học</option>
+                    <option>Giáo dục thể chất</option>
+                    <option>Hoạt động trải nghiệm</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block mb-2">Học kỳ</label>
+                  <div className="flex items-center space-x-4">
+                    <select className="w-full p-2 border rounded">
+                      <option>Học kỳ 1</option>
+                      <option>Học kỳ 2</option>
+                    </select>
+                    <select className="w-full p-2 border rounded">
+                      <option>Giữa kỳ</option>
+                      <option>Cuối kỳ</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="block mb-2">Nhập điểm từ file Excel</label>
+                  <input type="file" className="w-full p-2 border rounded" />
+                </div>
+              </div>
+
+              {/* Table nhập điểm */}
+              <div className="overflow-x-auto">
+                <table className="min-w-full border">
+                  <thead>
+                    <tr>
+                      <th className="border px-4 py-2">STT</th>
+                      <th className="border px-4 py-2">Họ và Tên</th>
+                      <th className="border px-4 py-2">Ngày Sinh</th>
+                      <th className="border px-4 py-2">Nhận Xét Giữa Kỳ</th>
+                      <th className="border px-4 py-2">Nhận Xét Cuối Kỳ</th>
+                      {/* Dựa trên lựa chọn học kỳ và khối để hiển thị thêm cột */}
+                      {selectedSemester === 'Cuối kỳ' && grade > 3 && (
+                        <>
+                          <th className="border px-4 py-2">Kiểm Tra Cuối Kỳ</th>
+                          <th className="border px-4 py-2">Xếp Loại Cuối Kỳ</th>
+                        </>
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {/* Đây là ví dụ về một hàng điểm, bạn cần thêm logic để render nhiều học sinh */}
+                    <tr>
+                      <td className="border px-4 py-2">1</td>
+                      <td className="border px-4 py-2">Nguyễn Văn A</td>
+                      <td className="border px-4 py-2">01/01/2015</td>
+                      <td className="border px-4 py-2">
+                        <select className="w-full p-2 border rounded">
+                          <option>Hoàn thành tốt</option>
+                          <option>Hoàn thành</option>
+                          <option>Chưa hoàn thành</option>
+                        </select>
+                      </td>
+                      <td className="border px-4 py-2">
+                        <select className="w-full p-2 border rounded">
+                          <option>Hoàn thành tốt</option>
+                          <option>Hoàn thành</option>
+                          <option>Chưa hoàn thành</option>
+                        </select>
+                      </td>
+                      {/* Thêm ô kiểm tra nếu là cuối kỳ */}
+                      {selectedSemester === 'Cuối kỳ' && grade > 3 && (
+                        <>
+                          <td className="border px-4 py-2">
+                            <input type="number" className="w-full p-2 border rounded" placeholder="Điểm" />
+                          </td>
+                          <td className="border px-4 py-2">
+                            <select className="w-full p-2 border rounded">
+                              <option>Hoàn thành tốt</option>
+                              <option>Hoàn thành</option>
+                              <option>Chưa hoàn thành</option>
+                            </select>
+                          </td>
+                        </>
+                      )}
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
           {activeTab === 'notice' && (
             <div>
@@ -1114,154 +1225,156 @@ export default function Teacher() {
                 {filteredRequests.length === 0 ? (
                   <p className="text-center text-gray-600">Hiện không có đơn xin nghỉ học nào.</p>
                 ) : (
-                  filteredRequests.map((request) => (
-                    <div key={request._id} className="p-1 ">
-                      {showTeacherLeaveRequests && (
-                        <div className="max-w-4xl mx-auto bg-white border shadow-md rounded-lg p-6">
-                          {/* Nội dung sơ lược */}
-                          <h3 className="text-center text-xl font-bold mb-4">Đơn xin nghỉ học</h3>
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <span className="font-semibold text-gray-700">Từ ngày:</span>{' '}
-                              {new Date(request.start_date).toLocaleDateString()}
-                              <span className="ml-4 font-semibold text-gray-700">Đến ngày:</span>{' '}
-                              {new Date(request.end_date).toLocaleDateString()}
-                            </div>
-                            <div>
-                              <span
-                                className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-sm whitespace-nowrap ${
-                                  request.status === 'pending'
-                                    ? 'bg-yellow-500 text-white'
+                  filteredRequests
+                    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at)) // Sắp xếp theo created_at giảm dần
+                    .map((request) => (
+                      <div key={request._id} className="p-1 ">
+                        {showTeacherLeaveRequests && (
+                          <div className="max-w-4xl mx-auto bg-white border shadow-md rounded-lg p-6">
+                            {/* Nội dung sơ lược */}
+                            <h3 className="text-center text-xl font-bold mb-4">Đơn xin nghỉ học</h3>
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <span className="font-semibold text-gray-700">Từ ngày:</span>{' '}
+                                {new Date(request.start_date).toLocaleDateString()}
+                                <span className="ml-4 font-semibold text-gray-700">Đến ngày:</span>{' '}
+                                {new Date(request.end_date).toLocaleDateString()}
+                              </div>
+                              <div>
+                                <span
+                                  className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-sm whitespace-nowrap ${
+                                    request.status === 'pending'
+                                      ? 'bg-yellow-500 text-white'
+                                      : request.status === 'approved'
+                                        ? 'bg-green-500 text-white'
+                                        : 'bg-red-500 text-white'
+                                  }`}
+                                  style={{ minWidth: '80px' }}
+                                >
+                                  {request.status === 'pending'
+                                    ? 'Chờ duyệt'
                                     : request.status === 'approved'
-                                      ? 'bg-green-500 text-white'
-                                      : 'bg-red-500 text-white'
-                                }`}
-                                style={{ minWidth: '80px' }}
-                              >
-                                {request.status === 'pending'
-                                  ? 'Chờ duyệt'
-                                  : request.status === 'approved'
-                                    ? 'Đã duyệt'
-                                    : 'Bị từ chối'}
-                              </span>
+                                      ? 'Đã duyệt'
+                                      : 'Bị từ chối'}
+                                </span>
+                              </div>
                             </div>
-                          </div>
 
-                          <div className="mt-2">
-                            <p>
-                              <span className="font-semibold text-gray-700">Lý do:</span> {request.reason}
-                            </p>
                             <div className="mt-2">
-                              <span className="font-semibold text-gray-700">Danh sách buổi nghỉ:</span>
-                              <ul className="list-disc list-inside ml-4">
-                                {request.sessions.map((session) => (
-                                  <li key={session._id}>
-                                    {new Date(session.date).toLocaleDateString('en-GB')}: {session.morning && 'Sáng'}{' '}
-                                    {session.afternoon && 'Chiều'}
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          </div>
-
-                          <div className="flex justify-end space-x-2 mt-4">
-                            <button
-                              className="bg-blue-500 text-white px-4 py-2 rounded"
-                              onClick={() => {
-                                setSelectedLeaveRequest(request);
-                                setShowFullInfoLeaveRequestSent(true);
-                                setShowTeacherLeaveRequests(false);
-                              }}
-                            >
-                              Xem chi tiết
-                            </button>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Hiển thị nội dung chi tiết khi showFullInfoLeaveRequestSent là true */}
-                      {showFullInfoLeaveRequestSent &&
-                        selectedLeaveRequest &&
-                        selectedLeaveRequest._id === request._id && (
-                          <div
-                            key={request._id + 'detail'}
-                            className="max-w-md mx-auto border bg-white shadow-md rounded-lg p-4 mt-6"
-                          >
-                            <div className="flex items-center mb-4 justify-between">
-                              <button
-                                onClick={() => {
-                                  setShowFullInfoLeaveRequestSent(false);
-                                  setShowTeacherLeaveRequests(true);
-                                }}
-                                className="mr-2"
-                              >
-                                <i className="fas fa-arrow-left text-blue-500"></i>
-                              </button>
-                              <h1 className="text-center text-blue-600 text-xl font-bold mx-auto">
-                                ĐƠN XIN PHÉP NGHỈ HỌC
-                              </h1>
-                            </div>
-
-                            <div className="mb-4">
-                              <h2 className="text-lg font-semibold">Người làm đơn</h2>
-                              <p>Tên phụ huynh: Nguyễn Văn B</p>
-                              <p>Phụ huynh của học sinh: Nguyễn Ánh Ngọc</p>
-                              <p>Lớp: 1A3</p>
-                            </div>
-
-                            <div className="mb-4">
-                              <h2 className="text-lg font-semibold">Thời gian nghỉ</h2>
-                              <ul className="list-disc list-inside">
-                                {selectedLeaveRequest.sessions.map((session) => (
-                                  <li key={session._id}>
-                                    {new Date(session.date).toLocaleDateString('en-GB')}: {session.morning && 'Sáng'}{' '}
-                                    {session.afternoon && 'Chiều'}
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-
-                            <div className="mb-4">
-                              <h2 className="text-lg font-semibold">Lý do :</h2>
-                              <p>{selectedLeaveRequest.reason}</p>
+                              <p>
+                                <span className="font-semibold text-gray-700">Lý do:</span> {request.reason}
+                              </p>
+                              <div className="mt-2">
+                                <span className="font-semibold text-gray-700">Danh sách buổi nghỉ:</span>
+                                <ul className="list-disc list-inside ml-4">
+                                  {request.sessions.map((session) => (
+                                    <li key={session._id}>
+                                      {new Date(session.date).toLocaleDateString('en-GB')}: {session.morning && 'Sáng'}{' '}
+                                      {session.afternoon && 'Chiều'}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
                             </div>
 
                             <div className="flex justify-end space-x-2 mt-4">
-                              {selectedLeaveRequest.status === 'pending' ? (
-                                <>
-                                  <button
-                                    className="bg-green-500 text-white px-4 py-2 rounded"
-                                    onClick={() => {
-                                      handleUpdateLeaveRequest(selectedLeaveRequest._id, 'approved');
-                                    }}
-                                  >
-                                    Đồng ý
-                                  </button>
-                                  <button
-                                    className="bg-red-500 text-white px-4 py-2 rounded"
-                                    onClick={() => {
-                                      handleUpdateLeaveRequest(selectedLeaveRequest._id, 'rejected');
-                                    }}
-                                  >
-                                    Từ chối
-                                  </button>
-                                </>
-                              ) : (
+                              <button
+                                className="bg-blue-500 text-white px-4 py-2 rounded"
+                                onClick={() => {
+                                  setSelectedLeaveRequest(request);
+                                  setShowFullInfoLeaveRequestSent(true);
+                                  setShowTeacherLeaveRequests(false);
+                                }}
+                              >
+                                Xem chi tiết
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Hiển thị nội dung chi tiết khi showFullInfoLeaveRequestSent là true */}
+                        {showFullInfoLeaveRequestSent &&
+                          selectedLeaveRequest &&
+                          selectedLeaveRequest._id === request._id && (
+                            <div
+                              key={request._id + 'detail'}
+                              className="max-w-md mx-auto border bg-white shadow-md rounded-lg p-4 mt-6"
+                            >
+                              <div className="flex items-center mb-4 justify-between">
                                 <button
                                   onClick={() => {
                                     setShowFullInfoLeaveRequestSent(false);
                                     setShowTeacherLeaveRequests(true);
                                   }}
-                                  className="bg-blue-500 text-white px-4 py-2 rounded"
+                                  className="mr-2"
                                 >
-                                  Trở về
+                                  <i className="fas fa-arrow-left text-blue-500"></i>
                                 </button>
-                              )}
+                                <h1 className="text-center text-blue-600 text-xl font-bold mx-auto">
+                                  ĐƠN XIN PHÉP NGHỈ HỌC
+                                </h1>
+                              </div>
+
+                              <div className="mb-4">
+                                <h2 className="text-lg font-semibold">Người làm đơn</h2>
+                                <p>Tên phụ huynh: Nguyễn Văn B</p>
+                                <p>Phụ huynh của học sinh: Nguyễn Ánh Ngọc</p>
+                                <p>Lớp: 1A3</p>
+                              </div>
+
+                              <div className="mb-4">
+                                <h2 className="text-lg font-semibold">Thời gian nghỉ</h2>
+                                <ul className="list-disc list-inside">
+                                  {selectedLeaveRequest.sessions.map((session) => (
+                                    <li key={session._id}>
+                                      {new Date(session.date).toLocaleDateString('en-GB')}: {session.morning && 'Sáng'}{' '}
+                                      {session.afternoon && 'Chiều'}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+
+                              <div className="mb-4">
+                                <h2 className="text-lg font-semibold">Lý do :</h2>
+                                <p>{selectedLeaveRequest.reason}</p>
+                              </div>
+
+                              <div className="flex justify-end space-x-2 mt-4">
+                                {selectedLeaveRequest.status === 'pending' ? (
+                                  <>
+                                    <button
+                                      className="bg-green-500 text-white px-4 py-2 rounded"
+                                      onClick={() => {
+                                        handleUpdateLeaveRequest(selectedLeaveRequest._id, 'approved');
+                                      }}
+                                    >
+                                      Đồng ý
+                                    </button>
+                                    <button
+                                      className="bg-red-500 text-white px-4 py-2 rounded"
+                                      onClick={() => {
+                                        handleUpdateLeaveRequest(selectedLeaveRequest._id, 'rejected');
+                                      }}
+                                    >
+                                      Từ chối
+                                    </button>
+                                  </>
+                                ) : (
+                                  <button
+                                    onClick={() => {
+                                      setShowFullInfoLeaveRequestSent(false);
+                                      setShowTeacherLeaveRequests(true);
+                                    }}
+                                    className="bg-blue-500 text-white px-4 py-2 rounded"
+                                  >
+                                    Trở về
+                                  </button>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        )}
-                    </div>
-                  ))
+                          )}
+                      </div>
+                    ))
                 )}
               </div>
             </div>
@@ -1311,8 +1424,9 @@ export default function Teacher() {
                   <button
                     onClick={() => {
                       const selectedDate = new Date(attendanceDate);
-                      selectedDate.setHours(0, 0, 0, 0); // Đặt giờ, phút, giây và mili giây về 0
+
                       const formattedDate = selectedDate.toISOString().split('T')[0]; // Chỉ lấy phần ngày
+                      // console.log(formattedDate);
                       const dayOfWeek = selectedDate.getDay(); // Lấy ngày trong tuần
 
                       if (dayOfWeek !== 6 && dayOfWeek !== 0) {
@@ -1329,6 +1443,9 @@ export default function Teacher() {
                             const checkboxCM = document.querySelectorAll(
                               `input[type="checkbox"][name='attendance-${student._id}-${formattedDate}'][value="CM"]`
                             );
+                            // lấy ra cái name của checkbox
+                            // const name = `attendance-${student._id}-${formattedDate}`;
+                            // console.log(name);
                             const checkboxVCP = document.querySelectorAll(
                               `input[type="checkbox"][name='attendance-${student._id}-${formattedDate}'][value="VCP"]`
                             );
@@ -1360,11 +1477,137 @@ export default function Teacher() {
                   >
                     {document.querySelectorAll('input[type="checkbox"][value="CM"]:checked').length ===
                     studentList.length
-                      ? 'Uncheck All'
-                      : 'Check All'}
+                      ? 'Bỏ chọn tất cả'
+                      : 'Có mặt cho tất cả'}
                   </button>
                 </div>
               </div>
+              {/* <table className="table-auto w-full border-collapse border border-gray-400 mt-4">
+                <thead>
+                  <tr style={{ backgroundColor: '#e0e0e0' }}>
+                    <th className="border border-gray-400 px-2 py-1">STT</th>
+                    <th className="border border-gray-400 px-2 py-1 whitespace-nowrap">Họ và tên</th>
+                    {recentDays.map((day, index) => (
+                      <th key={index} className="border border-gray-400 px-2 py-1" style={{ width: '25px' }}>
+                        {day.getDate()}
+                      </th>
+                    ))}
+                    <th className="border border-gray-400 px-2 py-1">CM</th>
+                    <th className="border border-gray-400 px-2 py-1">CP</th>
+                    <th className="border border-gray-400 px-2 py-1">KP</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {studentList.length === 0 ? (
+                    <tr>
+                      <td colSpan={recentDays.length + 5} className="text-center text-red-500">
+                        Không có danh sách học sinh cho lớp {selectedClass}.
+                      </td>
+                    </tr>
+                  ) : (
+                    studentList.map((student, index) => (
+                      <tr key={student._id} className="hover:bg-[#E5E7EB]">
+                        <td className="border border-gray-400 px-2 py-1 text-center">{index + 1}</td>
+                        <td className="border border-gray-400 px-2 py-1 whitespace-nowrap">{student.userName}</td>
+                        {recentDays.map((date, dayIndex) => {
+                          const vietnamDate = new Date(date);
+                          vietnamDate.setHours(vietnamDate.getHours() + 7); // Điều chỉnh cho múi giờ Việt Nam
+                          return (
+                            <td
+                              key={dayIndex}
+                              className="border border-gray-400 px-1 py-1 text-center"
+                              style={{
+                                backgroundColor:
+                                  vietnamDate.getDay() === 6
+                                    ? '#ffffcc' // Thứ Bảy
+                                    : vietnamDate.getDay() === 0
+                                      ? '#ccffcc' // Chủ Nhật
+                                      : 'transparent',
+                                width: '25px', // Đặt chiều rộng
+                              }}
+                            >
+                              {vietnamDate.getDay() !== 6 && vietnamDate.getDay() !== 0 ? (
+                                <>
+                                  <input
+                                    type="checkbox"
+                                    name={`attendance-${student._id}-${vietnamDate.toISOString().split('T')[0]}`} // Chỉ lấy phần ngày
+                                    value="CM"
+                                    onChange={(e) => {
+                                      const isChecked = e.target.checked;
+                                      if (isChecked) {
+                                        handleAttendanceChange(student._id, vietnamDate, 'CM');
+                                        document
+                                          .querySelectorAll(`input[name^="attendance-${student._id}"]`)
+                                          .forEach((checkbox) => {
+                                            if (checkbox.value !== 'CM') {
+                                              checkbox.checked = false;
+                                            }
+                                          });
+                                      } else {
+                                        handleAttendanceChange(student._id, vietnamDate, null);
+                                      }
+                                    }}
+                                    style={{ color: 'blue' }}
+                                  />
+
+                                  <input
+                                    type="checkbox"
+                                    name={`attendance-${student._id}-${vietnamDate.toISOString().split('T')[0]}`}
+                                    value="VCP"
+                                    onChange={(e) => {
+                                      const isChecked = e.target.checked;
+                                      if (isChecked) {
+                                        handleAttendanceChange(student._id, vietnamDate, 'VCP');
+                                        document
+                                          .querySelectorAll(`input[name^="attendance-${student._id}"]`)
+                                          .forEach((checkbox) => {
+                                            if (checkbox.value !== 'VCP') {
+                                              checkbox.checked = false;
+                                            }
+                                          });
+                                      } else {
+                                        handleAttendanceChange(student._id, vietnamDate, null);
+                                      }
+                                    }}
+                                    style={{ color: 'green' }}
+                                  />
+
+                                  <input
+                                    type="checkbox"
+                                    name={`attendance-${student._id}-${vietnamDate.toISOString().split('T')[0]}`}
+                                    value="VKP"
+                                    onChange={(e) => {
+                                      const isChecked = e.target.checked;
+                                      if (isChecked) {
+                                        handleAttendanceChange(student._id, vietnamDate, 'VKP');
+                                        document
+                                          .querySelectorAll(`input[name^="attendance-${student._id}"]`)
+                                          .forEach((checkbox) => {
+                                            if (checkbox.value !== 'VKP') {
+                                              checkbox.checked = false;
+                                            }
+                                          });
+                                      } else {
+                                        handleAttendanceChange(student._id, vietnamDate, null);
+                                      }
+                                    }}
+                                    style={{ color: 'red' }}
+                                  />
+                                </>
+                              ) : null}
+                            </td>
+                          );
+                        })}
+                        <td className="border border-gray-400 px-2 py-1 text-center">0</td>
+                        <td className="border border-gray-400 px-2 py-1 text-center">0</td>
+                        <td className="border border-gray-400 px-2 py-1 text-center">0</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table> */}
+
               <table className="table-auto w-full border-collapse border border-gray-400 mt-4">
                 <thead>
                   <tr style={{ backgroundColor: '#e0e0e0' }}>
