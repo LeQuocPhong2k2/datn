@@ -4,6 +4,7 @@ const Parent = require("../models/Parent");
 const Class = require("../models/Class");
 const Account = require("../models/Account");
 const socket = require("../../socket");
+const Schedule = require("../models/Schedule");
 
 const ClassController = {
   /**
@@ -265,6 +266,11 @@ const ClassController = {
       if (!classInfo) {
         return res.status(404).json({ message: "Không tìm thấy lớp học" });
       }
+      //1.Xóa lịch học
+      await Schedule.deleteMany({
+        className: classInfo.className,
+        schoolYear: classInfo.academicYear,
+      });
 
       // 1. Xóa lớp
       await Class.findByIdAndDelete(idClass);

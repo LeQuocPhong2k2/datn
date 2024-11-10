@@ -74,7 +74,7 @@ const TranscriptController = {
                 hk2Ck: 0,
                 hk2Tb: 0,
                 allYear: 0,
-                remarks: "Chưa có bảng điểm",
+                remarks: "",
               };
         });
 
@@ -111,6 +111,16 @@ const TranscriptController = {
     try {
       const student = await Student.findOne({ studentCode: mshs });
 
+      const classExists = await Class.findOne({
+        className: className,
+        academicYear: schoolYear,
+        studentList: student._id,
+      });
+
+      if (!classExists) {
+        return res.status(403).json({ message: "Không tìm thấy học sinh trong lớp này" });
+      }
+
       const transcriptUpdate = await Transcript.findOne({
         studentCode: mshs,
         className: className,
@@ -124,9 +134,6 @@ const TranscriptController = {
         let tbcnAvg = 0;
 
         tbhk1Avg = (gk1 * 2 + ck1 * 3) / 5;
-        console.log(gk1);
-        console.log(ck1);
-        console.log(tbhk1Avg);
         tbhk2Avg = (parseInt(gk2) * 2 + parseInt(ck2) * 3) / 5;
         tbcnAvg = (tbhk1Avg + tbhk2Avg) / 2;
 

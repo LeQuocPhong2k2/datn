@@ -15,9 +15,14 @@ import { getSubjectByGrade } from '../../api/Subject';
 import { getTranscriptBySubjectAndClassAndSchoolYear, updateTranscript } from '../../api/Transcripts';
 
 export default function InputScore() {
+  const [activeImport, setActiveImport] = useState(false);
+  const [success, setSuccess] = useState(0);
+  const [failed, setFailed] = useState(0);
+  const [importProgress, setImportProgress] = useState(0);
   const [order, setOrder] = useState('ASC');
   const [pageLoading, setPageLoading] = useState(true);
-  const [selectedSemester, setSelectedSemester] = useState('Semester 1');
+  const [selectedSemester, setSelectedSemester] = useState('');
+  const [selectedSemesterNumber, setSelectedSemesterNumber] = useState('');
   const [grade, setGrade] = useState('');
   const [classroom, setClassroom] = useState('');
   const [subjectCode, setSubjectCode] = useState('');
@@ -116,9 +121,101 @@ export default function InputScore() {
     reader.readAsArrayBuffer(file);
   };
 
-  const handleImportTranscript = (event) => {
+  const handleImportTranscript = async () => {
+    if (grade === '') {
+      toast.error('Please select a grade');
+      return;
+    }
+    if (classroom === '') {
+      toast.error('Please select a classroom');
+      return;
+    }
+    if (subjectCode === '') {
+      toast.error('Please select a subject');
+      return;
+    }
+
+    if (selectedSemester === '') {
+      toast.error('Please select semester ');
+      return;
+    }
+
+    if (selectedSemesterNumber === '') {
+      toast.error('Please select semester ');
+      return;
+    }
+
+    if (transcriptFileUpload.length === 0) {
+      toast.error('No data found in the file');
+      return;
+    }
+
+    let nfailed = 0;
+    let nsuccess = 0;
+    setImportProgress(0);
+    setActiveImport(true);
     const totalFile = transcriptFileUpload.length;
-    console.log('total file upload' + totalFile);
+    for (let index = 0; index < totalFile; index++) {
+      const transcriptImport = transcriptFileUpload[index];
+      dataRow.stt = index;
+      dataRow.mshs = transcriptImport['Mã số học sinh'];
+      dataRow.className = classroom;
+      dataRow.schoolYear = getCurrentYear();
+      dataRow.subjectCode = subjectCode;
+      if (selectedSemesterNumber === 'Gk' && selectedSemester === '1') {
+        dataRow.gk1 = transcriptImport['Điểm'];
+        dataRow.ck1 = transcript[index].hk1Ck;
+        dataRow.tbhk1 = transcript[index].hk1Tb;
+        dataRow.gk2 = transcript[index].hk2Gk;
+        dataRow.ck2 = transcript[index].hk2Ck;
+        dataRow.tbhk2 = transcript[index].hk2Tb;
+        dataRow.tbcn = transcript[index].allYear;
+        dataRow.remarks = transcript[index].remarks;
+      }
+      if (selectedSemesterNumber === 'Ck' && selectedSemester === '1') {
+        dataRow.gk1 = transcript[index].hk1Gk;
+        dataRow.ck1 = transcriptImport['Điểm'];
+        dataRow.tbhk1 = transcript[index].hk1Tb;
+        dataRow.gk2 = transcript[index].hk2Gk;
+        dataRow.ck2 = transcript[index].hk2Ck;
+        dataRow.tbhk2 = transcript[index].hk2Tb;
+        dataRow.tbcn = transcript[index].allYear;
+        dataRow.remarks = transcript[index].remarks;
+      }
+      if (selectedSemesterNumber === 'Gk' && selectedSemester === '2') {
+        dataRow.gk1 = transcript[index].hk1Gk;
+        dataRow.ck1 = transcript[index].hk1Ck;
+        dataRow.tbhk1 = transcript[index].hk1Tb;
+        dataRow.gk2 = transcriptImport['Điểm'];
+        dataRow.ck2 = transcript[index].hk2Ck;
+        dataRow.tbhk2 = transcript[index].hk2Tb;
+        dataRow.tbcn = transcript[index].allYear;
+        dataRow.remarks = transcript[index].remarks;
+      }
+      if (selectedSemesterNumber === 'Ck' && selectedSemester === '2') {
+        dataRow.gk1 = transcript[index].hk1Gk;
+        dataRow.ck1 = transcript[index].hk1Ck;
+        dataRow.tbhk1 = transcript[index].hk1Tb;
+        dataRow.gk2 = transcript[index].hk2Gk;
+        dataRow.ck2 = transcriptImport['Điểm'];
+        dataRow.tbhk2 = transcript[index].hk2Tb;
+        dataRow.tbcn = transcript[index].allYear;
+        dataRow.remarks = transcript[index].remarks;
+      }
+
+      try {
+        await updateTranscript(dataRow);
+        nsuccess++;
+      } catch (error) {
+        nfailed++;
+        console.error(error);
+      }
+      setSuccess(nsuccess);
+      setFailed(nfailed);
+      setImportProgress(Math.round(((index + 1) / totalFile) * 100));
+    }
+    refreshTranscript();
+    setTranscriptFileUpload([]);
   };
 
   const filterClassesByGrade = (grade) => {
@@ -150,6 +247,14 @@ export default function InputScore() {
 
   useEffect(() => {
     setSubjectCode('');
+    setClassroom('');
+    setSelectedSemester('');
+    setSelectedSemesterNumber('');
+    setTranscript([]);
+    setTranscriptBk([]);
+    setImportProgress(0);
+    setSuccess(0);
+    setFailed(0);
     getSubjectByGrade(grade)
       .then((res) => setSubjectList(res))
       .catch((error) =>
@@ -423,23 +528,35 @@ export default function InputScore() {
                   Học kỳ<span className="text-red-500">*</span>
                 </label>
                 <div className="flex items-center space-x-4">
-                  <select className="w-full p-2 border rounded">
-                    <option>Học kỳ 1</option>
-                    <option>Học kỳ 2</option>
+                  <select
+                    value={selectedSemester}
+                    onChange={(e) => setSelectedSemester(e.target.value)}
+                    className="w-full p-2 border rounded"
+                    defaultValue={''}
+                  >
+                    <option value={''}></option>
+                    <option value={'1'}>Học kỳ 1</option>
+                    <option value={'2'}>Học kỳ 2</option>
                   </select>
-                  <select className="w-full p-2 border rounded">
-                    <option>Giữa kỳ</option>
-                    <option>Cuối kỳ</option>
+                  <select
+                    value={selectedSemesterNumber}
+                    onChange={(e) => setSelectedSemesterNumber(e.target.value)}
+                    className="w-full p-2 border rounded"
+                    defaultValue={''}
+                  >
+                    <option value={''}></option>
+                    <option value={'Gk'}>Giữa kỳ</option>
+                    <option value={'Ck'}>Cuối kỳ</option>
                   </select>
                 </div>
               </div>
-              <div className="col-span-2 w-full grid grid-cols-2 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-2 gap-4">
-                <div className="grid grid-cols-2 items-end justify-start gap-4">
+              <div className="col-span-2 w-full grid grid-cols-3 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-3 gap-4">
+                <div className="col-span-2 grid grid-cols-2 items-end justify-start gap-4">
                   <div className="">
                     <label className="block mb-2">Nhập điểm từ file Excel</label>
                     <input type="file" onChange={handleFileUpload} className="w-full border rounded" />
                   </div>
-                  <div className="flex items-end justify-start">
+                  <div className="flex items-end justify-start gap-2">
                     <button
                       onClick={handleImportTranscript}
                       type="button"
@@ -447,6 +564,13 @@ export default function InputScore() {
                     >
                       <CiImport className="text-xl font-medium" />
                     </button>
+                    {activeImport && (
+                      <div className="grid grid-flow-col gap-5">
+                        <span>Process: {importProgress}%</span>
+                        <span>Thành công: {success}</span>
+                        <span>Thất bại: {failed}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-end justify-end">
@@ -540,11 +664,11 @@ export default function InputScore() {
                     <th className="border px-4 py-2" colSpan={3}>
                       HKII
                     </th>
-                    <th onClick={() => sorting('allYear')} className="border px-4 py-2 w-24 min-w-24" rowSpan={2}>
+                    <th onClick={() => sorting('allYear')} className="border px-4 py-2 w-36 min-w-36" rowSpan={2}>
                       <span class="flex items-center">
                         TB Cả Năm
                         <svg
-                          className="cursor-pointer w-7 h-w-7 ms-1"
+                          className="cursor-pointer w-4 h-4 ms-1"
                           aria-hidden="true"
                           xmlns="http://www.w3.org/2000/svg"
                           width="24"
@@ -562,8 +686,8 @@ export default function InputScore() {
                         </svg>
                       </span>
                     </th>
-                    <th className="border px-4 py-2 w-52 min-w-52 text-left" rowSpan={2}>
-                      Ghi chú
+                    <th className="border px-4 py-2 w-28 min-w-28 text-left" rowSpan={2}>
+                      Xếp loại
                     </th>
                     <th className="border px-4 py-2 w-14 min-w-14" rowSpan={2}></th>
                     <th className="border px-4 py-2 w-14 min-w-14" rowSpan={2}></th>
@@ -705,7 +829,7 @@ export default function InputScore() {
                 </thead>
                 <tbody>
                   {transcript.map((student, index) => (
-                    <tr className="h-16" key={index}>
+                    <tr className="h-16 odd:bg-white even:bg-yellow-50" key={index}>
                       <td className="border px-4 py-2 text-center">{index + 1}</td>
                       <td className="border px-4 py-2 text-center">{student.studentCode}</td>
                       <td className="border px-4 py-2">{student.userName}</td>
@@ -780,7 +904,7 @@ export default function InputScore() {
                         <span>{student.allYear}</span>
                       </td>
                       <td className="border px-4 py-2 text-left">
-                        {activeEdit === index ? (
+                        {/* {activeEdit === index ? (
                           <input
                             value={dataRow.remarks}
                             onChange={(e) => handleOnChangeEdit(e)}
@@ -790,7 +914,7 @@ export default function InputScore() {
                           />
                         ) : (
                           <span>{student.remarks}</span>
-                        )}
+                        )} */}
                       </td>
                       <td className="border px-4 py-2 text-center cursor-pointer text-xl">
                         {activeEdit === index ? (
