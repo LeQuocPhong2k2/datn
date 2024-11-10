@@ -1,5 +1,4 @@
 import axios from 'axios';
-
 const API_URL = process.env.REACT_APP_API_URL;
 
 async function addLopHoc(lopHoc) {
@@ -100,10 +99,10 @@ async function importStudents(mshs, classId) {
   return response.data;
 }
 
-async function autoUpClass(classId) {
+async function autoUpClass(namHoc) {
   const response = await axios.post(
     API_URL + '/class/autoUpClass',
-    { classId },
+    { namHoc },
     {
       headers: {
         'Content-Type': 'application/json',
@@ -126,6 +125,20 @@ async function deleteClass(idClass) {
   return response;
 }
 
+async function getStudentListByClassNameAndAcademicYear(tenLop, namHoc) {
+  // sử dụng biến API_URL để thay thế đường dẫn cứng
+  const response = await axios.post(
+    `${API_URL}/class/getStudentListByClassNameAndAcademicYear`,
+    { className: tenLop, academicYear: namHoc },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+  return response;
+}
+
 export {
   addLopHoc,
   getLopHocByNamHocVaKhoi,
@@ -135,4 +148,5 @@ export {
   importStudents,
   autoUpClass,
   deleteClass,
+  getStudentListByClassNameAndAcademicYear,
 };

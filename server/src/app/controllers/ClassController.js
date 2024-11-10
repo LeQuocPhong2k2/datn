@@ -4,6 +4,7 @@ const Parent = require("../models/Parent");
 const Class = require("../models/Class");
 const Account = require("../models/Account");
 const socket = require("../../socket");
+const Schedule = require("../models/Schedule");
 
 const ClassController = {
   /**
@@ -265,6 +266,11 @@ const ClassController = {
       if (!classInfo) {
         return res.status(404).json({ message: "Không tìm thấy lớp học" });
       }
+      //1.Xóa lịch học
+      await Schedule.deleteMany({
+        className: classInfo.className,
+        schoolYear: classInfo.academicYear,
+      });
 
       // 1. Xóa lớp
       await Class.findByIdAndDelete(idClass);
@@ -588,6 +594,95 @@ const ClassController = {
       res.status(200).json({ message: "Tự động nâng lớp thành công" });
     } catch (error) {
       console.error("Lỗi khi tự động nâng lớp:", error);
+      res.status(500).json({ error: error.message });
+    }
+  },
+  // autoUpClass: async (req, res) => {
+  //   const { classId } = req.body;
+  //   try {
+  //     const classInfo = await Class.findOne({ _id: classId });
+  //     const grade = classInfo.grade;
+  //     const className = classInfo.className;
+  //     const classSession = classInfo.classSession;
+  //     const startDate = classInfo.startDate;
+  //     const maxStudents = classInfo.maxStudents;
+  //     const homeRoomTeacher = classInfo.homeRoomTeacher;
+
+  //     // Filter students with status "Đang học"
+  //     let studentList = [];
+  //     for (let i = 0; i < classInfo.studentList.length; i++) {
+  //       const student = await Student.findById(classInfo.studentList[i]);
+  //       studentList.push(student);
+  //     }
+
+  //     studentList = studentList.filter((student) => student.status === "Đang học");
+
+  //     const splitAcademicYear = classInfo.academicYear.split("-");
+  //     const newAcademicYear = parseInt(splitAcademicYear[1]) + 1;
+  //     const newAcademicYearString = splitAcademicYear[1] + "-" + newAcademicYear;
+
+  //     const newStartDate = new Date(startDate);
+  //     newStartDate.setFullYear(newStartDate.getFullYear() + 1);
+
+  //     const incrementedClassName = incrementClassName(className);
+
+  //     const newClass = new Class({
+  //       academicYear: newAcademicYearString,
+  //       grade: parseInt(grade) + 1,
+  //       className: incrementedClassName,
+  //       classSession: classSession,
+  //       startDate: newStartDate,
+  //       maxStudents: maxStudents,
+  //       homeRoomTeacher: homeRoomTeacher,
+  //       studentList: studentList,
+  //     });
+
+  //     const classExist = await Class.findOne({
+  //       academicYear: newAcademicYearString,
+  //       grade: parseInt(grade) + 1,
+  //       className: incrementedClassName,
+  //     });
+
+  //     if (classExist) {
+  //       return res.status(400).json({ message: "Lớp đã tồn tại" });
+  //     }
+
+  //     console.log("Lớp mới:", newClass);
+
+  //     await newClass.save();
+  //     res.status(200).json({ message: "Tự động nâng lớp thành công" });
+  //   } catch (error) {
+  //     console.error("Lỗi khi tự động nâng lớp:", error);
+  //     res.status(500).json({ error: error.message });
+  //   }
+  // },
+  // get danh sách học sinh qua tên lớp và năm học hiện tại va +1 kiẻu như 2024-2025
+  getStudentListByClassNameAndAcademicYear: async (req, res) => {
+    const { className, academicYear } = req.body;
+    try {
+      const classInfo = await Class.findOne({
+        className: className,
+        academicYear: academicYear,
+      });
+      if (!classInfo) {
+        return res.status(404).json({ message: "Không tìm thấy lớp học" });
+      }
+
+      // Lấy danh sách học sinh từ classInfo
+      const students = await Student.find({
+        _id: { $in: classInfo.studentList },
+      });
+      // .select("_id studentCode userName ");
+      console.log("số lượng học sinh trong lớp:", students.length);
+      // chỉ lấy các trường cần thiết là _id, studentCode, userName
+
+      // Trả về danh sách học sinh
+      res.status(200).json({
+        class_id: classInfo._id,
+        students: students,
+      });
+    } catch (error) {
+      console.error("Lỗi khi lấy danh sách học sinh:", error);
       res.status(500).json({ error: error.message });
     }
   },

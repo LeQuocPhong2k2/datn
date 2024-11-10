@@ -6,7 +6,7 @@ import os
 fake = Faker("vi_VN")  # 'vi_VN' cho dữ liệu giả Việt Nam
 
 # Đọc file Excel hiện có
-df = pd.read_excel("dataTempalte.xlsx")
+df = pd.read_excel("dataTemplate.xlsx")
 
 def generate_vietnamese_phone_number():
     prefixes = ["03", "07", "08", "09"]

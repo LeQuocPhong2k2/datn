@@ -1,17 +1,17 @@
-import axios from 'axios';
-import Cookies from 'cookie-universal';
+// import axios from 'axios';
+// import Cookies from 'cookie-universal';
 
-const API_URL = process.env.REACT_APP_API_URL;
+// const API_URL = process.env.REACT_APP_API_URL;
 
-function getAccessToken() {
-  const cookies = new Cookies();
-  return cookies.get('access_token');
-}
+// function getAccessToken() {
+//   const cookies = new Cookies();
+//   return cookies.get('access_token');
+// }
 
-function getRefreshToken() {
-  const cookies = new Cookies();
-  return cookies.get('refresh_token');
-}
+// function getRefreshToken() {
+//   const cookies = new Cookies();
+//   return cookies.get('refresh_token');
+// }
 
 // async function refreshToken() {
 //   const cookies = new Cookies();
@@ -62,4 +62,4 @@ function getRefreshToken() {
 //   }
 // }
 
-export { getAccessToken, getRefreshToken };
+// export { getAccessToken, getRefreshToken };
