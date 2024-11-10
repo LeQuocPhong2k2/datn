@@ -330,17 +330,19 @@ export default function Teacher() {
     setAttendanceData([]);
   };
   return (
-    <div className="font-sans bg-gray-100 min-h-screen">
-      <header className="bg-white p-4 border-b border-gray-300 flex justify-between items-center">
+    <div className="h-screen max-w-[100%] font-sans bg-gray-100">
+      <header className="grid grid-flow-col items-center bg-white border-b border-gray-300 ">
         <Toaster toastOptions={{ duration: 2200 }} />
-        <a href="/teacher">
-          <img
-            src="https://i.imgur.com/jRMcFwo_d.png?maxwidth=520&shape=thumb&fidelity=high"
-            alt="SMAS Logo"
-            className="h-12"
-          />
-        </a>
-        <div className="flex items-center">
+        <div className="">
+          <a href="/teacher">
+            <img
+              src="https://i.imgur.com/jRMcFwo_d.png?maxwidth=520&shape=thumb&fidelity=high"
+              alt="SMAS Logo"
+              className="h-14 p-2"
+            />
+          </a>
+        </div>
+        <div className="flex items-center justify-end px-4">
           {/* Hiển thị menu cho màn hình desktop */}
           <div className="hidden md:flex items-center space-x-4">
             <span
@@ -781,7 +783,9 @@ export default function Teacher() {
         </div>
       )}
       {showTeacherProfile && ( // phần dưới body
-        <div className={`w-[90%] mx-auto bg-white p-6 rounded shadow ${window.innerWidth > 768 ? 'mt-4' : 'mt-0'}`}>
+        <div
+          className={`w-[90%] mx-auto overflow-y-scroll overflow-x-hidden max-h-[92%] bg-white p-6 rounded shadow ${window.innerWidth > 768 ? 'mt-4' : 'mt-0'}`}
+        >
           <div className="flex space-x-2 mb-4 md:space-x-4 justify-center ">
             <div
               className={`tab ${activeTab === 'profile' ? 'active' : ''} ${window.innerWidth <= 768 ? 'text-sm p-2' : ' p-3'}`}
@@ -1728,7 +1732,6 @@ export default function Teacher() {
                   )}
                 </tbody>
               </table>
-
               <div className="flex flex-col md:flex-row justify-center mt-4 space-x-0 md:space-x-4">
                 <button
                   className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 mb-2 md:mb-0"

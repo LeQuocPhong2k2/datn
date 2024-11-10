@@ -99,10 +99,10 @@ async function importStudents(mshs, classId) {
   return response.data;
 }
 
-async function autoUpClass(classId) {
+async function autoUpClass(namHoc) {
   const response = await axios.post(
     API_URL + '/class/autoUpClass',
-    { classId },
+    { namHoc },
     {
       headers: {
         'Content-Type': 'application/json',

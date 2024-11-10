@@ -1,32 +1,57 @@
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Login from './components/Login';
-import Home from './components/Home';
+import Admin from './components/Admin';
 import Student from './components/User/index';
 import Teacher from './components/User/Teacher';
 import ForgotPassword from './components/User/ForgotPassword';
-import { useEffect, useState } from 'react';
+import Error from './components/Error';
+import Home from './components/Home';
+import ProtectedRoute from './middleware/ProtectedRoute';
+
 import './App.css';
 
 function App() {
-  const [userRole, setUserRole] = useState(null);
-  useEffect(() => {
-    const role = localStorage.getItem('role');
-    setUserRole(role);
-  }, []);
-
   return (
     <Router>
       <div>
         <Routes>
-          <Route path="/login" element={<Login />} />
-          {/* <Route path="/teacher" element={<Teacher />} />
-          <Route path="/student" element={<Student />} /> */}
+          <Route path="" element={<Home />} />
           <Route path="/" element={<Home />} />
-          {userRole === 'Admin' && <Route path="/" element={<Home />} />}
-          {userRole === 'Student' && <Route path="/student" element={<Student />} />}
-          {userRole === 'Teacher' && <Route path="/teacher" element={<Teacher />} />}
-
+          <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/error" element={<Error />} />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute allowedRole="Admin">
+                <Admin />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute allowedRole="Admin">
+                <Teacher />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student"
+            element={
+              <ProtectedRoute allowedRole="Student">
+                <Student />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/teacher"
+            element={
+              <ProtectedRoute allowedRole="Teacher">
+                <Teacher />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </div>
     </Router>
