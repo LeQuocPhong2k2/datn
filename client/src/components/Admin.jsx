@@ -20,7 +20,8 @@ import AddSubject from './Manager/Subject/AddSubject';
 import TeachingAssignment from './Manager/Subject/TeachingAssignment';
 
 import { getAccountById } from '../api/Login';
-
+import AddNotification from './Manager/Notification/AddNotification';
+import { getAdministratorsbyAccountId } from '../api/Administrator';
 export default function Admin() {
   const [accounts, setAccounts] = useState({});
 
@@ -33,6 +34,27 @@ export default function Admin() {
       setAccounts(res);
     });
   }, []);
+  // gọi tới getAdministratorsbyAccountId từ account_id là _id trong localStorage và từ reponse lưu cái admin_id vào localStorage
+  const accountId = localStorage.getItem('_id');
+  useEffect(() => {
+    console.log('Account ID:', accountId);
+    if (accountId) {
+      getAdministratorsbyAccountId(accountId)
+        .then((res) => {
+          if (res.data && res.data.length > 0 && res.data[0]._id) {
+            localStorage.setItem('admin_id', res.data[0]._id);
+            // console.log('Administrator ID:', res.data[0]._id);
+          } else {
+            console.error('admin_id not found in response data');
+          }
+        })
+        .catch((error) => {
+          console.error('Error fetching administrator by account ID:', error);
+        });
+    } else {
+      console.error('Account ID not found in localStorage');
+    }
+  }, []);
 
   const [selectedFunction, setSelectedFunction] = useState(null);
   const [showSubMenus, setShowSubMenus] = useState({
@@ -40,12 +62,14 @@ export default function Admin() {
     lopHoc: false,
     monHoc: false,
     giaoVien: false,
+    thongBao: false,
   });
 
   const [activeMenus, setActiveMenus] = useState({
     hocSinh: false,
     lopHoc: false,
     giaoVien: false,
+    thongBao: false,
   });
 
   const toggleSubMenu = (menu) => {};
@@ -57,6 +81,7 @@ export default function Admin() {
       lopHoc: false,
       monHoc: false,
       giaoVien: false,
+      thongBao: false,
     });
   };
   return (
@@ -282,6 +307,47 @@ export default function Admin() {
                 </ul>
               )}
             </li>
+            <li
+              onMouseLeave={() => setShowSubMenus({ thongBao: false })}
+              onMouseEnter={() => setShowSubMenus({ thongBao: true })}
+              className={`group relative py-2 border-l-4 border-l-white hover:border-l-blue-700  ${activeMenus.thongBao ? 'bg-blue-300' : 'hover:bg-slate-400'}`}
+            >
+              <div className="px-3 flex justify-start items-center gap-2 cursor-pointer">
+                <span className="font-medium">
+                  <i className="fas fa-bell mr-2"></i>
+                  Quản lý thông báo
+                </span>
+
+                {showSubMenus.thongBao && (
+                  <ul className="dropdown-list w-[13.4rem] absolute z-50 -right-[13.45rem] px-2 top-0 bg-slate-300">
+                    <li
+                      className={`py-1 px-2 border-l-4 border-l-slate-300 hover:border-l-blue-700 hover:text-blue-700 ${selectedFunction === 'add-notification' ? 'bg-gray-300' : ''}`}
+                      onClick={() => {
+                        handleFunctionSelect('add-notification');
+                        setActiveMenus({ hocSinh: false, monHoc: false, giaoVien: false, thongBao: true });
+                      }}
+                    >
+                      <div className="absolute top-2 -left-[0.9rem] font-medium text-2xl text-slate-300">
+                        <FaCaretLeft />
+                      </div>
+                      <a href="#add-notification">Thêm mới thông báo</a>
+                    </li>
+                    <li
+                      className={`py-1 px-2 border-l-4 border-l-slate-300 hover:border-l-blue-700 hover:text-blue-700 ${selectedFunction === 'import-subject' ? 'bg-gray-300' : ''}`}
+                      onClick={() => {
+                        handleFunctionSelect('read-notification');
+                        setActiveMenus({ hocSinh: false, monHoc: false, giaoVien: false, thongBao: true });
+                      }}
+                    >
+                      <div className="absolute top-2 -left-[0.9rem] font-medium text-2xl text-slate-300">
+                        <FaCaretLeft />
+                      </div>
+                      <a href="#import-subject">Xem thông báo đã gửi</a>
+                    </li>
+                  </ul>
+                )}
+              </div>
+            </li>
           </ul>
         </div>
       </div>
@@ -305,6 +371,7 @@ export default function Admin() {
             {selectedFunction === 'import-subject' && <ImportSubject />}
             {selectedFunction === 'add-subject' && <AddSubject />}
             {selectedFunction === 'teaching-assignment' && <TeachingAssignment />}
+            {selectedFunction === 'add-notification' && <AddNotification />}
           </>
         )}
       </div>
