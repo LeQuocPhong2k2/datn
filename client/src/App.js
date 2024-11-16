@@ -10,6 +10,8 @@ import Error from './components/Error';
 import Home from './components/Home';
 import ProtectedRoute from './middleware/ProtectedRoute';
 import Cookies from 'cookie-universal';
+import Message from './components/User/Teacher/Message';
+import TeachingPlans from './components/User/Teacher/TeachingPlans';
 
 import './App.css';
 
@@ -59,6 +61,22 @@ function App() {
           element={
             <ProtectedRoute allowedRole="Teacher">
               <Teacher />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teacher/message"
+          element={
+            <ProtectedRoute allowedRole="Teacher">
+              <Message />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teacher/teaching-plans"
+          element={
+            <ProtectedRoute allowedRole="Teacher">
+              <TeachingPlans />
             </ProtectedRoute>
           }
         />
