@@ -203,34 +203,6 @@ export default function Teacher() {
 
   const [attendanceData, setAttendanceData] = useState({});
 
-  // const handleAttendanceChange = (studentId, date, attendance) => {
-  //   const vietnamDate = new Date(date);
-  //   vietnamDate.setHours(vietnamDate.getHours() + 7); // Điều chỉnh cho múi giờ Việt Nam
-  //   const dateKey = vietnamDate.toISOString().split('T')[0]; // Lấy khóa ngày, chỉ lấy phần ngày
-
-  //   setAttendanceData((prevData) => {
-  //     const updatedData = { ...prevData };
-
-  //     // Kiểm tra xem học sinh đã có trong attendanceData chưa
-  //     if (!updatedData[studentId]) {
-  //       updatedData[studentId] = {}; // Nếu chưa có, khởi tạo đối tượng cho học sinh
-  //     }
-
-  //     // Cập nhật giá trị cho ngày tương ứng
-  //     if (attendance) {
-  //       updatedData[studentId][dateKey] = attendance; // Cập nhật hoặc thêm mới
-  //     } else {
-  //       delete updatedData[studentId][dateKey]; // Xóa nếu không có trạng thái
-  //       // Nếu không còn mục nào, xóa học sinh khỏi attendanceData
-  //       if (Object.keys(updatedData[studentId]).length === 0) {
-  //         delete updatedData[studentId];
-  //       }
-  //     }
-
-  //     return updatedData;
-  //   });
-  // };
-
   // useEffect để log ra attendanceData
   useEffect(() => {
     console.log('attendanceData đang có là:', attendanceData);
@@ -315,7 +287,6 @@ export default function Teacher() {
   };
 
   // Phần code điểm danh 2.0
-  //const [attendanceData, setAttendanceData] = useState({});
 
   // Hàm xử lý thay đổi điểm danh
   const handleAttendanceChange = (studentId, date, status) => {
@@ -344,6 +315,32 @@ export default function Teacher() {
 
       return updatedData;
     });
+  };
+  // chỗ code mà xử lý có mặt cho tát cả trong phần điểm danh
+  const selectedDate = new Date(attendanceDate);
+  const vietnamDate = new Date(selectedDate);
+  // vietnamDate.setHours(vietnamDate.getHours() + 7); bỏ để lấy đúng ngày được pick
+  const formattedDate = vietnamDate.toISOString().split('T')[0]; // Chỉ lấy phần ngày
+
+  const handleCoMatChoTatCa = () => {
+    const dayOfWeek = vietnamDate.getDay(); // Lấy ngày trong tuần
+
+    if (dayOfWeek !== 6 && dayOfWeek !== 0) {
+      // Kiểm tra xem tất cả học sinh đã có mặt hay chưa
+      const allChecked = studentList.every((student) => attendanceData[student._id]?.[formattedDate] === 'CM');
+
+      if (allChecked) {
+        // Nếu tất cả học sinh đã có mặt, reset attendance
+        handleResetAttendance();
+      } else {
+        // Lặp qua tất cả học sinh và cập nhật trạng thái
+        studentList.forEach((student) => {
+          handleAttendanceChange(student._id, vietnamDate, 'CM'); // Cập nhật điểm danh cho tất cả học sinh
+        });
+      }
+    } else {
+      alert('Không thể chọn ngày thứ Bảy hoặc Chủ Nhật.');
+    }
   };
 
   return (
@@ -1439,271 +1436,146 @@ export default function Teacher() {
                     placeholderText="DD/MM/YYYY"
                   />
                 </div>
+
                 <div className="flex items-center">
                   <button
-                    onClick={() => {
-                      const selectedDate = new Date(attendanceDate);
-
-                      const formattedDate = selectedDate.toISOString().split('T')[0]; // Chỉ lấy phần ngày
-                      // console.log(formattedDate);
-                      const dayOfWeek = selectedDate.getDay(); // Lấy ngày trong tuần
-
-                      if (dayOfWeek !== 6 && dayOfWeek !== 0) {
-                        const allChecked =
-                          document.querySelectorAll('input[type="checkbox"][value="CM"]:checked').length ===
-                          studentList.length;
-
-                        if (allChecked) {
-                          handleResetAttendance(); // Gọi sự kiện reset attendance nếu tất cả đã được chọn
-                        } else {
-                          // Lặp qua tất cả học sinh
-                          studentList.forEach((student) => {
-                            // Tìm checkbox cho học sinh này và ngày đã chọn
-                            const checkboxCM = document.querySelectorAll(
-                              `input[type="checkbox"][name='attendance-${student._id}-${formattedDate}'][value="CM"]`
-                            );
-                            // lấy ra cái name của checkbox
-                            // const name = `attendance-${student._id}-${formattedDate}`;
-                            // console.log(name);
-                            const checkboxVCP = document.querySelectorAll(
-                              `input[type="checkbox"][name='attendance-${student._id}-${formattedDate}'][value="VCP"]`
-                            );
-                            const checkboxVKP = document.querySelectorAll(
-                              `input[type="checkbox"][name='attendance-${student._id}-${formattedDate}'][value="VKP"]`
-                            );
-
-                            // Bỏ chọn các checkbox VCP và VKP
-                            checkboxVCP.forEach((cb) => (cb.checked = false));
-                            checkboxVKP.forEach((cb) => (cb.checked = false));
-
-                            // Đặt trạng thái checkbox CM thành đã chọn
-                            checkboxCM.forEach((cb) => {
-                              cb.checked = true; // Đặt trạng thái checkbox thành đã chọn
-                              handleAttendanceChange(student._id, selectedDate, 'CM'); // Cập nhật điểm danh
-                            });
-                          });
-                        }
-                      } else {
-                        alert('Không thể chọn ngày thứ Bảy hoặc Chủ Nhật.');
-                      }
-                    }}
+                    onClick={handleCoMatChoTatCa}
                     className={`font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline text-white ${
-                      document.querySelectorAll('input[type="checkbox"][value="CM"]:checked').length ===
-                      studentList.length
+                      studentList.every((student) => attendanceData[student._id]?.[formattedDate] === 'CM')
                         ? 'bg-green-500 hover:bg-green-700'
                         : 'bg-blue-500 hover:bg-blue-700'
                     }`}
                   >
-                    {document.querySelectorAll('input[type="checkbox"][value="CM"]:checked').length ===
-                    studentList.length
+                    {studentList.every((student) => attendanceData[student._id]?.[formattedDate] === 'CM')
                       ? 'Bỏ chọn tất cả'
                       : 'Có mặt cho tất cả'}
                   </button>
                 </div>
               </div>
-              {/* <table className="table-auto w-full border-collapse border border-gray-400 mt-4">
-                <thead>
-                  <tr style={{ backgroundColor: '#e0e0e0' }}>
-                    <th className="border border-gray-400 px-2 py-1">STT</th>
-                    <th className="border border-gray-400 px-2 py-1 whitespace-nowrap">Họ và tên</th>
-                    {recentDays.map((day, index) => (
-                      <th key={index} className="border border-gray-400 px-2 py-1" style={{ width: '25px' }}>
-                        {day.getDate()}
-                      </th>
-                    ))}
-                    <th className="border border-gray-400 px-2 py-1">CM</th>
-                    <th className="border border-gray-400 px-2 py-1">CP</th>
-                    <th className="border border-gray-400 px-2 py-1">KP</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {studentList.length === 0 ? (
-                    <tr>
-                      <td colSpan={recentDays.length + 5} className="text-center text-red-500">
-                        Không có danh sách học sinh cho lớp {selectedClass}.
-                      </td>
-                    </tr>
-                  ) : (
-                    studentList.map((student, index) => (
-                      <tr key={student._id} className="hover:bg-[#E5E7EB]">
-                        <td className="border border-gray-400 px-2 py-1 text-center">{index + 1}</td>
-                        <td className="border border-gray-400 px-2 py-1 whitespace-nowrap">{student.userName}</td>
-                        {recentDays.map((date, dayIndex) => {
-                          const vietnamDate = new Date(date);
-                          vietnamDate.setHours(vietnamDate.getHours() + 7); // Điều chỉnh cho múi giờ Việt Nam
-                          return (
-                            <td
-                              key={dayIndex}
-                              className="border border-gray-400 px-1 py-1 text-center"
-                              style={{
-                                backgroundColor:
-                                  vietnamDate.getDay() === 6
-                                    ? '#ffffcc' // Thứ Bảy
-                                    : vietnamDate.getDay() === 0
-                                      ? '#ccffcc' // Chủ Nhật
-                                      : 'transparent',
-                                width: '25px', // Đặt chiều rộng
-                              }}
-                            >
-                              {vietnamDate.getDay() !== 6 && vietnamDate.getDay() !== 0 ? (
-                                <>
-                                  <input
-                                    type="checkbox"
-                                    name={`attendance-${student._id}-${vietnamDate.toISOString().split('T')[0]}`} // Chỉ lấy phần ngày
-                                    value="CM"
-                                    onChange={(e) => {
-                                      const isChecked = e.target.checked;
-                                      if (isChecked) {
-                                        handleAttendanceChange(student._id, vietnamDate, 'CM');
-                                        document
-                                          .querySelectorAll(`input[name^="attendance-${student._id}"]`)
-                                          .forEach((checkbox) => {
-                                            if (checkbox.value !== 'CM') {
-                                              checkbox.checked = false;
-                                            }
-                                          });
-                                      } else {
-                                        handleAttendanceChange(student._id, vietnamDate, null);
-                                      }
-                                    }}
-                                    style={{ color: 'blue' }}
-                                  />
 
-                                  <input
-                                    type="checkbox"
-                                    name={`attendance-${student._id}-${vietnamDate.toISOString().split('T')[0]}`}
-                                    value="VCP"
-                                    onChange={(e) => {
-                                      const isChecked = e.target.checked;
-                                      if (isChecked) {
-                                        handleAttendanceChange(student._id, vietnamDate, 'VCP');
-                                        document
-                                          .querySelectorAll(`input[name^="attendance-${student._id}"]`)
-                                          .forEach((checkbox) => {
-                                            if (checkbox.value !== 'VCP') {
-                                              checkbox.checked = false;
-                                            }
-                                          });
-                                      } else {
-                                        handleAttendanceChange(student._id, vietnamDate, null);
-                                      }
-                                    }}
-                                    style={{ color: 'green' }}
-                                  />
-
-                                  <input
-                                    type="checkbox"
-                                    name={`attendance-${student._id}-${vietnamDate.toISOString().split('T')[0]}`}
-                                    value="VKP"
-                                    onChange={(e) => {
-                                      const isChecked = e.target.checked;
-                                      if (isChecked) {
-                                        handleAttendanceChange(student._id, vietnamDate, 'VKP');
-                                        document
-                                          .querySelectorAll(`input[name^="attendance-${student._id}"]`)
-                                          .forEach((checkbox) => {
-                                            if (checkbox.value !== 'VKP') {
-                                              checkbox.checked = false;
-                                            }
-                                          });
-                                      } else {
-                                        handleAttendanceChange(student._id, vietnamDate, null);
-                                      }
-                                    }}
-                                    style={{ color: 'red' }}
-                                  />
-                                </>
-                              ) : null}
-                            </td>
-                          );
-                        })}
-                        <td className="border border-gray-400 px-2 py-1 text-center">0</td>
-                        <td className="border border-gray-400 px-2 py-1 text-center">0</td>
-                        <td className="border border-gray-400 px-2 py-1 text-center">0</td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-
-
-
-              <div className="flex flex-col md:flex-row justify-center mt-4 space-x-0 md:space-x-4">
-                <button
-                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 mb-2 md:mb-0"
-                  onClick={async () => {
-                    handleUpdateAttendance();
-                  }}
-                >
-                  Lưu
-                </button>
-                <button
-                  className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700"
-                  onClick={() => {
-                    handleResetAttendance();
-                  }}
-                >
-                  Hủy
-                </button>
-              </div> */}
-              <div className="overflow-x-auto">
-                <table className="table-auto w-full border-collapse border border-gray-400 mt-4">
-                  <thead>
-                    <tr style={{ backgroundColor: '#e0e0e0' }}>
-                      <th className="border border-gray-400 px-2 py-1">STT</th>
-                      <th className="border border-gray-400 px-2 py-1 whitespace-nowrap">Họ và tên</th>
-                      {recentDays.map((day, index) => (
-                        <th key={index} className="border border-gray-400 px-2 py-1" style={{ width: '25px' }}>
-                          {day.getDate()}
-                        </th>
-                      ))}
-                      <th className="border border-gray-400 px-2 py-1">CM</th>
-                      <th className="border border-gray-400 px-2 py-1">CP</th>
-                      <th className="border border-gray-400 px-2 py-1">KP</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {studentList.length === 0 ? (
-                      <tr>
-                        <td colSpan={recentDays.length + 5} className="text-center text-red-500">
-                          Không có danh sách học sinh cho lớp {selectedClass}.
-                        </td>
-                      </tr>
-                    ) : (
-                      studentList.map((student, index) => (
-                        <tr key={student._id} className="hover:bg-[#E5E7EB]">
-                          <td className="border border-gray-400 px-2 py-1 text-center">{index + 1}</td>
-                          <td className="border border-gray-400 px-2 py-1 whitespace-nowrap">{student.userName}</td>
-                          {recentDays.map((date, dayIndex) => {
-                            const vietnamDate = new Date(date);
-                            vietnamDate.setHours(vietnamDate.getHours() + 7); // Điều chỉnh cho múi giờ Việt Nam
-                            return (
-                              <td key={dayIndex} className="border border-gray-400 px-1 py-1 text-center">
-                                {vietnamDate.getDay() !== 6 && vietnamDate.getDay() !== 0 ? (
-                                  <select
-                                    value={attendanceData[student._id]?.[vietnamDate.toISOString().split('T')[0]] || ''}
-                                    onChange={(e) => handleAttendanceChange(student._id, vietnamDate, e.target.value)}
-                                    className="border border-gray-300 p-1 rounded"
-                                    style={{ width: '80px' }} // Thay đổi giá trị width theo ý muốn
-                                  >
-                                    <option value=""></option>
-                                    <option value="CM">CM</option>
-                                    <option value="VCP">VCP</option>
-                                    <option value="VKP">VKP</option>
-                                  </select>
-                                ) : null}
-                              </td>
-                            );
-                          })}
-                          <td className="border border-gray-400 px-2 py- 1 text-center">0</td>
-                          <td className="border border-gray-400 px-2 py-1 text-center">0</td>
-                          <td className="border border-gray-400 px-2 py-1 text-center">0</td>
+              <div className="relative w-full overflow-x-auto">
+                <div className="flex items-start">
+                  {/* Cột cố định */}
+                  <div className="sticky left-0 z-10 bg-white">
+                    <table className="table-auto border-collapse border border-gray-400 mt-4">
+                      <thead>
+                        <tr style={{ backgroundColor: '#e0e0e0' }}>
+                          <th className="border border-gray-400 px-2 py-1 sticky top-0 bg-white">STT</th>
+                          <th className="border border-gray-400 px-2 py-1 whitespace-nowrap sticky top-0 bg-white">
+                            Họ và tên
+                          </th>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+                      </thead>
+                      <tbody>
+                        {studentList.length === 0 ? (
+                          <tr>
+                            <td colSpan={2} className="text-center text-red-500">
+                              {/* Không có danh sách học sinh cho lớp {selectedClass}. */}
+                              Trống
+                            </td>
+                          </tr>
+                        ) : (
+                          studentList.map((student, index) => (
+                            <tr key={student._id} className="hover:bg-[#E5E7EB]">
+                              <td className="border border-gray-400 px-2 py-1 text-center sticky left-0 bg-white">
+                                {index + 1}
+                              </td>
+                              <td className="border border-gray-400 px-2 py-1 whitespace-nowrap sticky left-[50px] bg-white">
+                                {student.userName}
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Cột cuộn */}
+                  <div className="overflow-x-auto flex-1">
+                    <table className="table-auto w-full border-collapse border border-gray-400 mt-4">
+                      <thead>
+                        <tr>
+                          {recentDays.map((day, index) => (
+                            <th key={index} className="border border-gray-400 px-2 py-1" style={{ width: '25px' }}>
+                              {day.getDate()}
+                            </th>
+                          ))}
+                          <th className="border border-gray-400 px-2 py-1">CM</th>
+                          <th className="border border-gray-400 px-2 py-1">CP</th>
+                          <th className="border border-gray-400 px-2 py-1">KP</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {studentList.length === 0 ? (
+                          <tr>
+                            <td colSpan={recentDays.length + 3} className="text-center text-red-500">
+                              Không có danh sách học sinh cho lớp {selectedClass}.
+                            </td>
+                          </tr>
+                        ) : (
+                          studentList.map((student, index) => (
+                            <tr key={student._id} className="hover:bg-[#E5E7EB]">
+                              {recentDays.map((date, dayIndex) => {
+                                const vietnamDate = new Date(date);
+                                vietnamDate.setHours(vietnamDate.getHours() + 7);
+                                const dayOfWeek = vietnamDate.getDay(); // Lấy giá trị thứ trong tuần (0-6)
+
+                                return (
+                                  <td
+                                    key={dayIndex}
+                                    className="border border-gray-400 px-1 py-1 text-center"
+                                    style={{
+                                      backgroundColor:
+                                        dayOfWeek === 6
+                                          ? '#FEF3C7' // Màu vàng nhạt cho thứ Bảy
+                                          : dayOfWeek === 0
+                                            ? '#ccffcc' // Màu xanh nhạt cho Chủ Nhật
+                                            : '', // Không áp dụng màu cho ngày khác
+                                    }}
+                                  >
+                                    {dayOfWeek !== 6 && dayOfWeek !== 0 ? (
+                                      <select
+                                        value={
+                                          attendanceData[student._id]?.[vietnamDate.toISOString().split('T')[0]] || ''
+                                        }
+                                        onChange={(e) =>
+                                          handleAttendanceChange(student._id, vietnamDate, e.target.value)
+                                        }
+                                        className="border-none bg-transparent text-center"
+                                        style={{
+                                          width: 'auto',
+                                          height: 'auto',
+                                          padding: 0,
+                                          fontSize: 'inherit',
+                                          WebkitAppearance: 'none',
+                                          MozAppearance: 'none',
+                                          appearance: 'none',
+                                          background: 'none',
+                                        }}
+                                        onFocus={(e) => (e.target.style.minWidth = '40px')}
+                                        onBlur={(e) => (e.target.style.minWidth = 'auto')}
+                                      >
+                                        <option value=""></option>
+                                        <option value="CM">CM</option>
+                                        <option value="VCP">VCP</option>
+                                        <option value="VKP">VKP</option>
+                                      </select>
+                                    ) : null}
+                                  </td>
+                                );
+                              })}
+                              <td className="border border-gray-400 px-2 py-1 text-center">0</td>
+                              <td className="border border-gray-400 px-2 py-1 text-center">0</td>
+                              <td className="border border-gray-400 px-2 py-1 text-center">0</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
+
               <div className="flex flex-col md:flex-row justify-center mt-4 space-x-0 md:space-x-4">
                 <button
                   className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 mb-2 md:mb-0"
