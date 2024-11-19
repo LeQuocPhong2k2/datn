@@ -195,6 +195,21 @@ export default function Teacher() {
 
   const [attendanceData, setAttendanceData] = useState({});
 
+  const handleAttendanceSelectChange = (studentId, date, value) => {
+    // Cập nhật lại attendanceData
+    const newAttendanceData = { ...attendanceData };
+    const formattedDate = date.toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
+    if (!newAttendanceData[studentId]) {
+      newAttendanceData[studentId] = {};
+    }
+    newAttendanceData[studentId][formattedDate] = value;
+
+    // Cập nhật lại state với dữ liệu mới
+    setAttendanceData(newAttendanceData);
+
+    // Nếu cần thì gọi handleAttendanceChange để lưu lại thay đổi (nếu có)
+    handleAttendanceChange(studentId, date, value);
+  };
   // useEffect để log ra attendanceData
   useEffect(() => {
     console.log('attendanceData đang có là:', attendanceData);
@@ -263,7 +278,13 @@ export default function Teacher() {
         try {
           await createAttendance(selectedClass_id, teacherInfo._id, dateISO, records); // Gọi hàm tạo điểm danh
           toast.success(`Điểm danh thành công cho ngày ${new Date(dateISO).toLocaleDateString('vi-VN')}`);
-          handleResetAttendance(); // Reset lại checkbox điểm danh
+          handleResetAttendance(); // Reset lại các thuộc tính điểm danh
+          // gọi lại handleAttendanceChange để cập nhật lại trạng thái điểm danh
+          Object.entries(attendanceData).forEach(([studentId, dates]) => {
+            Object.entries(dates).forEach(([date, status]) => {
+              handleAttendanceChange(studentId, new Date(date), status);
+            });
+          });
         } catch (error) {
           console.error('Lỗi khi tạo điểm danh:', error);
           if (error.response) {
@@ -1528,6 +1549,7 @@ export default function Teacher() {
                   </div>
 
                   {/* Cột cuộn */}
+
                   <div className="overflow-x-auto flex-1">
                     <table className="table-auto w-full border-collapse border border-gray-400 mt-4">
                       <thead>
@@ -1543,40 +1565,83 @@ export default function Teacher() {
                         </tr>
                       </thead>
                       <tbody>
-                        {studentList.map((student) => (
-                          <tr key={student._id} className="hover:bg-[#E5E7EB]">
-                            {recentDays.map((date, index) => {
-                              const formattedDate = date.toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
-
-                              const status = attendanceMap[student._id]?.[formattedDate] || ''; // Lấy trạng thái
-
-                              const displayDate = date.toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }); // Ngày hiển thị định dạng Việt Nam
-
-                              return (
-                                <td
-                                  key={index}
-                                  // bổ sung thêm date ở trong tên className để dễ dàng xác định ngày
-
-                                  // className="border border-gray-400 px-2 py-1 text-center "
-                                  className={`border border-gray-400 px-2 py-1 text-center ${formattedDate.replace(/\//g, '-')}`} // Thêm className chứa ngày
-                                  style={{
-                                    backgroundColor:
-                                      date.getDay() === 6
-                                        ? '#FEF3C7' // Vàng nhạt cho Thứ Bảy
-                                        : date.getDay() === 0
-                                          ? '#ccffcc' // Xanh nhạt cho Chủ Nhật
-                                          : '',
-                                  }}
-                                >
-                                  {status} {/* Hiển thị trạng thái */}
-                                </td>
-                              );
-                            })}
-                            <td className="border border-gray-400 px-2 py-1 text-center">0</td>
-                            <td className="border border-gray-400 px-2 py-1 text-center">0</td>
-                            <td className="border border-gray-400 px-2 py-1 text-center">0</td>
+                        {studentList.length === 0 ? (
+                          <tr>
+                            <td colSpan={recentDays.length + 3} className="text-center text-red-500">
+                              Không có danh sách học sinh cho lớp {selectedClass}.
+                            </td>
                           </tr>
-                        ))}
+                        ) : (
+                          studentList.map((student) => {
+                            const studentAttendanceMap = attendanceMap || {};
+                            return (
+                              <tr key={student._id} className="hover:bg-[#E5E7EB]">
+                                {recentDays.map((date, index) => {
+                                  const vietnamDate = new Date(date);
+                                  vietnamDate.setHours(vietnamDate.getHours() + 7);
+                                  const formattedDate = date.toLocaleDateString('en-CA', {
+                                    timeZone: 'Asia/Ho_Chi_Minh',
+                                  });
+                                  const dayOfWeek = vietnamDate.getDay();
+
+                                  const status =
+                                    studentAttendanceMap[student._id]?.[formattedDate] ||
+                                    attendanceData[student._id]?.[vietnamDate.toISOString().split('T')[0]] ||
+                                    '';
+
+                                  // Kiểm tra xem status có phải từ attendanceMap không
+                                  const isStatusFromMap = !!studentAttendanceMap[student._id]?.[formattedDate];
+
+                                  return (
+                                    <td
+                                      key={index}
+                                      className={`border border-gray-400 px-2 py-1 text-center ${formattedDate.replace(/\//g, '-')}`}
+                                      style={{
+                                        backgroundColor: dayOfWeek === 6 ? '#FEF3C7' : dayOfWeek === 0 ? '#ccffcc' : '',
+                                      }}
+                                    >
+                                      {dayOfWeek !== 6 && dayOfWeek !== 0 ? (
+                                        isStatusFromMap ? (
+                                          // Nếu status từ attendanceMap, hiển thị như text không thể sửa
+                                          <span className="text-center block">{status}</span>
+                                        ) : (
+                                          // Nếu không phải từ attendanceMap, hiển thị dropdown như cũ
+                                          <select
+                                            value={status}
+                                            onChange={(e) =>
+                                              handleAttendanceChange(student._id, vietnamDate, e.target.value)
+                                            }
+                                            className="border-none bg-transparent text-center"
+                                            style={{
+                                              width: 'auto',
+                                              height: 'auto',
+                                              padding: 0,
+                                              fontSize: 'inherit',
+                                              WebkitAppearance: 'none',
+                                              MozAppearance: 'none',
+                                              appearance: 'none',
+                                              background: 'none',
+                                            }}
+                                            onFocus={(e) => (e.target.style.minWidth = '40px')}
+                                            onBlur={(e) => (e.target.style.minWidth = 'auto')}
+                                          >
+                                            <option value=""></option>
+                                            <option value="CM">CM</option>
+                                            <option value="VCP">VCP</option>
+                                            <option value="VKP">VKP</option>
+                                          </select>
+                                        )
+                                      ) : null}
+                                    </td>
+                                  );
+                                })}
+                                <td className="border border-gray-400 px-2 py-1 text-center">0</td>
+                                <td className="border border-gray-400 px-2 py-1 text-center">0</td>
+                                <td className="border border-gray-400 px-2 py-1 text-center">0</td>
+                              </tr>
+                            );
+                          })
+                        )}
                       </tbody>
                     </table>
                   </div>
