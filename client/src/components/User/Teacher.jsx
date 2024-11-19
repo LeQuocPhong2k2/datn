@@ -10,6 +10,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { getStudentListByClassNameAndAcademicYear } from '../../api/Class';
 import { createAttendance } from '../../api/Attendance';
+import { getAttendanceByClassAndDateNow } from '../../api/Attendance';
 
 import InputScore from './InputScore';
 
@@ -169,30 +170,21 @@ export default function Teacher() {
 
   const calculateRecentDays = (baseDate, isMobile) => {
     const currentDate = new Date(baseDate);
-    if (isMobile) {
-      // Nếu là di động, chỉ lấy 3 ngày: 1 ngày trước, ngày hiện tại và 1 ngày sau
-      return [
-        new Date(currentDate.setDate(currentDate.getDate() - 1)), // Ngày trước
-        new Date(currentDate.setDate(currentDate.getDate() + 1)), // Ngày hiện tại
-        new Date(currentDate.setDate(currentDate.getDate() + 1)), // Ngày sau
-      ];
-    } else {
-      // Nếu không phải di động, lấy tất cả các ngày trong tháng
-      const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-      const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
-      return Array.from({ length: daysInMonth }, (_, i) => {
-        const date = new Date(firstDayOfMonth);
-        date.setDate(i + 1);
-        return date;
-      });
-    }
+    console.log('currentDate:', currentDate);
+    const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+    return Array.from({ length: daysInMonth }, (_, i) => {
+      const date = new Date(firstDayOfMonth);
+      date.setDate(i + 1);
+      return date;
+    });
   };
 
   useEffect(() => {
-    const isMobile = window.innerWidth <= 768; // Kiểm tra nếu là màn hình di động
-    setRecentDays(calculateRecentDays(attendanceDate, isMobile)); // Cập nhật recentDays dựa trên kích thước màn hình
+    setRecentDays(calculateRecentDays(attendanceDate)); // Cập nhật recentDays dựa trên kích thước màn hình
     handleResetAttendance();
   }, [attendanceDate]);
+  //console.log('recentDays:', recentDays);
 
   // useEffect kiểm tra xem có selectedClass chưa nếu có thì gọi sự kiện handleSelectClass
   useEffect(() => {
@@ -224,7 +216,7 @@ export default function Teacher() {
         setShowStudentList(true);
         console.log(`Không có học sinh trong lớp ${selectedClass}`);
       } else {
-        setStudentList(response.data.students); // Chỉnh sửa ở đây để lấy đúng danh sách học sinh
+        setStudentList(response.data.students); //
         setSelectedClass_id(response.data.class_id);
         console.log(`Danh sách học sinh lớp ${selectedClass} :`, response.data.students); // Cập nhật log để hiển thị danh sách học sinh
         setShowStudentList(true);
@@ -274,7 +266,9 @@ export default function Teacher() {
           handleResetAttendance(); // Reset lại checkbox điểm danh
         } catch (error) {
           console.error('Lỗi khi tạo điểm danh:', error);
-          alert('Có lỗi xảy ra khi cập nhật điểm danh.');
+          if (error.response) {
+            toast.error(error.response.data.error);
+          }
         }
       }
     }
@@ -282,7 +276,6 @@ export default function Teacher() {
 
   // resset checkbox diểm danh đã chọn
   const handleResetAttendance = () => {
-    document.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => (checkbox.checked = false));
     setAttendanceData([]);
   };
 
@@ -325,9 +318,18 @@ export default function Teacher() {
   const handleCoMatChoTatCa = () => {
     const dayOfWeek = vietnamDate.getDay(); // Lấy ngày trong tuần
 
+    // kiểm tra nếu không phải ngày hiện tại thì không cho điểm danh
+    if (vietnamDate.toDateString() !== new Date().toDateString()) {
+      toast.error('Không thể chọn ngày không phải hôm nay.');
+      return;
+    }
+    // kiểm tra xem ngày điểm danh hiện tại đã có điểm danh chưa nếu có rồi thì sẽ trả về két quả đã điểm danh cho tất cả học sinh bằng tất cả học sinh và trả button Có mặt cho tất cả học sinh như cũ
+
     if (dayOfWeek !== 6 && dayOfWeek !== 0) {
+      console.log('Ngày hiện tại:', formattedDate);
       // Kiểm tra xem tất cả học sinh đã có mặt hay chưa
       const allChecked = studentList.every((student) => attendanceData[student._id]?.[formattedDate] === 'CM');
+      // const allChecked = studentList.every((student) => attendanceData[student._id] === 'CM');
 
       if (allChecked) {
         // Nếu tất cả học sinh đã có mặt, reset attendance
@@ -342,6 +344,41 @@ export default function Teacher() {
       alert('Không thể chọn ngày thứ Bảy hoặc Chủ Nhật.');
     }
   };
+
+  // chỗ code để hiện VCP , VKP , CM cho tất cả học sinh cho đến ngày hiện tại từ API getAttendanceByClassAndDateNow
+
+  const [dataDiemDanh, setdataDiemDanh] = useState([]);
+  const [tongSoNgayDiemDanh, setTongSoNgayDiemDanh] = useState(0);
+  useEffect(() => {
+    const fetchAttendanceData = async () => {
+      try {
+        const response = await getAttendanceByClassAndDateNow(selectedClass_id);
+        setdataDiemDanh(response.data.dataDiemDanh);
+        console.log('data điểm danh:', response.data.dataDiemDanh);
+        setTongSoNgayDiemDanh(response.data.tongSoNgayDiemDanh);
+        console.log('Tổng số ngày điểm danh:', response.data.tongSoNgayDiemDanh);
+      } catch (error) {
+        console.error('Lỗi lấy dữ liệu điểm danh:', error);
+      }
+    };
+    fetchAttendanceData();
+  }, [selectedClass_id]);
+  // Tạo một đối tượng ánh xạ (attendanceMap) để dễ dàng truy xuất trạng thái điểm danh theo student_id và ngày.
+  const [attendanceMap, setAttendanceMap] = useState({});
+
+  useEffect(() => {
+    const map = {};
+    dataDiemDanh.forEach((attendanceRecord) => {
+      const date = attendanceRecord.date.split('T')[0]; // Lấy ngày (yyyy-mm-dd)
+      attendanceRecord.attendanceRecords.forEach((record) => {
+        if (!map[record.student_id]) {
+          map[record.student_id] = {};
+        }
+        map[record.student_id][date] = record.status; // Lưu trạng thái theo ngày
+      });
+    });
+    setAttendanceMap(map); // Lưu vào state
+  }, [dataDiemDanh]);
 
   return (
     <div className="h-screen max-w-[100%] font-sans bg-gray-100">
@@ -1506,70 +1543,40 @@ export default function Teacher() {
                         </tr>
                       </thead>
                       <tbody>
-                        {studentList.length === 0 ? (
-                          <tr>
-                            <td colSpan={recentDays.length + 3} className="text-center text-red-500">
-                              Không có danh sách học sinh cho lớp {selectedClass}.
-                            </td>
-                          </tr>
-                        ) : (
-                          studentList.map((student, index) => (
-                            <tr key={student._id} className="hover:bg-[#E5E7EB]">
-                              {recentDays.map((date, dayIndex) => {
-                                const vietnamDate = new Date(date);
-                                vietnamDate.setHours(vietnamDate.getHours() + 7);
-                                const dayOfWeek = vietnamDate.getDay(); // Lấy giá trị thứ trong tuần (0-6)
+                        {studentList.map((student) => (
+                          <tr key={student._id} className="hover:bg-[#E5E7EB]">
+                            {recentDays.map((date, index) => {
+                              const formattedDate = date.toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
 
-                                return (
-                                  <td
-                                    key={dayIndex}
-                                    className="border border-gray-400 px-1 py-1 text-center"
-                                    style={{
-                                      backgroundColor:
-                                        dayOfWeek === 6
-                                          ? '#FEF3C7' // Màu vàng nhạt cho thứ Bảy
-                                          : dayOfWeek === 0
-                                            ? '#ccffcc' // Màu xanh nhạt cho Chủ Nhật
-                                            : '', // Không áp dụng màu cho ngày khác
-                                    }}
-                                  >
-                                    {dayOfWeek !== 6 && dayOfWeek !== 0 ? (
-                                      <select
-                                        value={
-                                          attendanceData[student._id]?.[vietnamDate.toISOString().split('T')[0]] || ''
-                                        }
-                                        onChange={(e) =>
-                                          handleAttendanceChange(student._id, vietnamDate, e.target.value)
-                                        }
-                                        className="border-none bg-transparent text-center"
-                                        style={{
-                                          width: 'auto',
-                                          height: 'auto',
-                                          padding: 0,
-                                          fontSize: 'inherit',
-                                          WebkitAppearance: 'none',
-                                          MozAppearance: 'none',
-                                          appearance: 'none',
-                                          background: 'none',
-                                        }}
-                                        onFocus={(e) => (e.target.style.minWidth = '40px')}
-                                        onBlur={(e) => (e.target.style.minWidth = 'auto')}
-                                      >
-                                        <option value=""></option>
-                                        <option value="CM">CM</option>
-                                        <option value="VCP">VCP</option>
-                                        <option value="VKP">VKP</option>
-                                      </select>
-                                    ) : null}
-                                  </td>
-                                );
-                              })}
-                              <td className="border border-gray-400 px-2 py-1 text-center">0</td>
-                              <td className="border border-gray-400 px-2 py-1 text-center">0</td>
-                              <td className="border border-gray-400 px-2 py-1 text-center">0</td>
-                            </tr>
-                          ))
-                        )}
+                              const status = attendanceMap[student._id]?.[formattedDate] || ''; // Lấy trạng thái
+
+                              const displayDate = date.toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }); // Ngày hiển thị định dạng Việt Nam
+
+                              return (
+                                <td
+                                  key={index}
+                                  // bổ sung thêm date ở trong tên className để dễ dàng xác định ngày
+
+                                  // className="border border-gray-400 px-2 py-1 text-center "
+                                  className={`border border-gray-400 px-2 py-1 text-center ${formattedDate.replace(/\//g, '-')}`} // Thêm className chứa ngày
+                                  style={{
+                                    backgroundColor:
+                                      date.getDay() === 6
+                                        ? '#FEF3C7' // Vàng nhạt cho Thứ Bảy
+                                        : date.getDay() === 0
+                                          ? '#ccffcc' // Xanh nhạt cho Chủ Nhật
+                                          : '',
+                                  }}
+                                >
+                                  {status} {/* Hiển thị trạng thái */}
+                                </td>
+                              );
+                            })}
+                            <td className="border border-gray-400 px-2 py-1 text-center">0</td>
+                            <td className="border border-gray-400 px-2 py-1 text-center">0</td>
+                            <td className="border border-gray-400 px-2 py-1 text-center">0</td>
+                          </tr>
+                        ))}
                       </tbody>
                     </table>
                   </div>
