@@ -102,6 +102,11 @@ export default function Teacher() {
   }, [teacherInfo._id]);
 
   const [selectedLeaveRequest, setSelectedLeaveRequest] = useState(null);
+  // mõi khi selectedLeaveRequest có sự thay đổi thì log ra xem có gì thay đổi không
+  useEffect(() => {
+    console.log('Đơn nghỉ học được chọn:', selectedLeaveRequest);
+  }, [selectedLeaveRequest]);
+
   // biến quản lý khi bấm vào xem chi tiết đơn nghỉ học
   const [showFullInfoLeaveRequestSent, setShowFullInfoLeaveRequestSent] = useState(false);
   // biếN quản lý trạng thái đơn nghĩ học tất cả , đã duyệt, chờ duyệt,
@@ -1311,6 +1316,7 @@ export default function Teacher() {
                           <div className="max-w-4xl mx-auto bg-white border shadow-md rounded-lg p-6">
                             {/* Nội dung sơ lược */}
                             <h3 className="text-center text-xl font-bold mb-4">Đơn xin nghỉ học</h3>
+
                             <div className="flex justify-between items-center">
                               <div>
                                 <span className="font-semibold text-gray-700">Từ ngày:</span>{' '}
@@ -1337,10 +1343,14 @@ export default function Teacher() {
                                 </span>
                               </div>
                             </div>
+                            <div className="mt-2">
+                              <span className="font-semibold text-gray-700">Học sinh xin nghĩ:</span>{' '}
+                              <b className="text-green-600">{request.student_name}</b>
+                            </div>
 
                             <div className="mt-2">
                               <p>
-                                <span className="font-semibold text-gray-700">Lý do:</span> {request.reason}
+                                <span className="font-semibold text-gray-700">Lý do :</span> {request.reason}
                               </p>
                               <div className="mt-2">
                                 <span className="font-semibold text-gray-700">Danh sách buổi nghỉ:</span>
@@ -1392,12 +1402,23 @@ export default function Teacher() {
                                   ĐƠN XIN PHÉP NGHỈ HỌC
                                 </h1>
                               </div>
-
+                              {/*
                               <div className="mb-4">
                                 <h2 className="text-lg font-semibold">Người làm đơn</h2>
                                 <p>Tên phụ huynh: Nguyễn Văn B</p>
                                 <p>Phụ huynh của học sinh: Nguyễn Ánh Ngọc</p>
                                 <p>Lớp: 1A3</p>
+                              </div> */}
+                              <div className="mb-4">
+                                <h2 className="text-lg font-semibold">Người làm đơn</h2>
+                                <p>Tên phụ huynh: {selectedLeaveRequest?.parent_name || 'Chưa có thông tin'}</p>
+
+                                <p>
+                                  Phụ huynh của học sinh:
+                                  {selectedLeaveRequest?.student_name || 'Chưa có thông tin'}
+                                </p>
+
+                                <p>Lớp: {selectedLeaveRequest?.class_name || 'Chưa có thông tin'}</p>
                               </div>
 
                               <div className="mb-4">
