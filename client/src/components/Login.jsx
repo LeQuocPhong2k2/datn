@@ -53,6 +53,9 @@ export default function Login() {
       } else if (error.response.status === 402) {
         toast.dismiss();
         toast.error('Mật khẩu không chính xác');
+      } else {
+        toast.dismiss();
+        toast.error('Lỗi server');
       }
     }
   };
