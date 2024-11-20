@@ -197,45 +197,6 @@ const GiaoVienController = {
     }
   },
 
-  // get GiaoVien by phoneNumber and check if they are homeRoomTeacher of any class
-  getGiaoVienByPhoneNumber: async (req, res) => {
-    const { phoneNumber } = req.body;
-    console.log("Đang truy vấn giáo viên theo phoneNumber...", phoneNumber);
-
-    try {
-      // Tìm giáo viên theo số điện thoại
-      const teacher = await Teacher.findOne({ phoneNumber: phoneNumber });
-      if (!teacher) {
-        return res.status(404).json({ message: "Không tìm thấy giáo viên với số điện thoại này" });
-      }
-
-      // Tìm các lớp mà giáo viên này là giáo viên chủ nhiệm
-      const classes = await Class.aggregate([
-        { $match: { homeRoomTeacher: teacher._id } }, // Khớp với trường homeRoomTeacher
-        {
-          $project: {
-            // Chỉ lấy những trường cần thiết
-            _id: 1,
-            className: 1,
-            academicYear: 1,
-          },
-        },
-      ]);
-
-      // Thêm thông tin lớp vào kết quả trả về
-      const result = {
-        ...teacher.toObject(), // Chuyển kết quả giáo viên thành object
-        lopChuNhiem: classes, // Thêm danh sách các lớp
-      };
-
-      console.log("Kết quả truy vấn:", result);
-      res.status(200).json(result);
-    } catch (error) {
-      console.error("Lỗi khi truy vấn giáo viên theo phoneNumber:", error);
-      res.status(500).json({ error: error.message });
-    }
-  },
-
   getTeacherSchedule: async (req, res) => {
     const { teacherId, schoolYear } = req.body;
     console.log("Đang truy vấn lịch giáo viên...", teacherId);
@@ -260,42 +221,4 @@ const GiaoVienController = {
   },
 };
 
-// get GiaoVien by phoneNumber and check if they are homeRoomTeacher of any class
-getGiaoVienByPhoneNumber: async (req, res) => {
-  const { phoneNumber } = req.body;
-  console.log("Đang truy vấn giáo viên theo phoneNumber...", phoneNumber);
-
-  try {
-    // Tìm giáo viên theo số điện thoại
-    const teacher = await Teacher.findOne({ phoneNumber: phoneNumber });
-    if (!teacher) {
-      return res.status(404).json({ message: "Không tìm thấy giáo viên với số điện thoại này" });
-    }
-
-    // Tìm các lớp mà giáo viên này là giáo viên chủ nhiệm
-    const classes = await Class.aggregate([
-      { $match: { homeRoomTeacher: teacher._id } }, // Khớp với trường homeRoomTeacher
-      {
-        $project: {
-          // Chỉ lấy những trường cần thiết
-          _id: 1,
-          className: 1,
-          academicYear: 1,
-        },
-      },
-    ]);
-
-    // Thêm thông tin lớp vào kết quả trả về
-    const result = {
-      ...teacher.toObject(), // Chuyển kết quả giáo viên thành object
-      lopChuNhiem: classes, // Thêm danh sách các lớp
-    };
-
-    console.log("Kết quả truy vấn:", result);
-    res.status(200).json(result);
-  } catch (error) {
-    console.error("Lỗi khi truy vấn giáo viên theo phoneNumber:", error);
-    res.status(500).json({ error: error.message });
-  }
-},
-  (module.exports = GiaoVienController);
+module.exports = GiaoVienController;

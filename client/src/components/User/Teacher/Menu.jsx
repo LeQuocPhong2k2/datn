@@ -7,10 +7,13 @@ import imgLogo from '../../../assets/logo_datn_png.png';
 
 import { IoMdArrowDropdown } from 'react-icons/io';
 import { IoMdArrowDropup } from 'react-icons/io';
+import { TbGridDots } from 'react-icons/tb';
+import { SiGoogleclassroom } from 'react-icons/si';
 
 import { Toaster, toast } from 'react-hot-toast';
 
 import { changePassword } from '../../../api/Accounts';
+import { getHomRoomTeacherCurrent } from '../../../api/Class';
 
 export default function Menu({ children, active }) {
   /**
@@ -26,6 +29,18 @@ export default function Menu({ children, active }) {
   const [oldPassword, setOldPassword] = useState();
   const [newPassword, setNewPassword] = useState();
   const [confirmPassword, setConfirmPassword] = useState();
+
+  useEffect(() => {
+    const teacher_phoneNumber = localStorage.getItem('phoneNumberTeacher');
+    getHomRoomTeacherCurrent(teacher_phoneNumber)
+      .then((res) => {
+        setTeacherInfo(res);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, []);
+
   /**
    *
    */
@@ -64,14 +79,19 @@ export default function Menu({ children, active }) {
         {toggleMenu && (
           <div className={`col-span-2 h-screen bg-white shadow-lg ${toggleMenu ? 'slide-right' : 'slide-left'}`}>
             <div
-              className={`h-14 grid grid-cols-2 items-center justify-start border-b px-5 ${showAllMenu ? 'block' : 'hidden'}`}
+              className={`h-14 grid grid-cols-10 items-center justify-start border-b px-5 ${showAllMenu ? 'block' : 'hidden'}`}
             >
-              <div>
-                <span className="text-xl text-black font-semibold">Nguyễn Thị Vân</span>
+              <div className="col-span-8">
+                <span className="text-xl text-black font-semibold">{teacherInfo.userName}</span>
                 <br />
-                <span className="text-lg text-gray-800">Chủ nhiệm: 1A1</span>
+
+                <span className="text-lg text-gray-800">
+                  {teacherInfo.className === ''
+                    ? 'Lớp chủ nhiệm: Chờ phân công'
+                    : 'Lớp chủ nhiệm: ' + teacherInfo.className}
+                </span>
               </div>
-              <div className="flex items-center justify-end">
+              <div className="col-span-2 flex items-center justify-end">
                 <button
                   onClick={() => {
                     setToggleMenu(!toggleMenu);
@@ -144,6 +164,27 @@ export default function Menu({ children, active }) {
                   <a className="w-full" href="/teacher/teaching-plans">
                     <i style={{ color: '#d55557' }} className="fas fa-calendar-plus mr-2"></i>
                     Quản lý kế hoạch giảng dạy
+                  </a>
+                </li>
+              </ul>
+              <div>
+                <p className="text-lg font-bold text-gray-500">Lơp học của tôi</p>
+              </div>
+              <ul>
+                <li
+                  className={` ${active === 'random-student' ? 'bg-gray-300' : 'bg-white'} w-full px-5 py-2 my-2 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
+                >
+                  <a className="w-full flex items-center" href="/teacher/message">
+                    <SiGoogleclassroom style={{ color: '#d55557' }} className="mr-2" />
+                    {teacherInfo.className === '' ? 'Chờ phân công' : teacherInfo.className}
+                  </a>
+                </li>
+                <li
+                  className={` ${active === 'time-counter' ? 'bg-gray-300' : 'bg-white'} w-full px-5 py-2 my-2 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
+                >
+                  <a className="w-full flex items-center" href="/teacher/message">
+                    <TbGridDots style={{ color: '#d55557' }} className="mr-2" />
+                    Tất cả lớp học
                   </a>
                 </li>
               </ul>

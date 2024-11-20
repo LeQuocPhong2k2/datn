@@ -4,7 +4,7 @@ const Schema = mongoose.Schema;
 const TopicSchema = new Schema({
   name: { type: String, required: true },
   duration: { type: Number, required: true },
-  notes: { type: String, default: "" },
+  process: { type: Number, default: 0 },
 });
 
 const WeekSchema = new Schema({
@@ -15,11 +15,11 @@ const WeekSchema = new Schema({
 const TeachingPlanSchema = new Schema({
   subject: { type: String, required: true },
   className: { type: String, required: true },
+  academicYear: { type: String, required: true },
   teacher: {
     type: Schema.Types.ObjectId,
     ref: "Teacher",
   },
-  academicYear: { type: String, required: true },
   weeks: [WeekSchema],
 });
 

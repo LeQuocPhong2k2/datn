@@ -139,6 +139,24 @@ async function getStudentListByClassNameAndAcademicYear(tenLop, namHoc) {
   return response;
 }
 
+async function getHomRoomTeacherCurrent(phoneNumber) {
+  try {
+    const response = await axios.post(
+      `${API_URL}/class/getHomRoomTeacherCurrent`,
+      { phoneNumber },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Get home room teacher current error:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+}
+
 export {
   addLopHoc,
   getLopHocByNamHocVaKhoi,
@@ -149,4 +167,5 @@ export {
   autoUpClass,
   deleteClass,
   getStudentListByClassNameAndAcademicYear,
+  getHomRoomTeacherCurrent,
 };
