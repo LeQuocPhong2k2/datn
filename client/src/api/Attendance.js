@@ -31,7 +31,7 @@ async function getAttendanceByClassAndDateNow(class_id) {
         },
       }
     );
-    // console.log('Kết quả trả về là:', response);
+    console.log('Kết quả trả về là:', response);
     return response;
   } catch (error) {
     console.error('Get attendance error:', error.response ? error.response.data : error.message);

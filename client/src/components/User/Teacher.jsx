@@ -344,7 +344,6 @@ export default function Teacher() {
       toast.error('Không thể chọn ngày không phải hôm nay.');
       return;
     }
-    // kiểm tra xem ngày điểm danh hiện tại đã có điểm danh chưa nếu có rồi thì sẽ trả về két quả đã điểm danh cho tất cả học sinh bằng tất cả học sinh và trả button Có mặt cho tất cả học sinh như cũ
 
     if (dayOfWeek !== 6 && dayOfWeek !== 0) {
       console.log('Ngày hiện tại:', formattedDate);
@@ -370,14 +369,17 @@ export default function Teacher() {
 
   const [dataDiemDanh, setdataDiemDanh] = useState([]);
   const [tongSoNgayDiemDanh, setTongSoNgayDiemDanh] = useState(0);
+  // lưu studentAttendanceStats để get tổng số ngày CM, VCP, VKP cho từng học sinh
+  const [studentAttendanceStats, setStudentAttendanceStats] = useState({});
   useEffect(() => {
     const fetchAttendanceData = async () => {
       try {
         const response = await getAttendanceByClassAndDateNow(selectedClass_id);
         setdataDiemDanh(response.data.dataDiemDanh);
-        console.log('data điểm danh:', response.data.dataDiemDanh);
+        // console.log('data điểm danh:', response.data.dataDiemDanh);
         setTongSoNgayDiemDanh(response.data.tongSoNgayDiemDanh);
-        console.log('Tổng số ngày điểm danh:', response.data.tongSoNgayDiemDanh);
+        // console.log('Tổng số ngày điểm danh:', response.data.tongSoNgayDiemDanh);
+        setStudentAttendanceStats(response.data.studentAttendanceStats);
       } catch (error) {
         console.error('Lỗi lấy dữ liệu điểm danh:', error);
       }
@@ -400,6 +402,10 @@ export default function Teacher() {
     });
     setAttendanceMap(map); // Lưu vào state
   }, [dataDiemDanh]);
+  // khi attendanceMap thay đổi thì log ra xem có gì thay đổi không
+  useEffect(() => {
+    console.log('studentAttendanceStats:', studentAttendanceStats);
+  }, [studentAttendanceStats]);
 
   return (
     <div className="h-screen max-w-[100%] font-sans bg-gray-100">
@@ -1635,9 +1641,18 @@ export default function Teacher() {
                                     </td>
                                   );
                                 })}
+                                {/* <td className="border border-gray-400 px-2 py-1 text-center">0</td>
                                 <td className="border border-gray-400 px-2 py-1 text-center">0</td>
-                                <td className="border border-gray-400 px-2 py-1 text-center">0</td>
-                                <td className="border border-gray-400 px-2 py-1 text-center">0</td>
+                                <td className="border border-gray-400 px-2 py-1 text-center">0</td> */}
+                                <td className="border border-gray-400 px-2 py-1 text-center">
+                                  {studentAttendanceStats[student._id]?.statusCounts.CM || 0}
+                                </td>
+                                <td className="border border-gray-400 px-2 py-1 text-center">
+                                  {studentAttendanceStats[student._id]?.statusCounts.VCP || 0}
+                                </td>
+                                <td className="border border-gray-400 px-2 py-1 text-center">
+                                  {studentAttendanceStats[student._id]?.statusCounts.VKP || 0}
+                                </td>
                               </tr>
                             );
                           })

@@ -44,6 +44,8 @@ export default function Student() {
         console.log(error);
       });
   }, []);
+  // hiện console.log để xem thông tin học sinh
+  console.log('studentInfo là:', studentInfo);
 
   // gọi tới apiu getFullInfoStudentByCode đựa trên studentCode ở trong cookie
 
@@ -1758,12 +1760,17 @@ export default function Student() {
 
               {showInfoLeaveRequest && (
                 <div className="max-w-md mx-auto bg-white border shadow-md rounded-lg p-4">
-                  <div className="flex items-center mb-4">
+                  <div className="flex items-center mb-4 border-b">
                     <i className="fas fa-user text-blue-500 mr-2"></i>
                     <span className="text-gray-600">Người làm đơn:</span>
                     <span className="ml-2 text-blue-500 font-semibold">{studentInfo.parents[0].userName}</span>
                   </div>
 
+                  <div className="flex items-center mb-4">
+                    <i className="fas fa-user text-green-500 mr-2"></i>
+                    <span className="text-gray-600">Chọn con:</span>
+                    <span className="ml-2 text-blue-500 font-semibold">{studentInfo.parents[0].userName}</span>
+                  </div>
                   <div className="border-t border-gray-200 pt-4 mb-4">
                     <div className="flex items-center border-b border-gray-200 mb-4">
                       <i className="fas fa-calendar-alt text-red-500 mr-2"></i>
@@ -1820,7 +1827,6 @@ export default function Student() {
                       </div>
                     </div>
                   </div>
-
                   <div className="border-t border-gray-200 pt-4">
                     <div className="flex items-center mb-2">
                       <i className="fas fa-list-alt text-purple-500 mr-2"></i>
