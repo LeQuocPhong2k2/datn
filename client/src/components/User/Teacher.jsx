@@ -1463,9 +1463,9 @@ export default function Teacher() {
             <div className="container mx-auto mt-4 p-4 overflow-x-auto">
               <h1 className="text-center text-xl font-bold">BẢNG ĐIỂM DANH LỚP {selectedClass}</h1>
               <p className="text-center mb-4">
-                <span className="text-blue-700">CheckBox trên : Có Mặt (CM)</span>,{' '}
-                <span className="text-green-700">CheckBox giữa : Vắng có phép (VCP)</span>,{' '}
-                <span className="text-red-700">CheckBox dưới : Vắng không phép(VKP)</span>,{' '}
+                <span className="text-blue-700">Có Mặt (CM)</span>,{' '}
+                <span className="text-green-700"> Vắng có phép (VCP)</span>,{' '}
+                <span className="text-red-700">Vắng không phép(VKP)</span>,{' '}
                 <span className="text-yellow-700">Màu vàng nhạt: Thứ bảy</span>,{' '}
                 <span className="text-green-700">Màu xanh nhạt: Chủ Nhật</span>
               </p>
