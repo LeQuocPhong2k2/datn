@@ -10,6 +10,7 @@ import { createNotification } from '../../../api/Notifications';
 import { useEffect } from 'react';
 import { getAdministratorsbyAccountId } from '../../../api/Administrator';
 import { getStudentListByClassNameAndAcademicYear } from '../../../api/Class';
+
 Modal.setAppElement('#root');
 export default function AddNotification() {
   // tạo 1 biến quản lý thông tin Admin
@@ -65,36 +66,54 @@ export default function AddNotification() {
   const [subject, setSubject] = useState(''); // Thêm state cho subject
   const [text, setText] = useState(''); // Thêm state cho text
   const [imageUrl, setImageUrl] = useState(''); // Thêm state cho imageUrl
+  // upload ảnh lên S3 và lấy link ảnh
+  const [isUploading, setIsUploading] = useState(false);
+
   const [link, setlink] = useState(''); // Thêm state cho link
   // ... existing code ...
   const [dateTime, setDateTime] = useState(new Date()); // Khởi tạo dateTime với giá trị mặc định là ngày hiện tại
 
-  // hàm xử lý sự kiện thêm thông báo
-  const handleAddNotification = () => {
-    // tạo b iến content để lưu thông tin của thông báo gồm subject,text,link,imageUrl
-    const content = {
-      subject,
-      text,
-      link,
-      image: imageUrl,
-    };
-    // note sender_id là admin_id do đã lưu trong localStorage còn
-    // gọi tới sự kiện createNotification với các tham số sender_id, receiver_ids, content, notification_time
-    createNotification(admin_id, listIdReceivers, content, dateTime)
-      .then((res) => {
-        console.log('Notification created successfully:', res.data);
-        toast.success('Tạo thông báo thành công', {
-          icon: <IoMdCheckboxOutline />,
+  //update hàm mới
+
+  const handleAddNotification = async () => {
+    try {
+      let imageBase64 = null;
+
+      // Convert file to base64 if exists
+      if (imageUrl) {
+        const response = await fetch(imageUrl);
+        const blob = await response.blob();
+        imageBase64 = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsDataURL(blob);
         });
-        handleReset();
-      })
-      .catch((error) => {
-        console.error('Error creating notification:', error.response ? error.response.data : error.message);
-        toast.error('Tạo thông báo thất bại', {
-          icon: <IoWarningOutline />,
-        });
+      }
+
+      const response = await createNotification(
+        admin_id,
+        listIdReceivers,
+        {
+          subject,
+          text,
+          link,
+          imageBase64,
+        },
+        dateTime
+      );
+
+      toast.success('Tạo thông báo thành công', {
+        icon: <IoMdCheckboxOutline />,
       });
+      handleReset();
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Tạo thông báo thất bại', {
+        icon: <IoWarningOutline />,
+      });
+    }
   };
+
   const handleReset = () => {
     setImageUrl(null);
     setSubject('');
@@ -229,6 +248,25 @@ export default function AddNotification() {
 
           {imageUrl && <img src={imageUrl} alt="Selected" className="mt-2 w-1/4 h-auto" />}
         </div>
+        {/* <div className="mb-4">
+          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="image">
+            Chọn Hình Ảnh
+          </label>
+          <input
+            type="file"
+            name="image"
+            onChange={(e) => {
+              const file = e.target.files[0];
+              if (file) {
+                handleImageUpload(file);
+              }
+            }}
+            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-500 leading-tight focus:outline-none focus:shadow-outline"
+          />
+
+          {isUploading && <p>Đang tải ảnh lên...</p>}
+          {imageUrl && <img src={imageUrl} alt="Selected" className="mt-2 w-1/4 h-auto" />}
+        </div> */}
 
         <div className="flex justify-center space-x-4">
           <button
