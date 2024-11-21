@@ -99,7 +99,7 @@ export default function Teacher() {
       }
     };
     fetchLeaveRequests();
-  }, [teacherInfo._id]);
+  }, [teacherInfo._id, activeTab]);
 
   const [selectedLeaveRequest, setSelectedLeaveRequest] = useState(null);
   // mõi khi selectedLeaveRequest có sự thay đổi thì log ra xem có gì thay đổi không
@@ -141,6 +141,44 @@ export default function Teacher() {
       toast.error('Có lỗi xảy ra khi cập nhật đơn nghỉ học');
     }
   };
+  // hàm xử lý khi mà bấm vào chấp thuận đơn nghỉ học thì gọi hàm createAttendanceByLeaveRequest
+  const createAttendanceByLeaveRequest = async (leaveRequest, status) => {
+    try {
+      // Lặp qua từng phiên (session) trong đơn xin nghỉ
+      for (const session of leaveRequest.sessions) {
+        // Chuyển đổi ngày từ MongoDB ObjectId date sang định dạng Date thông thường
+        // Sử dụng cách khác để parse ngày
+        const sessionDate = session.date instanceof Date ? session.date : new Date(session.date.$date || session.date);
+
+        // Kiểm tra xem ngày có hợp lệ không
+        if (isNaN(sessionDate.getTime())) {
+          console.error('Invalid date:', session.date);
+          continue; // Bỏ qua session không hợp lệ
+        }
+
+        // Tạo attendanceRecords cho từng học sinh trong session
+        const attendanceRecords = [
+          {
+            student_id: leaveRequest.student_id,
+            status: status === 'approved' ? 'VCP' : 'VKP', // VCP: Vắng có phép, VKP: Vắng không phép
+            reason: status === 'approved' ? 'Học sinh vắng có phép' : 'Học sinh vắng không phép',
+            leaveRequest_id: leaveRequest._id,
+          },
+        ];
+
+        console.log('sessionDate:', sessionDate);
+
+        // Gọi hàm createAttendance cho từng ngày
+        await createAttendance(leaveRequest.class_id, leaveRequest.teacher_id, sessionDate, attendanceRecords);
+      }
+
+      toast.success('Đã tạo điểm danh từ đơn nghỉ học cho các ngày được chọn');
+    } catch (error) {
+      console.error('Lỗi cập nhật đơn nghỉ học:', error);
+      toast.error('Có lỗi xảy ra khi cập nhật đơn nghỉ học');
+    }
+  };
+
   const [showContent, setShowContent] = useState(false);
   const [showContent1, setShowContent1] = useState(false);
   const content = {
@@ -344,7 +382,7 @@ export default function Teacher() {
   const handleCoMatChoTatCa = () => {
     const dayOfWeek = vietnamDate.getDay(); // Lấy ngày trong tuần
 
-    // kiểm tra nếu không phải ngày hiện tại thì không cho điểm danh
+    // kiểm tra n���u không phải ngày hiện tại thì không cho điểm danh
     if (vietnamDate.toDateString() !== new Date().toDateString()) {
       toast.error('Không thể chọn ngày không phải hôm nay.');
       return;
@@ -390,7 +428,8 @@ export default function Teacher() {
       }
     };
     fetchAttendanceData();
-  }, [selectedClass_id]);
+  }, [selectedClass_id, attendanceData]);
+
   // Tạo một đối tượng ánh xạ (attendanceMap) để dễ dàng truy xuất trạng thái điểm danh theo student_id và ngày.
   const [attendanceMap, setAttendanceMap] = useState({});
 
@@ -411,6 +450,8 @@ export default function Teacher() {
   useEffect(() => {
     console.log('studentAttendanceStats:', studentAttendanceStats);
   }, [studentAttendanceStats]);
+
+  const [key, setKey] = useState(0);
 
   return (
     <div className="h-screen max-w-[100%] font-sans bg-gray-100">
@@ -1445,6 +1486,8 @@ export default function Teacher() {
                                       className="bg-green-500 text-white px-4 py-2 rounded"
                                       onClick={() => {
                                         handleUpdateLeaveRequest(selectedLeaveRequest._id, 'approved');
+                                        // khi mà có đƠn xin nghĩ học thì gọi lại sự kiện createAttendance dể cập cập nhật danh sách điểm danh bạn đó
+                                        createAttendanceByLeaveRequest(selectedLeaveRequest, 'approved');
                                       }}
                                     >
                                       Đồng ý
@@ -1453,6 +1496,7 @@ export default function Teacher() {
                                       className="bg-red-500 text-white px-4 py-2 rounded"
                                       onClick={() => {
                                         handleUpdateLeaveRequest(selectedLeaveRequest._id, 'rejected');
+                                        createAttendanceByLeaveRequest(selectedLeaveRequest, 'approved');
                                       }}
                                     >
                                       Từ chối
@@ -1638,7 +1682,8 @@ export default function Teacher() {
                                             onChange={(e) =>
                                               handleAttendanceChange(student._id, vietnamDate, e.target.value)
                                             }
-                                            className="border-none bg-transparent text-center"
+                                            className="border-none bg-transparent text-center
+                                            "
                                             style={{
                                               width: 'auto',
                                               height: 'auto',
@@ -1662,9 +1707,7 @@ export default function Teacher() {
                                     </td>
                                   );
                                 })}
-                                {/* <td className="border border-gray-400 px-2 py-1 text-center">0</td>
-                                <td className="border border-gray-400 px-2 py-1 text-center">0</td>
-                                <td className="border border-gray-400 px-2 py-1 text-center">0</td> */}
+
                                 <td className="border border-gray-400 px-2 py-1 text-center">
                                   {studentAttendanceStats[student._id]?.statusCounts.CM || 0}
                                 </td>
@@ -1689,6 +1732,11 @@ export default function Teacher() {
                   className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 mb-2 md:mb-0"
                   onClick={async () => {
                     handleUpdateAttendance();
+                    // thêm thông báo xác nhận cập nhật điểm danh cho ngày hôm đó
+                    // const confirm = window.confirm('Bạn có chắc chắn muốn cập nhật điểm danh ?');
+                    // if (confirm) {
+                    //   await handleUpdateAttendance();
+                    // }
                   }}
                 >
                   Lưu

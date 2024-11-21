@@ -90,23 +90,17 @@ export default function Student() {
     });
   }, []);
 
-  // chỗ sự kiện tab đơn xin nghĩ học
-  // data mẫu đơn nghĩ học
-  // State để lưu trữ nhiều học sinh được chọn
-  // const [parentInfo, setParentInfo] = useState({ students: [] });
-  // const [selectedStudents, setSelectedStudents] = useState([]);
-
-  // useEffect(() => {
-  //   if (studentInfo.parents && studentInfo.parents.length > 0) {
-  //     getFullParentInfo(studentInfo.parents[0]._id).then((res) => {
-  //       console.log('Parent Info:', res);
-  //       setParentInfo(res);
-  //     });
-  //   }
-  // }, []);
   const [parentInfo, setParentInfo] = useState({ students: [] });
   const [selectedStudents, setSelectedStudents] = useState([]);
 
+  // chỗ sự kiện tab đơn xin nghĩ học
+  const handleResetLeaveRequest = () => {
+    setStartDate('');
+    setEndDate('');
+    setSelectedSessions([]);
+    setLeaveReason('');
+    setSelectedStudents([]); // Reset selected students
+  };
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -296,42 +290,7 @@ export default function Student() {
 
   // tạo biến lưu lý do nghỉ học
   const [leaveReason, setLeaveReason] = useState('');
-  // xử lý sự kiện khi bấm gửi đơn nghỉ học
-  // const handleSubmitLeaveRequest = () => {
-  //   // Chuyển đổi selectedSessions thành định dạng mong muốn
-  //   const formattedSessions = generateDateRange(startDate, endDate).map((date) => {
-  //     const dateString = new Date(date).toISOString().split('T')[0];
-  //     return {
-  //       date: new Date(date).toISOString(),
-  //       morning: selectedSessions.includes(`${dateString}-morning`) ? true : false,
-  //       afternoon: selectedSessions.includes(`${dateString}-afternoon`) ? true : false,
-  //     };
-  //   });
 
-  //   createLeaveRequest(
-  //     studentInfo._id,
-  //     studentInfo.parents[0]._id,
-  //     studentInfo.homeRoomTeacher_id,
-  //     studentInfo.class_id,
-  //     startDate,
-  //     endDate,
-  //     leaveReason,
-  //     formattedSessions
-  //   )
-  //     .then((response) => {
-  //       console.log('Leave request created successfully:', response);
-  //       alert('Đã gửi đơn nghỉ học thành công');
-  //       setShowFullInfoLeaveRequest(false);
-  //       setShowInfoLeaveRequest(true);
-  //       // chuyển qua tab xem đơn đã gửi
-  //       // setShowLeaveRequestSent(true);
-  //       // setShowScheduleLeaveRequest(false);
-  //     })
-  //     .catch((error) => {
-  //       console.error('Error creating leave request:', error);
-  //       alert('Đã xảy ra lỗi khi gửi đơn nghỉ học. Vui lòng thử lại sau.' + error);
-  //     });
-  // };
   const handleSubmitLeaveRequest = () => {
     const formattedSessions = generateDateRange(startDate, endDate).map((date) => {
       const dateString = new Date(date).toISOString().split('T')[0];
@@ -1852,8 +1811,7 @@ export default function Student() {
                     <span className="text-gray-600">Người làm đơn:</span>
                     <span className="ml-2 text-blue-500 font-semibold">{studentInfo.parents[0].userName}</span>
                   </div>
-
-                  <div className="flex items-center mb-4">
+                  {/* <div className="flex items-center mb-4">
                     <i className="fas fa-user text-green-500 mr-2"></i>
                     <span className="text-gray-600">Chọn con:</span>
 
@@ -1864,6 +1822,32 @@ export default function Student() {
                             <input
                               type="checkbox"
                               id={student.student_id}
+                              checked={selectedStudents.some((s) => s.student_id === student.student_id)}
+                              onChange={() => handleStudentSelection(student)}
+                              className="mr-2"
+                            />
+                            <label htmlFor={student.student_id} className="text-green font-bold text-green-600">
+                              {student.student_name}
+                            </label>
+                          </div>
+                        ))
+                      ) : (
+                        <p>Không có thông tin học sinh</p>
+                      )}
+                    </div>
+                  </div> */}
+
+                  <div className="flex items-center mb-4">
+                    <i className="fas fa-user text-green-500 mr-2"></i>
+                    <span className="text-gray-600">Chọn con:</span>
+                    <div className="ml-2">
+                      {parentInfo && parentInfo.students && parentInfo.students.length > 0 ? (
+                        parentInfo.students.map((student) => (
+                          <div key={student.student_id} className="flex items-center mb-2">
+                            <input
+                              type="checkbox"
+                              id={student.student_id}
+                              // Thay đổi điều kiện checked
                               checked={selectedStudents.some((s) => s.student_id === student.student_id)}
                               onChange={() => handleStudentSelection(student)}
                               className="mr-2"
@@ -2040,10 +2024,7 @@ export default function Student() {
                     <button
                       className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 mr-4"
                       onClick={() => {
-                        setStartDate('');
-                        setEndDate('');
-                        setSelectedSessions([]);
-                        setLeaveReason('');
+                        handleResetLeaveRequest();
                       }}
                     >
                       Nhập lại
@@ -2051,7 +2032,11 @@ export default function Student() {
                     <button
                       className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
                       onClick={() => {
-                        if (selectedSessions.length === 0 || !leaveReason) {
+                        // thêm điều kiện cần chọn con ở selectedStudents
+                        if (selectedStudents.length === 0) {
+                          alert('Vui lòng chọn con');
+                          return;
+                        } else if (selectedSessions.length === 0 || !leaveReason) {
                           alert('Vui lòng chọn ngày nghỉ và ghi lý do');
                           return;
                         }

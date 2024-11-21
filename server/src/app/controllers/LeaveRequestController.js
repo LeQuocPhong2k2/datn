@@ -83,17 +83,7 @@ const LeaveRequestController = {
     }
   },
   // get all requests by teacher id
-  // getLeaveRequestsByTeacherId: async (req, res) => {
-  //   try {
-  //     const { teacher_id } = req.body
-  //     const leaveRequests = await LeaveRequest.find({ teacher_id })
-  //     console.log('Leave Requests:', leaveRequests)
-  //     res.json(leaveRequests)
-  //   } catch (error) {
-  //     console.error('Error fetching leave requests:', error)
-  //     res.status(500).json({ message: 'Internal server error' })
-  //   }
-  // },
+
   getLeaveRequestsByTeacherId: async (req, res) => {
     try {
       const { teacher_id } = req.body
@@ -132,7 +122,7 @@ const LeaveRequestController = {
         })
       )
 
-      console.log('Detailed Leave Requests:', detailedRequests)
+      // console.log('Detailed Leave Requests:', detailedRequests)
       res.json(detailedRequests)
     } catch (error) {
       console.error('Error fetching leave requests:', error)
