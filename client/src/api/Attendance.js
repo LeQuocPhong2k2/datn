@@ -20,5 +20,23 @@ async function createAttendance(class_id, teacher_id, date, attendanceRecords) {
     throw error;
   }
 }
+async function getAttendanceByClassAndDateNow(class_id) {
+  try {
+    const response = await axios.post(
+      `${API_URL}/attendance/getAttendanceByClassAndDateNow`,
+      { class_id },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    console.log('Kết quả trả về là:', response);
+    return response;
+  } catch (error) {
+    console.error('Get attendance error:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+}
 
-export { createAttendance };
+export { createAttendance, getAttendanceByClassAndDateNow };

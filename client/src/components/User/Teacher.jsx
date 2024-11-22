@@ -8,6 +8,12 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { getStudentListByClassNameAndAcademicYear } from '../../api/Class';
 import { createAttendance } from '../../api/Attendance';
+import { getAttendanceByClassAndDateNow } from '../../api/Attendance';
+
+import { IoMdArrowDropdown } from 'react-icons/io';
+import { IoMdArrowDropup } from 'react-icons/io';
+
+import imgLogo from '../../assets/logo_datn_png.png';
 
 import { IoMdArrowDropdown } from 'react-icons/io';
 import { IoMdArrowDropup } from 'react-icons/io';
@@ -178,48 +184,23 @@ export default function Teacher() {
 
   const [recentDays, setRecentDays] = useState([]);
 
-  // Hàm tính toán các ngày dựa trên selectedDate, đảm bảo tính toán đúng tháng của ngày đó
-  // const calculateRecentDays = (baseDate) => {
-  //   const currentDate = new Date(baseDate);
-  //   const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-  //   const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
-  //   return Array.from({ length: daysInMonth }, (_, i) => {
-  //     const date = new Date(firstDayOfMonth);
-  //     date.setDate(i + 1);
-  //     return date;
-  //   });
-  // };
-  // useEffect(() => {
-  //   setRecentDays(calculateRecentDays(attendanceDate));
-  //   handleResetAttendance();
-  // }, [attendanceDate]);
-
   const calculateRecentDays = (baseDate, isMobile) => {
     const currentDate = new Date(baseDate);
-    if (isMobile) {
-      // Nếu là di động, chỉ lấy 3 ngày: 1 ngày trước, ngày hiện tại và 1 ngày sau
-      return [
-        new Date(currentDate.setDate(currentDate.getDate() - 1)), // Ngày trước
-        new Date(currentDate.setDate(currentDate.getDate() + 1)), // Ngày hiện tại
-        new Date(currentDate.setDate(currentDate.getDate() + 1)), // Ngày sau
-      ];
-    } else {
-      // Nếu không phải di động, lấy tất cả các ngày trong tháng
-      const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-      const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
-      return Array.from({ length: daysInMonth }, (_, i) => {
-        const date = new Date(firstDayOfMonth);
-        date.setDate(i + 1);
-        return date;
-      });
-    }
+    console.log('currentDate:', currentDate);
+    const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+    return Array.from({ length: daysInMonth }, (_, i) => {
+      const date = new Date(firstDayOfMonth);
+      date.setDate(i + 1);
+      return date;
+    });
   };
 
   useEffect(() => {
-    const isMobile = window.innerWidth <= 768; // Kiểm tra nếu là màn hình di động
-    setRecentDays(calculateRecentDays(attendanceDate, isMobile)); // Cập nhật recentDays dựa trên kích thước màn hình
+    setRecentDays(calculateRecentDays(attendanceDate)); // Cập nhật recentDays dựa trên kích thước màn hình
     handleResetAttendance();
   }, [attendanceDate]);
+  //console.log('recentDays:', recentDays);
 
   // useEffect kiểm tra xem có selectedClass chưa nếu có thì gọi sự kiện handleSelectClass
   useEffect(() => {
@@ -230,34 +211,21 @@ export default function Teacher() {
 
   const [attendanceData, setAttendanceData] = useState({});
 
-  const handleAttendanceChange = (studentId, date, attendance) => {
-    const vietnamDate = new Date(date);
-    vietnamDate.setHours(vietnamDate.getHours() + 7); // Điều chỉnh cho múi giờ Việt Nam
-    const dateKey = vietnamDate.toISOString().split('T')[0]; // Lấy khóa ngày, chỉ lấy phần ngày
+  const handleAttendanceSelectChange = (studentId, date, value) => {
+    // Cập nhật lại attendanceData
+    const newAttendanceData = { ...attendanceData };
+    const formattedDate = date.toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
+    if (!newAttendanceData[studentId]) {
+      newAttendanceData[studentId] = {};
+    }
+    newAttendanceData[studentId][formattedDate] = value;
 
-    setAttendanceData((prevData) => {
-      const updatedData = { ...prevData };
+    // Cập nhật lại state với dữ liệu mới
+    setAttendanceData(newAttendanceData);
 
-      // Kiểm tra xem học sinh đã có trong attendanceData chưa
-      if (!updatedData[studentId]) {
-        updatedData[studentId] = {}; // Nếu chưa có, khởi tạo đối tượng cho học sinh
-      }
-
-      // Cập nhật giá trị cho ngày tương ứng
-      if (attendance) {
-        updatedData[studentId][dateKey] = attendance; // Cập nhật hoặc thêm mới
-      } else {
-        delete updatedData[studentId][dateKey]; // Xóa nếu không có trạng thái
-        // Nếu không còn mục nào, xóa học sinh khỏi attendanceData
-        if (Object.keys(updatedData[studentId]).length === 0) {
-          delete updatedData[studentId];
-        }
-      }
-
-      return updatedData;
-    });
+    // Nếu cần thì gọi handleAttendanceChange để lưu lại thay đổi (nếu có)
+    handleAttendanceChange(studentId, date, value);
   };
-
   // useEffect để log ra attendanceData
   useEffect(() => {
     console.log('attendanceData đang có là:', attendanceData);
@@ -279,7 +247,7 @@ export default function Teacher() {
         setShowStudentList(true);
         console.log(`Không có học sinh trong lớp ${selectedClass}`);
       } else {
-        setStudentList(response.data.students); // Chỉnh sửa ở đây để lấy đúng danh sách học sinh
+        setStudentList(response.data.students); //
         setSelectedClass_id(response.data.class_id);
         console.log(`Danh sách học sinh lớp ${selectedClass} :`, response.data.students); // Cập nhật log để hiển thị danh sách học sinh
         setShowStudentList(true);
@@ -326,10 +294,18 @@ export default function Teacher() {
         try {
           await createAttendance(selectedClass_id, teacherInfo._id, dateISO, records); // Gọi hàm tạo điểm danh
           toast.success(`Điểm danh thành công cho ngày ${new Date(dateISO).toLocaleDateString('vi-VN')}`);
-          handleResetAttendance(); // Reset lại checkbox điểm danh
+          handleResetAttendance(); // Reset lại các thuộc tính điểm danh
+          // gọi lại handleAttendanceChange để cập nhật lại trạng thái điểm danh
+          Object.entries(attendanceData).forEach(([studentId, dates]) => {
+            Object.entries(dates).forEach(([date, status]) => {
+              handleAttendanceChange(studentId, new Date(date), status);
+            });
+          });
         } catch (error) {
           console.error('Lỗi khi tạo điểm danh:', error);
-          alert('Có lỗi xảy ra khi cập nhật điểm danh.');
+          if (error.response) {
+            toast.error(error.response.data.error);
+          }
         }
       }
     }
@@ -337,9 +313,115 @@ export default function Teacher() {
 
   // resset checkbox diểm danh đã chọn
   const handleResetAttendance = () => {
-    document.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => (checkbox.checked = false));
     setAttendanceData([]);
   };
+
+  // Phần code điểm danh 2.0
+
+  // Hàm xử lý thay đổi điểm danh
+  const handleAttendanceChange = (studentId, date, status) => {
+    const vietnamDate = new Date(date);
+    vietnamDate.setHours(vietnamDate.getHours() + 7); // Điều chỉnh cho múi giờ Việt Nam
+    const dateKey = vietnamDate.toISOString().split('T')[0]; // Lấy khóa ngày, chỉ lấy phần ngày
+
+    setAttendanceData((prevData) => {
+      const updatedData = { ...prevData };
+
+      // Kiểm tra xem học sinh đã có trong attendanceData chưa
+      if (!updatedData[studentId]) {
+        updatedData[studentId] = {}; // Nếu chưa có, khởi tạo đối tượng cho học sinh
+      }
+
+      // Cập nhật giá trị cho ngày tương ứng
+      if (status) {
+        updatedData[studentId][dateKey] = status; // Cập nhật hoặc thêm mới
+      } else {
+        delete updatedData[studentId][dateKey]; // Xóa nếu không có trạng thái
+        // Nếu không còn mục nào, xóa học sinh khỏi attendanceData
+        if (Object.keys(updatedData[studentId]).length === 0) {
+          delete updatedData[studentId];
+        }
+      }
+
+      return updatedData;
+    });
+  };
+  // chỗ code mà xử lý có mặt cho tát cả trong phần điểm danh
+  const selectedDate = new Date(attendanceDate);
+  const vietnamDate = new Date(selectedDate);
+  // vietnamDate.setHours(vietnamDate.getHours() + 7); bỏ để lấy đúng ngày được pick
+  const formattedDate = vietnamDate.toISOString().split('T')[0]; // Chỉ lấy phần ngày
+
+  const handleCoMatChoTatCa = () => {
+    const dayOfWeek = vietnamDate.getDay(); // Lấy ngày trong tuần
+
+    // kiểm tra nếu không phải ngày hiện tại thì không cho điểm danh
+    if (vietnamDate.toDateString() !== new Date().toDateString()) {
+      toast.error('Không thể chọn ngày không phải hôm nay.');
+      return;
+    }
+
+    if (dayOfWeek !== 6 && dayOfWeek !== 0) {
+      console.log('Ngày hiện tại:', formattedDate);
+      // Kiểm tra xem tất cả học sinh đã có mặt hay chưa
+      const allChecked = studentList.every((student) => attendanceData[student._id]?.[formattedDate] === 'CM');
+      // const allChecked = studentList.every((student) => attendanceData[student._id] === 'CM');
+
+      if (allChecked) {
+        // Nếu tất cả học sinh đã có mặt, reset attendance
+        handleResetAttendance();
+      } else {
+        // Lặp qua tất cả học sinh và cập nhật trạng thái
+        studentList.forEach((student) => {
+          handleAttendanceChange(student._id, vietnamDate, 'CM'); // Cập nhật điểm danh cho tất cả học sinh
+        });
+      }
+    } else {
+      alert('Không thể chọn ngày thứ Bảy hoặc Chủ Nhật.');
+    }
+  };
+
+  // chỗ code để hiện VCP , VKP , CM cho tất cả học sinh cho đến ngày hiện tại từ API getAttendanceByClassAndDateNow
+
+  const [dataDiemDanh, setdataDiemDanh] = useState([]);
+  const [tongSoNgayDiemDanh, setTongSoNgayDiemDanh] = useState(0);
+  // lưu studentAttendanceStats để get tổng số ngày CM, VCP, VKP cho từng học sinh
+  const [studentAttendanceStats, setStudentAttendanceStats] = useState({});
+  useEffect(() => {
+    const fetchAttendanceData = async () => {
+      try {
+        const response = await getAttendanceByClassAndDateNow(selectedClass_id);
+        setdataDiemDanh(response.data.dataDiemDanh);
+        // console.log('data điểm danh:', response.data.dataDiemDanh);
+        setTongSoNgayDiemDanh(response.data.tongSoNgayDiemDanh);
+        // console.log('Tổng số ngày điểm danh:', response.data.tongSoNgayDiemDanh);
+        setStudentAttendanceStats(response.data.studentAttendanceStats);
+      } catch (error) {
+        console.error('Lỗi lấy dữ liệu điểm danh:', error);
+      }
+    };
+    fetchAttendanceData();
+  }, [selectedClass_id]);
+  // Tạo một đối tượng ánh xạ (attendanceMap) để dễ dàng truy xuất trạng thái điểm danh theo student_id và ngày.
+  const [attendanceMap, setAttendanceMap] = useState({});
+
+  useEffect(() => {
+    const map = {};
+    dataDiemDanh.forEach((attendanceRecord) => {
+      const date = attendanceRecord.date.split('T')[0]; // Lấy ngày (yyyy-mm-dd)
+      attendanceRecord.attendanceRecords.forEach((record) => {
+        if (!map[record.student_id]) {
+          map[record.student_id] = {};
+        }
+        map[record.student_id][date] = record.status; // Lưu trạng thái theo ngày
+      });
+    });
+    setAttendanceMap(map); // Lưu vào state
+  }, [dataDiemDanh]);
+  // khi attendanceMap thay đổi thì log ra xem có gì thay đổi không
+  useEffect(() => {
+    console.log('studentAttendanceStats:', studentAttendanceStats);
+  }, [studentAttendanceStats]);
 
   const [toggleMenu, setToggleMenu] = useState(true);
 
