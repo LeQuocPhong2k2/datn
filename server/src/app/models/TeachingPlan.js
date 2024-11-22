@@ -14,7 +14,7 @@ const WeekSchema = new Schema({
 
 const TeachingPlanSchema = new Schema({
   subject: { type: String, required: true },
-  className: { type: String, required: true },
+  grade: { type: String, required: true },
   academicYear: { type: String, required: true },
   teacher: {
     type: Schema.Types.ObjectId,

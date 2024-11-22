@@ -3,6 +3,9 @@ require("dotenv").config({ path: "../../../../.env" });
 const TeachingPlan = require("../models/TeachingPlan");
 const Teacher = require("../models/Teacher");
 
+const mongoose = require("mongoose");
+const ObjectId = mongoose.Types.ObjectId;
+
 const TeachingPlanController = {
   /**
    *
@@ -56,13 +59,57 @@ const TeachingPlanController = {
   async getTeachingPlanByTeacherAndByClassAndBySchoolYear(req, res) {
     const { teacherId, className, academicYear } = req.body;
     try {
-      const teachingPlan = await TeachingPlan.find({
-        teacher: teacherId,
-        className: className,
-        academicYear: academicYear,
-      });
+      const teachingPlan = await TeachingPlan.aggregate([
+        {
+          $match: {
+            teacher: new ObjectId(teacherId),
+            className: className,
+            academicYear: academicYear,
+          },
+        },
+        {
+          $unwind: "$weeks",
+        },
+        {
+          $lookup: {
+            from: "Subject",
+            localField: "subject",
+            foreignField: "subjectCode",
+            as: "subjectInfo",
+          },
+        },
+        {
+          $unwind: "$subjectInfo",
+        },
+        {
+          $group: {
+            _id: {
+              weekNumber: "$weeks.weekNumber",
+              subject: "$subjectInfo.subjectName",
+            },
+            weekNumber: { $first: "$weeks.weekNumber" },
+            subject: { $first: "$subjectInfo" },
+            topics: { $push: "$weeks.topics" },
+          },
+        },
+        {
+          $group: {
+            _id: "$weekNumber",
+            weekNumber: { $first: "$weekNumber" },
+            subjects: {
+              $push: {
+                subject: "$subject",
+                topics: "$topics",
+              },
+            },
+          },
+        },
+        {
+          $sort: { _id: 1 },
+        },
+      ]);
 
-      if (teachingPlan) {
+      if (teachingPlan.length > 0) {
         return res.status(200).json(teachingPlan);
       }
 
@@ -71,7 +118,6 @@ const TeachingPlanController = {
       return res.status(500).json({ message: error.message });
     }
   },
-
   /**
    *
    * create teaching plan
@@ -107,9 +153,9 @@ const TeachingPlanController = {
         }
 
         const teachingPlan = new TeachingPlan({
-          subject: plan.subject,
-          className: plan.className,
           academicYear: academicYear,
+          grade: plan.grade,
+          subject: plan.subject,
           teacher: teacher._id,
           weeks: weeks,
         });
@@ -119,6 +165,95 @@ const TeachingPlanController = {
       }
 
       return res.status(200).json(plans);
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
+  },
+
+  /**
+   * get teaching plan by teacher and by grade and by school year
+   *
+   *
+   *
+   *
+   * @param {*} req
+   * @param {*} res
+   */
+  async getTeachingPlanByTeacherAndByGradeAndBySchoolYear(req, res) {
+    const { teacherId, grade, academicYear } = req.body;
+    try {
+      const teachingPlan = await TeachingPlan.aggregate([
+        {
+          $match: {
+            teacher: new ObjectId(teacherId),
+            grade: grade,
+            academicYear: academicYear,
+          },
+        },
+        {
+          $unwind: "$weeks",
+        },
+        {
+          $lookup: {
+            from: "Subject",
+            localField: "subject",
+            foreignField: "subjectCode",
+            as: "subjectInfo",
+          },
+        },
+        {
+          $unwind: "$subjectInfo",
+        },
+        {
+          $group: {
+            _id: {
+              weekNumber: "$weeks.weekNumber",
+              subjectName: "$subjectInfo.subjectName",
+              subjectCode: "$subjectInfo.subjectCode",
+              subjectDescription: "$subjectInfo.subjectDescription",
+              subjectCredits: "$subjectInfo.subjectCredits",
+              subjectGrade: "$subjectInfo.subjectGrade",
+              subjectType: "$subjectInfo.subjectType",
+            },
+            weekNumber: { $first: "$weeks.weekNumber" },
+            subjectName: { $first: "$subjectInfo.subjectName" },
+            subjectCode: { $first: "$subjectInfo.subjectCode" },
+            subjectDescription: { $first: "$subjectInfo.subjectDescription" },
+            subjectCredits: { $first: "$subjectInfo.subjectCredits" },
+            subjectGrade: { $first: "$subjectInfo.subjectGrade" },
+            subjectType: { $first: "$subjectInfo.subjectType" },
+            topics: { $push: "$weeks.topics" },
+          },
+        },
+        {
+          $sort: {
+            weekNumber: 1, // Sắp xếp tăng dần. Dùng -1 để sắp xếp giảm dần.
+          },
+        },
+        {
+          $group: {
+            _id: "$subjectCode",
+            subjectName: { $first: "$subjectName" },
+            week: {
+              $push: {
+                weekNumber: "$weekNumber",
+                topics: "$topics",
+              },
+            },
+          },
+        },
+        {
+          $sort: {
+            subjectName: 1, // Sắp xếp tăng dần theo tên môn học
+          },
+        },
+      ]);
+
+      if (teachingPlan.length > 0) {
+        return res.status(200).json(teachingPlan);
+      }
+
+      return res.status(200).json([]);
     } catch (error) {
       return res.status(500).json({ message: error.message });
     }
