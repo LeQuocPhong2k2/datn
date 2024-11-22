@@ -291,31 +291,81 @@ export default function Student() {
   // tạo biến lưu lý do nghỉ học
   const [leaveReason, setLeaveReason] = useState('');
 
+  // const handleSubmitLeaveRequest = () => {
+  //   const formattedSessions = generateDateRange(startDate, endDate).map((date) => {
+  //     const dateString = new Date(date).toISOString().split('T')[0];
+  //     return {
+  //       date: new Date(date).toISOString(),
+  //       morning: selectedSessions.includes(`${dateString}-morning`) ? true : false,
+  //       afternoon: selectedSessions.includes(`${dateString}-afternoon`) ? true : false,
+  //     };
+  //   });
+
+  //   // Tạo mảng promises cho mỗi học sinh được chọn
+  //   const createRequestPromises = selectedStudents.map((student) =>
+  //     createLeaveRequest(
+  //       student.student_id,
+  //       studentInfo.parents[0]._id,
+  //       student.class.homeRoomTeacher, // Use student-specific homeRoomTeacher
+  //       student.class.class_id, // Use student-specific class_id
+  //       startDate,
+  //       endDate,
+  //       leaveReason,
+  //       formattedSessions
+  //     )
+  //   );
+
+  //   // Thực thi tất cả các promises
+  //   Promise.all(createRequestPromises)
+  //     .then((responses) => {
+  //       console.log('Leave requests created successfully:', responses);
+  //       alert(`Đã gửi ${selectedStudents.length} đơn nghỉ học thành công`);
+  //       setShowFullInfoLeaveRequest(false);
+  //       setShowInfoLeaveRequest(true);
+  //     })
+  //     .catch((error) => {
+  //       console.error('Error creating leave requests:', error);
+  //       alert('Đã xảy ra lỗi khi gửi đơn nghỉ học. Vui lòng thử lại sau.' + error);
+  //     });
+  // };
+
   const handleSubmitLeaveRequest = () => {
+    // Helper function to convert to Vietnam timezone
+    const convertToVNTime = (date) => {
+      const vnTime = new Date(date);
+      vnTime.setHours(vnTime.getHours() + 7); // Convert to Vietnam timezone (UTC+7)
+      return vnTime;
+    };
+
     const formattedSessions = generateDateRange(startDate, endDate).map((date) => {
-      const dateString = new Date(date).toISOString().split('T')[0];
+      // Convert the date to Vietnam timezone
+      const vnDate = convertToVNTime(date);
+      const dateString = vnDate.toISOString().split('T')[0];
+
       return {
-        date: new Date(date).toISOString(),
+        date: vnDate.toISOString(), // Store in ISO format but with correct timezone offset
         morning: selectedSessions.includes(`${dateString}-morning`) ? true : false,
         afternoon: selectedSessions.includes(`${dateString}-afternoon`) ? true : false,
       };
     });
 
-    // Tạo mảng promises cho mỗi học sinh được chọn
+    // Convert start and end dates to Vietnam timezone
+    const vnStartDate = convertToVNTime(startDate);
+    const vnEndDate = convertToVNTime(endDate);
+
     const createRequestPromises = selectedStudents.map((student) =>
       createLeaveRequest(
-        student.student_id, // Thay đổi từ studentInfo._id sang student.student_id
+        student.student_id,
         studentInfo.parents[0]._id,
-        studentInfo.homeRoomTeacher_id,
-        studentInfo.class_id,
-        startDate,
-        endDate,
+        student.class.homeRoomTeacher,
+        student.class.class_id,
+        vnStartDate.toISOString(), // Use Vietnam timezone
+        vnEndDate.toISOString(), // Use Vietnam timezone
         leaveReason,
         formattedSessions
       )
     );
 
-    // Thực thi tất cả các promises
     Promise.all(createRequestPromises)
       .then((responses) => {
         console.log('Leave requests created successfully:', responses);
@@ -1811,31 +1861,6 @@ export default function Student() {
                     <span className="text-gray-600">Người làm đơn:</span>
                     <span className="ml-2 text-blue-500 font-semibold">{studentInfo.parents[0].userName}</span>
                   </div>
-                  {/* <div className="flex items-center mb-4">
-                    <i className="fas fa-user text-green-500 mr-2"></i>
-                    <span className="text-gray-600">Chọn con:</span>
-
-                    <div className="ml-2">
-                      {parentInfo && parentInfo.students && parentInfo.students.length > 0 ? (
-                        parentInfo.students.map((student) => (
-                          <div key={student.student_id} className="flex items-center mb-2">
-                            <input
-                              type="checkbox"
-                              id={student.student_id}
-                              checked={selectedStudents.some((s) => s.student_id === student.student_id)}
-                              onChange={() => handleStudentSelection(student)}
-                              className="mr-2"
-                            />
-                            <label htmlFor={student.student_id} className="text-green font-bold text-green-600">
-                              {student.student_name}
-                            </label>
-                          </div>
-                        ))
-                      ) : (
-                        <p>Không có thông tin học sinh</p>
-                      )}
-                    </div>
-                  </div> */}
 
                   <div className="flex items-center mb-4">
                     <i className="fas fa-user text-green-500 mr-2"></i>
@@ -1879,13 +1904,6 @@ export default function Student() {
                         <span className="text-gray-600 whitespace-nowrap" style={{ marginRight: '22px' }}>
                           Nghỉ từ:
                         </span>
-                        {/* <input
-                          type="date"
-                          className="ml-6 text-black  font-bold  w-60" // Adjusted to use full width
-                          min={new Date().toISOString().split('T')[0]}
-                          value={startDate}
-                          onChange={(e) => setStartDate(e.target.value)}
-                        /> */}
 
                         <DatePicker
                           selected={startDate}

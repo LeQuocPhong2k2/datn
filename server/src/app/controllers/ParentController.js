@@ -1,9 +1,10 @@
 require('dotenv').config({ path: '../../../../.env' })
 const Parent = require('../models/Parent')
 const Student = require('../models/Student')
+const Class = require('../models/Class')
 
 const ParentController = {
-  // xây dựng 1 API để lấy thông tin phụ huynh và lấy thông tin học sinh của phụ huynh đó chỉ cần lấy thông tin phụ huynh và id của học sinh và tên học sinh đó
+  // xây dựng 1 API để lấy thông tin phụ huynh và lấy thông tin học sinh của phụ huynh đó chỉ cần lấy thông tin phụ huynh và id của học sinh và tên học sinh đó và lấy thêm thông tin homeRoomTeacher là _id của giáo viên chủ nhiệm của lớp học sinh đó và lấy _id,className của lớp học sinh đó và lấy
   getFullParentInfo: async (req, res) => {
     try {
       const { parent_id } = req.body
@@ -23,6 +24,27 @@ const ParentController = {
         'id userName' // Chỉ lấy id và userName của học sinh
       )
 
+      // Find class information for each student
+      const studentsWithClass = await Promise.all(
+        students.map(async (student) => {
+          const studentClass = await Class.findOne(
+            { studentList: student._id },
+            '_id className homeRoomTeacher'
+          )
+          return {
+            student_id: student._id,
+            student_name: student.userName,
+            class: studentClass
+              ? {
+                  class_id: studentClass._id,
+                  className: studentClass.className,
+                  homeRoomTeacher: studentClass.homeRoomTeacher,
+                }
+              : null,
+          }
+        })
+      )
+
       // Bước 3: Kết hợp thông tin và trả về
       const result = {
         parent: {
@@ -33,10 +55,7 @@ const ParentController = {
           job: parent.job,
           relationship: parent.relationship,
         },
-        students: students.map((student) => ({
-          student_id: student._id,
-          student_name: student.userName,
-        })),
+        students: studentsWithClass,
       }
 
       res.status(200).json(result)

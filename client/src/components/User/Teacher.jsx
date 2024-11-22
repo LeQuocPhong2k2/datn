@@ -149,6 +149,8 @@ export default function Teacher() {
         // Chuyển đổi ngày từ MongoDB ObjectId date sang định dạng Date thông thường
         // Sử dụng cách khác để parse ngày
         const sessionDate = session.date instanceof Date ? session.date : new Date(session.date.$date || session.date);
+        // console.log lúc đầu để kiểm tra xem sessionDate ra giá trị nào
+        console.log('sessionDate:', sessionDate);
 
         // Kiểm tra xem ngày có hợp lệ không
         if (isNaN(sessionDate.getTime())) {
@@ -166,10 +168,12 @@ export default function Teacher() {
           },
         ];
 
-        console.log('sessionDate:', sessionDate);
+        sessionDate.setHours(sessionDate.getHours() + 7);
 
         // Gọi hàm createAttendance cho từng ngày
         await createAttendance(leaveRequest.class_id, leaveRequest.teacher_id, sessionDate, attendanceRecords);
+        // console.log thông báo đã tạo thành công từ ngày sessionDate
+        console.log(`Đã tạo điểm danh từ ngày ${sessionDate}`);
       }
 
       toast.success('Đã tạo điểm danh từ đơn nghỉ học cho các ngày được chọn');

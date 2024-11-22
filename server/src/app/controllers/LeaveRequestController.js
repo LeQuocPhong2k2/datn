@@ -7,7 +7,6 @@ const Class = require('../models/Class')
 const LeaveRequestController = {
   // tạo đơn xin nghỉ học
   createLeaveRequest: async (req, res) => {
-    console.log('đã vào')
     try {
       const {
         student_id,
@@ -38,6 +37,7 @@ const LeaveRequestController = {
         message: 'Đơn xin nghỉ học đã được tạo thành công',
         data: savedLeaveRequest,
       })
+      console.log('Đơn xin nghỉ học đã được tạo thành công:')
     } catch (error) {
       res.status(500).json({
         success: false,
