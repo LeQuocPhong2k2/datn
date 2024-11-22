@@ -5,6 +5,7 @@ import Login from './components/Login';
 import Admin from './components/Admin';
 import Student from './components/User/index';
 import Teacher from './components/User/Teacher';
+import Teacher2 from './components/User/Teacherv2';
 import ForgotPassword from './components/User/ForgotPassword';
 import Error from './components/Error';
 import Home from './components/Home';
@@ -61,6 +62,14 @@ function App() {
           element={
             <ProtectedRoute allowedRole="Teacher">
               <Teacher />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teacher2"
+          element={
+            <ProtectedRoute allowedRole="Teacher">
+              <Teacher2 />
             </ProtectedRoute>
           }
         />
