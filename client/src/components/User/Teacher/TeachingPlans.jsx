@@ -3,29 +3,42 @@ import 'flowbite';
 import { useEffect, useState, useRef } from 'react';
 import { IoIosAdd } from 'react-icons/io';
 import { RiSubtractFill } from 'react-icons/ri';
+import { BiExport } from 'react-icons/bi';
 
 import Menu from './Menu';
 
-import { saveTeachingPlans, getTeachingPlanByTeacherAndByClassAndBySchoolYear } from '../../../api/TeachingPlan';
+import { saveTeachingPlans, getTeachingPlanByTeacherAndByGradeAndBySchoolYear } from '../../../api/TeachingPlan';
 import { getHomRoomTeacherCurrent } from '../../../api/Class';
 import { getSubjectByGrade } from '../../../api/Subject';
 
 import { Toaster, toast } from 'react-hot-toast';
+import { set } from 'mongoose';
 
 export default function TeachingPlans() {
   /**
    * State variables
    */
-
-  const [subjects, setSubjects] = useState([]);
+  const [grade, setGrade] = useState(1);
+  const [showUpdatedPlan, setShowUpdatedPlan] = useState(false);
+  const [indexWeek, setIndexWeek] = useState(0);
+  const [indexSubject, setIndexSubject] = useState(0);
+  const [indexTopic, setIndexTopic] = useState(0);
+  const [listSubjects, setListSubjects] = useState([]);
   const [listPlans, setListPlans] = useState([]);
   const [teacherInfo, setTeacherInfo] = useState({});
   const [createPlan, setCreatePlan] = useState(false);
+  const [selectedItemTopic, setSelectedItemTopic] = useState({
+    index: -1,
+    name: '',
+    duration: 0,
+    process: 0,
+  });
+  const [planEdit, setPlanEdit] = useState({});
   const [plans, setPlan] = useState([
     {
-      subject: '',
-      className: '',
       academicYear: '',
+      grade: '1',
+      subject: '',
       weeks: [
         {
           weekNumber: 1,
@@ -33,6 +46,7 @@ export default function TeachingPlans() {
             {
               name: '',
               duration: 0,
+              process: 0,
             },
           ],
         },
@@ -44,11 +58,22 @@ export default function TeachingPlans() {
    * Handle functions
    */
   useEffect(() => {
+    getSubjectByGrade(grade)
+      .then((data) => {
+        console.log(data);
+        setListSubjects(data);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }, [grade]);
+
+  const handleSearchTeachingPlan = () => {
     const teacher_phoneNumber = localStorage.getItem('phoneNumberTeacher');
     getHomRoomTeacherCurrent(teacher_phoneNumber)
       .then((res) => {
         setTeacherInfo(res);
-        getTeachingPlanByTeacherAndByClassAndBySchoolYear(res.teacher_id, res.className, getCurrentSchoolYear())
+        getTeachingPlanByTeacherAndByGradeAndBySchoolYear(res.teacher_id, grade, getCurrentSchoolYear())
           .then((data) => {
             setListPlans(data);
           })
@@ -59,24 +84,19 @@ export default function TeachingPlans() {
       .catch((error) => {
         console.log(error);
       });
-  }, []);
+  };
 
   const handleOnClickCreatePlan = () => {
-    getSubjectByGrade(1)
-      .then((data) => {
-        console.log(data);
-        setSubjects(data);
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+    handleResetPlans();
     setCreatePlan(true);
+    setShowUpdatedPlan(false);
   };
 
   const handleAddPlan = () => {
     const newPlan = {
+      academicYear: getCurrentSchoolYear(),
+      grade: '',
       subject: '',
-      className: '',
       weeks: [
         {
           weekNumber: 1,
@@ -84,12 +104,12 @@ export default function TeachingPlans() {
             {
               name: '',
               duration: 0,
+              process: 0,
             },
           ],
         },
       ],
     };
-
     setPlan([...plans, newPlan]);
   };
 
@@ -100,6 +120,7 @@ export default function TeachingPlans() {
         {
           name: '',
           duration: 0,
+          process: 0,
         },
       ],
     };
@@ -142,7 +163,6 @@ export default function TeachingPlans() {
   };
 
   const handleSavePlan = () => {
-    // check valid
     const isValid = plans.every((plan) => {
       if (plan.className === '') {
         toast.error('Lớp học không được để trống');
@@ -180,27 +200,13 @@ export default function TeachingPlans() {
     }
 
     try {
+      const updatedPlan = [...plans];
+      updatedPlan[0].academicYear = getCurrentSchoolYear();
+      updatedPlan[0].grade = grade;
+      setPlan(updatedPlan);
       saveTeachingPlans(plans, teacherPhoneNumber, getCurrentSchoolYear());
+      refreshListPlan();
       toast.success('Tạo kế hoạch giảng dạy thành công');
-      setCreatePlan(false);
-      setPlan([
-        {
-          subject: '',
-          className: '',
-          academicYear: '',
-          weeks: [
-            {
-              weekNumber: 1,
-              topics: [
-                {
-                  name: '',
-                  duration: 0,
-                },
-              ],
-            },
-          ],
-        },
-      ]);
     } catch (error) {
       console.error(error);
       toast.error('Tạo kế hoạch giảng dạy thất bại');
@@ -230,63 +236,339 @@ export default function TeachingPlans() {
     }
   };
 
+  const refreshListPlan = async () => {
+    const teacher_phoneNumber = localStorage.getItem('phoneNumberTeacher');
+    getHomRoomTeacherCurrent(teacher_phoneNumber)
+      .then((res) => {
+        setTeacherInfo(res);
+        getTeachingPlanByTeacherAndByGradeAndBySchoolYear(res.teacher_id, res.className, getCurrentSchoolYear())
+          .then((data) => {
+            setListPlans(data);
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+    setCreatePlan(false);
+    handleResetPlans();
+  };
+
+  const handleItemClick = (indexSubject, indexWeek, indexTopic) => {
+    setIndexWeek(indexWeek);
+    setIndexSubject(indexSubject);
+    setIndexTopic(indexTopic);
+    setSelectedItemTopic({
+      indexWeek: indexWeek,
+      indexSubject: indexSubject,
+      indexTopic: indexTopic,
+      name: listPlans[indexSubject].week[indexWeek].topics[indexTopic][0].name,
+      duration: listPlans[indexSubject].week[indexWeek].topics[indexTopic][0].duration,
+      process: listPlans[indexSubject].week[indexWeek].topics[indexTopic][0].process,
+    });
+  };
+
+  const handleEditTopic = () => {
+    setPlanEdit(listPlans[indexSubject]);
+
+    getSubjectByGrade(grade)
+      .then((data) => {
+        console.log(data);
+        setListSubjects(data);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+    setCreatePlan(false);
+    setShowUpdatedPlan(true);
+  };
+
+  const handleResetPlans = () => {
+    setPlan([
+      {
+        academicYear: '',
+        grade: '',
+        subject: '',
+        weeks: [
+          {
+            weekNumber: 1,
+            topics: [
+              {
+                name: '',
+                duration: 0,
+                process: 0,
+              },
+            ],
+          },
+        ],
+      },
+    ]);
+  };
+
+  const handleUpdatePlan = () => {
+    const isValid = planEdit.week.every((plan) => {
+      if (planEdit._id === '') {
+        toast.error('Môn học không được để trống');
+        return false;
+      }
+
+      const isWeekValid = plan.topics.every((topic) => {
+        if (topic[0].name === '' || topic[0].duration === undefined || topic[0].duration === '') {
+          toast.error('Tên chương hoặc thời lượng không được để trống');
+          return false;
+        }
+        return true;
+      });
+
+      return isWeekValid;
+    });
+
+    if (!isValid) {
+      return;
+    }
+    const teacherPhoneNumber = localStorage.getItem('phoneNumberTeacher');
+    if (!teacherPhoneNumber) {
+      toast.error('Không tìm thấy thông tin giáo viên');
+      return;
+    }
+    console.log('update plan');
+    console.log(planEdit);
+  };
+
+  const handleRemoveTopicUpdate = (weekIndex, topicIndex) => {
+    const week = planEdit.week[weekIndex];
+    week.topics.splice(topicIndex, 1);
+    const updatedPlan = { ...planEdit };
+    updatedPlan.week[weekIndex] = week;
+    setPlanEdit(updatedPlan);
+  };
+
+  const handleRemoveWeekUpdate = (weekIndex) => {
+    const updatedPlan = { ...planEdit };
+    updatedPlan.week.splice(weekIndex, 1);
+    setPlanEdit(updatedPlan);
+  };
+
   return (
     <Menu active="teaching-plans">
       <Toaster toastOptions={{ duration: 2500 }} />
       <div className="flex flex-wrap">
-        {!createPlan && (
+        {!createPlan && !showUpdatedPlan && (
           <div className="w-full px-4 mb-4 mt-4 grid grid-cols-12">
-            <div className="col-span-7 p-6 bg-white rounded-lg shadow-lg">
-              <div className="flex flex-wrap items-center justify-start gap-5 py-4">
-                <div className="flex items-center justify-start gap-2">
-                  <div className="px-2 py-1 w-24 bg-gray-300">
-                    <span className="font-semibold">Năm học</span>
+            <div className="col-span-12 p-6 bg-white rounded-lg shadow-lg">
+              {/* button */}
+              <div className="grid grid-cols-10 items-center justify-start border-b">
+                <div className="col-span-7 flex flex-wrap items-center justify-start gap-4 py-4 text-lg">
+                  <div className="flex items-center justify-start gap-2">
+                    <div className="px-2 py-1 w-28 bg-gray-300">
+                      <span className="font-semibold">Năm học</span>
+                    </div>
+                    <select className="h-8 px-2 py-1 rounded w-32" name="" id="">
+                      <option value="">2024-2025</option>
+                    </select>
                   </div>
-                  <select className="h-8 px-2 py-1 rounded w-32" name="" id="">
-                    <option value="">2024-2025</option>
-                  </select>
+                  <div className="flex items-center justify-start gap-2">
+                    <div className="px-2 py-1 w-28 bg-gray-300">
+                      <span className="font-semibold">Khối lớp</span>
+                    </div>
+                    <select
+                      onChange={(e) => {
+                        const updatedPlan = [...plans];
+                        updatedPlan[0].className = e.target.value;
+                        setPlan(updatedPlan);
+                        setGrade(e.target.value);
+                      }}
+                      value={grade}
+                      className="h-8 rounded w-20 px-2 py-1"
+                      name=""
+                      id=""
+                      defaultValue={'1'}
+                    >
+                      <option value={'1'}>1</option>
+                      <option value={'2'}>2</option>
+                      <option value={'3'}>3</option>
+                      <option value={'4'}>4</option>
+                      <option value={'5'}>5</option>
+                    </select>
+                  </div>
+                  {/* <div className="flex items-center justify-start gap-2">
+                    <div className="px-2 py-1 w-28 bg-gray-300">
+                      <span className="font-semibold">Môn học</span>
+                    </div>
+                    <select
+                      onChange={(e) => {
+                        setSubject(e.target.value);
+                      }}
+                      value={subject}
+                      className="h-8 w-36 px-2 py-1 rounded"
+                      name=""
+                      id=""
+                      defaultValue={''}
+                    >
+                      <option value=""></option>
+                      <option value="all">Tất cả</option>
+                      {listSubjects.map((subject) => (
+                        <option value={subject._id}>{subject.subjectName}</option>
+                      ))}
+                    </select>
+                  </div> */}
+                  <div className="flex items-center justify-start">
+                    <div
+                      onClick={handleSearchTeachingPlan}
+                      className="px-3 py-1 rounded bg-sky-500 hover:bg-sky-600 cursor-pointer text-white"
+                    >
+                      <i class="fa-solid fa-magnifying-glass"></i>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center justify-start gap-2">
-                  <div className="px-2 py-1 w-24 bg-gray-300">
-                    <span className="font-semibold">Lớp học</span>
-                  </div>
-                  <select className="h-8 w-32 px-2 py-1 rounded" name="" id="">
-                    <option value="">5A1</option>
-                  </select>
-                </div>
-                <div className="flex items-center justify-start gap-2">
-                  <div className="px-2 py-1 w-24 bg-gray-300">
-                    <span className="font-semibold">Môn học</span>
-                  </div>
-                  <select className="h-8 w-32 px-2 py-1 rounded" name="" id="">
-                    <option value="">5A1</option>
-                  </select>
-                </div>
-                <div className="flex items-center justify-start gap-2">
-                  <div className="px-2 py-1 rounded bg-sky-500 hover:bg-sky-600 cursor-pointer text-white">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                  </div>
+                <div className="col-span-3 flex items-center justify-end">
+                  <button className="flex items-center justify-center gap-2 bg-sky-500 hover:bg-sky-700 text-white font-medium py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    <BiExport className="text-xl" />
+                    Export to excel
+                  </button>
                 </div>
               </div>
-              {/* <div>
-                <input className="w-full rounded-md" type="text" placeholder="Search plan..." />
-              </div> */}
-              <div className="flex items-center justify-start gap-2">
-                <i class="fa-solid fa-bars"></i>
-                <span className="text-xl font-semibold">Plan overview</span>
-              </div>
-              <div className="py-4 flex items-center justify-start gap-2">
-                <button
-                  onClick={handleOnClickCreatePlan}
-                  className="w-full flex items-center justify-center gap-2 bg-sky-500 hover:bg-sky-700 text-white font-medium py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                >
-                  Create the plan
-                </button>
+              {/* content */}
+              <div className="flex">
+                {/* Left Column: Tree View */}
+                <div className="w-1/2 border-r p-4">
+                  <div className="flex items-center justify-start gap-4 text-xl mb-4">
+                    <div className="flex items-center justify-start gap-1">
+                      <i class="fa-solid fa-bars"></i>
+                      <h2 className="text-xl font-bold">Plan overview</h2>
+                    </div>
+                    {listPlans.length !== 0 && (
+                      <i
+                        onClick={handleOnClickCreatePlan}
+                        class="fa-solid fa-circle-plus cursor-pointer text-blue-500 hover:text-blue-700"
+                      ></i>
+                    )}
+                  </div>
+                  {grade === '' && <p className="text-gray-500">Hãy chọn khối để xem kế hoạch giảng dạy.</p>}
+                  {listPlans.length === 0 && (
+                    <div className="pt-4 flex items-center justify-start gap-2">
+                      <button
+                        onClick={handleOnClickCreatePlan}
+                        className="w-full flex items-center justify-center gap-2 bg-sky-500 hover:bg-sky-700 text-white font-medium py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                      >
+                        Create the plan
+                      </button>
+                    </div>
+                  )}
+                  <ul style={{ userSelect: 'none' }}>
+                    {listPlans.map((subject, indexSubject) => (
+                      <li key={subject.subjectName} className="py-2">
+                        <details className="group relative">
+                          <summary className="cursor-pointer font-bold text-lg text-blue-600 hover:underline">
+                            {subject.subjectName}
+                          </summary>
+                          <ul className="ml-4 mt-2">
+                            {subject.week.map((week, indexWeek) => (
+                              <li key={week.weekNumber} className="py-2">
+                                <details className="group">
+                                  <summary className="cursor-pointer font-medium text-lg text-green-600 hover:underline">
+                                    Tuần {week.weekNumber}
+                                  </summary>
+                                  <ul className="ml-4 mt-2">
+                                    {week.topics.map((topic, indexTopic) => (
+                                      <li
+                                        key={indexTopic}
+                                        className="py-1 cursor-pointer text-gray-700 hover:underline text-lg"
+                                        onClick={() => handleItemClick(indexSubject, indexWeek, indexTopic)}
+                                      >
+                                        {'Bài ' + 1 + '. ' + topic[0].name + ' (' + topic[0].duration + ' tiết)'}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </details>
+                              </li>
+                            ))}
+                          </ul>
+                        </details>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Right Column: Details View */}
+                <div className="w-1/2 p-4">
+                  <div className="flex items-center justify-start gap-4 text-xl mb-4">
+                    <h2 className="text-xl font-bold ">
+                      <i class="fa-solid fa-circle-info pr-1"></i>Thông tin chi tiết
+                    </h2>
+                    <div className="flex items-center justify-end gap-4 text-xl px-2 cursor-pointer">
+                      {selectedItemTopic.index !== -1 && (
+                        <i
+                          onClick={handleEditTopic}
+                          class="fa-solid fa-pen-to-square text-blue-500 hover:text-blue-700"
+                        ></i>
+                      )}
+                    </div>
+                  </div>
+                  {selectedItemTopic.index !== -1 ? (
+                    <>
+                      <div className="p-4 bg-gray-100 rounded shadow text-lg">
+                        <div className="grid grid-rows-2 py-2">
+                          <span className="font-semibold">Tên chủ đề:</span>
+                          <input
+                            disabled={true}
+                            value={selectedItemTopic.name}
+                            onChange={(e) => {
+                              setSelectedItemTopic({ ...selectedItemTopic, name: e.target.value });
+                            }}
+                            className={`h-8 rounded text-lg focus:outline-none focus:ring-0 border-none`}
+                            type="text"
+                          />
+                        </div>
+                        <div className="grid grid-rows-2 py-2">
+                          <span className="font-semibold">Thời lượng (tiết):</span>
+                          <input
+                            disabled={true}
+                            value={selectedItemTopic.duration}
+                            onChange={(e) => {
+                              setSelectedItemTopic({ ...selectedItemTopic, duration: e.target.value });
+                            }}
+                            className={`h-8 rounded text-lg focus:outline-none focus:ring-0 border-none`}
+                            type="number"
+                          />
+                        </div>
+                        <div className="grid grid-rows-2 gap-1 py-2">
+                          <div className="flex items-center justify-start gap-1">
+                            <span className="font-semibold">Tiến độ (%):</span>
+                            <input
+                              type="number"
+                              disabled={true}
+                              value={selectedItemTopic.process}
+                              onChange={(e) => {
+                                setSelectedItemTopic({ ...selectedItemTopic, process: e.target.value });
+                              }}
+                              className={`w-16 h-8 rounded text-lg px-2 py-1 focus:outline-none focus:ring-0 border-none`}
+                            />
+                          </div>
+                          <div
+                            className="flex items-center justify-start border rounded-lg h-5 overflow-x-hidden bg-white"
+                            style={{ width: `${100}%` }}
+                          >
+                            <div
+                              className="rounded-s-lg bg-blue-500 h-full"
+                              style={{ width: `${selectedItemTopic.process}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <p className="text-gray-500">Hãy chọn một chủ đề để xem chi tiết.</p>
+                  )}
+                </div>
               </div>
             </div>
           </div>
         )}
 
+        {/* plan create */}
         {createPlan && (
           <div className="w-full px-4 mb-4 mt-4">
             <div className="p-6 bg-white rounded-lg shadow-lg">
@@ -301,35 +583,20 @@ export default function TeachingPlans() {
                   <button
                     onClick={() => {
                       setCreatePlan(false);
-                      setPlan([
-                        {
-                          subject: '',
-                          className: '',
-                          academicYear: '',
-                          weeks: [
-                            {
-                              weekNumber: 1,
-                              topics: [
-                                {
-                                  name: '',
-                                  duration: 0,
-                                },
-                              ],
-                            },
-                          ],
-                        },
-                      ]);
+                      handleResetPlans();
                     }}
                     className="flex items-center justify-center gap-2 bg-red-500 hover:bg-red-700 text-white font-medium py-2 px-4 rounded focus:outline-none focus:shadow-outline"
                   >
                     <i class="fa-solid fa-xmark"></i>Close
                   </button>
                 </div>
-                <div className="flex items-center justify-end gap-5">
-                  <button className="flex items-center justify-center gap-2 hover:text-blue-500 hover:ring-1 hover:ring-blue-500 border border-gray-500 py-2 px-4 rounded">
-                    <i class="fa-solid fa-file-arrow-down text-yellow-400"></i>Import to excel
-                  </button>
-                </div>
+                {!showUpdatedPlan && (
+                  <div className="flex items-center justify-end gap-5">
+                    <button className="flex items-center justify-center gap-2 hover:text-blue-500 hover:ring-1 hover:ring-blue-500 border border-gray-500 py-2 px-4 rounded">
+                      <i class="fa-solid fa-file-arrow-down text-yellow-400"></i>Import to excel
+                    </button>
+                  </div>
+                )}
               </div>
               <div className="px-2 py-2 pb-4 flex flex-wrap gap-5">
                 <div className="flex items-center justify-start gap-2">
@@ -339,35 +606,42 @@ export default function TeachingPlans() {
                   <div>
                     <input
                       value={getCurrentSchoolYear()}
-                      className="h-8 rounded w-52 bg-gray-200 text-gray-800 border-none"
+                      className="h-8 rounded w-44 bg-gray-200 text-gray-800 border-none"
                       type="text"
                       disabled
                     />
                   </div>
                 </div>
-                <div className="flex items-center justify-start gap-2">
-                  <div className="w-24 font-semibold px-2 py-1 bg-gray-400">
-                    <span>
-                      Lớp học<span className="text-red-700">*</span>
-                    </span>
+
+                {!showUpdatedPlan && (
+                  <div className="flex items-center justify-start gap-2">
+                    <div className="w-24 font-semibold px-2 py-1 bg-gray-400">
+                      <span>
+                        Khối lớp<span className="text-red-700">*</span>
+                      </span>
+                    </div>
+                    <div className="">
+                      <select
+                        onChange={(e) => {
+                          const updatedPlan = [...plans];
+                          updatedPlan[0].grade = e.target.value;
+                          setPlan(updatedPlan);
+                          setGrade(e.target.value);
+                        }}
+                        className="h-8 rounded w-20 px-2 py-1"
+                        name=""
+                        id=""
+                        defaultValue={'1'}
+                      >
+                        <option value={'1'}>1</option>
+                        <option value={'2'}>2</option>
+                        <option value={'3'}>3</option>
+                        <option value={'4'}>4</option>
+                        <option value={'5'}>5</option>
+                      </select>
+                    </div>
                   </div>
-                  <div className="">
-                    <select
-                      onChange={(e) => {
-                        const updatedPlan = [...plans];
-                        updatedPlan[0].className = e.target.value;
-                        setPlan(updatedPlan);
-                      }}
-                      className="h-8 rounded w-52 px-2 py-1"
-                      name=""
-                      id=""
-                      defaultValue={''}
-                    >
-                      <option value=""></option>
-                      <option value="5A1">5A1</option>
-                    </select>
-                  </div>
-                </div>
+                )}
               </div>
               <div className="text-lg w-full ">
                 <div class="card mb-4 overflow-hidden chapter-container">
@@ -400,7 +674,7 @@ export default function TeachingPlans() {
                               id=""
                             >
                               <option value=""></option>
-                              {subjects.map((subject) => (
+                              {listSubjects.map((subject) => (
                                 <option value={subject.subjectCode}>{subject.subjectName}</option>
                               ))}
                             </select>
@@ -518,6 +792,206 @@ export default function TeachingPlans() {
                       </div>
                     </div>
                   ))}
+
+                  <div className="px-2 py-2">
+                    <button
+                      onClick={handleAddPlan}
+                      type="button"
+                      class="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-md add-topic-btn"
+                    >
+                      Add Chapter
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* plan edit */}
+        {showUpdatedPlan && (
+          <div className="w-full px-4 mb-4 mt-4">
+            <div className="p-6 bg-white rounded-lg shadow-lg">
+              <div className="text-base font-semibold mb-4 flex items-center justify-start gap-10 p-2">
+                <div className="flex items-center justify-start gap-2">
+                  <button
+                    onClick={() => handleUpdatePlan()}
+                    className="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-700 text-white font-medium py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                  >
+                    <i class="fa-solid fa-check text-yellow-300"></i>Done
+                  </button>
+                  <button
+                    onClick={() => {
+                      setCreatePlan(false);
+                      setShowUpdatedPlan(false);
+                      setPlanEdit({});
+                      handleSearchTeachingPlan();
+                    }}
+                    className="flex items-center justify-center gap-2 bg-red-500 hover:bg-red-700 text-white font-medium py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                  >
+                    <i class="fa-solid fa-xmark"></i>Close
+                  </button>
+                </div>
+              </div>
+              <div className="px-2 py-2 pb-4 flex flex-wrap gap-5">
+                <div className="flex items-center justify-start gap-2">
+                  <div className="w-24 font-semibold px-2 py-1 bg-gray-400">
+                    <span>Năm học</span>
+                  </div>
+                  <div>
+                    <input
+                      value={getCurrentSchoolYear()}
+                      className="h-8 rounded w-44 bg-gray-200 text-gray-800 border-none"
+                      type="text"
+                      disabled
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="text-lg w-full ">
+                <div class="card mb-4 overflow-hidden chapter-container">
+                  <div class="px-2 grid grid-cols-10">
+                    <div className="col-span-2 py-1 px-2 border-t border-l bg-gray-400">
+                      <span className="font-medium">Chapters</span>
+                    </div>
+                    <div className="col-span-8 grid grid-cols-10">
+                      <div className="col-span-3 py-1 px-2 border-t border-l bg-gray-400">
+                        <span className="font-medium">Weeks</span>
+                      </div>
+                      <div className="col-span-7 py-1 px-2 border-t border-r border-l bg-gray-400">
+                        <span className="font-medium">Topics</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="card-body px-2 grid grid-cols-10 chapter-template">
+                    <div class="col-span-2 border-l border-b">
+                      <div className="border-t px-2 py-2 grid grid-cols-10 gap-2">
+                        <div className="col-span-9">
+                          <select
+                            value={planEdit._id}
+                            onChange={(e) => {
+                              const updatedPlan = { ...planEdit };
+                              updatedPlan._id = e.target.value;
+                              setPlanEdit(updatedPlan);
+                            }}
+                            className="w-full rounded h-10 border"
+                          >
+                            <option value=""></option>
+                            {listSubjects.map((subject) => (
+                              <option value={subject.subjectCode}>{subject.subjectName}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="col-span-1 flex items-center">
+                          {plans.length > 1 ? (
+                            <button className="px-1 py-1 rounded-full text-white bg-red-500 hover:bg-red-600">
+                              <RiSubtractFill />
+                            </button>
+                          ) : (
+                            <button className="px-1 py-1 rounded-full text-white bg-red-500 hover:bg-red-600 cursor-not-allowed">
+                              <RiSubtractFill />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="col-span-8 border-l border-r">
+                      {planEdit.week.map((week, weekIndex) => (
+                        <div class="overflow-hidden grid grid-cols-10 border-t border-b">
+                          <div class="col-span-3 px-2 py-2 grid grid-cols-2 border-r text-black">
+                            <div>
+                              <span>Week {week.weekNumber}</span>
+                            </div>
+                            <div className="flex items-start justify-end">
+                              {planEdit.week.length > 1 ? (
+                                <button
+                                  onClick={() => handleRemoveWeekUpdate(weekIndex)}
+                                  className="px-1 py-1 rounded-full text-white bg-red-500 hover:bg-red-600"
+                                >
+                                  <RiSubtractFill />
+                                </button>
+                              ) : (
+                                <button
+                                  disabled
+                                  className="px-1 py-1 rounded-full text-white bg-red-500 cursor-not-allowed"
+                                >
+                                  <RiSubtractFill />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                          <div class="col-span-7 p-2 topics-container">
+                            {week.topics.map((topic, topicIndex) => (
+                              <div className="grid grid-flow-col gap-4 topic-template">
+                                <div class="col-span-6 mb-3 grid grid-flow-row gap-2">
+                                  <label for="subject" class="form-label">
+                                    Topic Name<span className="text-red-500">*</span>
+                                  </label>
+                                  <input
+                                    onChange={(e) => {
+                                      const updatedPlan = { ...planEdit };
+                                      updatedPlan.week[weekIndex].topics[topicIndex][0].name = e.target.value;
+                                      setPlanEdit(updatedPlan);
+                                    }}
+                                    value={topic[0].name}
+                                    type="text"
+                                    className="w-full rounded-lg h-10 border-gray-300"
+                                  />
+                                </div>
+                                <div class="col-span-3 mb-3 grid grid-flow-row gap-2">
+                                  <label for="subject" class="form-label">
+                                    Duration<span className="text-red-500">*</span>
+                                  </label>
+                                  <input
+                                    onChange={(e) => {
+                                      const updatedPlan = { ...planEdit };
+                                      updatedPlan.week[weekIndex].topics[topicIndex][0].duration = e.target.value;
+                                      setPlanEdit(updatedPlan);
+                                    }}
+                                    value={topic[0].duration}
+                                    type="number"
+                                    min={0}
+                                    max={10}
+                                    required
+                                    className="rounded-lg h-10 border-gray-300"
+                                  />
+                                </div>
+                                <div className="flex items-center">
+                                  {week.topics.length > 1 ? (
+                                    <button
+                                      onClick={() => handleRemoveTopicUpdate(weekIndex, topicIndex)}
+                                      className="p-1 text-white rounded-full mt-4 bg-red-500 hover:bg-red-600"
+                                    >
+                                      <RiSubtractFill />
+                                    </button>
+                                  ) : (
+                                    <button className="p-1 text-white rounded-full mt-4 bg-red-500 cursor-not-allowed">
+                                      <RiSubtractFill />
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                            <button
+                              type="button"
+                              class="px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded-md add-topic-btn"
+                            >
+                              Add Topic
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                      <div className="px-2 py-2 border-b">
+                        <button
+                          type="button"
+                          class="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-md add-topic-btn"
+                        >
+                          Add Week
+                        </button>
+                      </div>
+                    </div>
+                  </div>
 
                   <div className="px-2 py-2">
                     <button

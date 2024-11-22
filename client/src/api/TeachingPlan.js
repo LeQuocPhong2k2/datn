@@ -12,14 +12,14 @@ async function saveTeachingPlans(plans, teacherPhoneNumber, academicYear) {
   return response.data;
 }
 
-async function getTeachingPlanByTeacherAndByClassAndBySchoolYear(teacherId, className, academicYear) {
-  const response = await axios.post(`${API_URL}/teachingPlans/getTeachingPlanByTeacherAndByClassAndBySchoolYear`, {
+async function getTeachingPlanByTeacherAndByGradeAndBySchoolYear(teacherId, grade, academicYear) {
+  const response = await axios.post(`${API_URL}/teachingPlans/getTeachingPlanByTeacherAndByGradeAndBySchoolYear`, {
     teacherId,
-    className,
+    grade,
     academicYear,
   });
 
   return response.data;
 }
 
-export { saveTeachingPlans, getTeachingPlanByTeacherAndByClassAndBySchoolYear };
+export { saveTeachingPlans, getTeachingPlanByTeacherAndByGradeAndBySchoolYear };
