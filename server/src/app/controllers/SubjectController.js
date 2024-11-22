@@ -10,7 +10,7 @@ const SubjectController = {
       const subject = await Subject.aggregate([
         {
           $match: {
-            subjectGrade: grade,
+            subjectGrade: grade.toString(),
           },
         },
         {
