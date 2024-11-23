@@ -12,8 +12,6 @@ import { getStudentListByClassNameAndAcademicYear } from '../../api/Class';
 import { createAttendance } from '../../api/Attendance';
 import { getAttendanceByClassAndDateNow } from '../../api/Attendance';
 
-import InputScore from './InputScore';
-
 export default function Teacher() {
   useEffect(() => {
     document.title = 'Trang chủ giáo viên';

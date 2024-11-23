@@ -6,12 +6,12 @@ import { useEffect, useState } from 'react';
 import Cookies from 'cookie-universal';
 import 'react-toastify/dist/ReactToastify.css';
 import { Toaster, toast } from 'react-hot-toast';
+import { getHomRoomTeacherCurrent } from '../api/Class';
 
 export default function Login() {
   useEffect(() => {
     document.title = 'Đăng nhập';
   }, []);
-
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
   const cookies = new Cookies();
@@ -43,8 +43,13 @@ export default function Login() {
       } else if (response.account.role === 'Student' || response.account.role === 'Parent') {
         window.location.href = '/student';
       } else if (response.account.role === 'Teacher') {
-        localStorage.setItem('phoneNumberTeacher', response.account.userName);
-        window.location.href = '/teacher';
+        getHomRoomTeacherCurrent(response.account.userName).then((res) => {
+          localStorage.setItem('teacherId', res.teacher_id);
+          localStorage.setItem('className', res.className);
+          localStorage.setItem('userName', res.userName);
+          localStorage.setItem('phoneNumberTeacher', response.account.userName);
+          window.location.href = '/teacher';
+        });
       }
     } catch (error) {
       if (error.response.status === 401) {

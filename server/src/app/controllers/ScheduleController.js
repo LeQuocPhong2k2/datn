@@ -3,6 +3,9 @@ const Teacher = require("../models/Teacher");
 const Subject = require("../models/Subject");
 const Schedule = require("../models/Schedule");
 
+const mongoose = require("mongoose");
+const ObjectId = mongoose.Types.ObjectId;
+
 const ScheduleController = {
   async updateSchedule(req, res) {
     const { scheduleId, scheduleTitle, scheduleTeacher, subjectCode, className, schoolYear, semester1, semester2 } = req.body;
@@ -196,6 +199,35 @@ const ScheduleController = {
         }
       }
       return res.status(201).json({ message: "Auto create teacher schedule successfully", schedule });
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  },
+
+  async getScheduleOfTeacher(req, res) {
+    const { teacherId, schoolYear } = req.body;
+    try {
+      const schedules = await Schedule.aggregate([
+        {
+          $match: {
+            schoolYear: schoolYear,
+            scheduleTeacher: new ObjectId(teacherId),
+          },
+        },
+        {
+          $unwind: "$timesSlot",
+        },
+        {
+          $project: {
+            _id: 1,
+            subject: "$scheduleTitle",
+            day: "$timesSlot.scheduleDay",
+            period: "$timesSlot.lessonNumber",
+            className: 1,
+          },
+        },
+      ]);
+      return res.status(200).json({ schedules });
     } catch (error) {
       return res.status(500).json({ error: error.message });
     }

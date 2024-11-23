@@ -146,6 +146,24 @@ async function getTeacherSchedule(teacherId, schoolYear) {
   }
 }
 
+async function getScheduleOfTeacher(teacherId, schoolYear) {
+  try {
+    const response = await axios.post(
+      API_URL + '/schedules/getScheduleOfTeacher',
+      { teacherId, schoolYear },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Get schedule of teacher error:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+}
+
 export {
   createSchedule,
   getSchedulesByClass,
@@ -153,4 +171,5 @@ export {
   deleteSchedule,
   updateSchedule,
   getTeacherSchedule,
+  getScheduleOfTeacher,
 };

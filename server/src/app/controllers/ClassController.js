@@ -5,6 +5,7 @@ const Class = require("../models/Class");
 const Account = require("../models/Account");
 const socket = require("../../socket");
 const Schedule = require("../models/Schedule");
+const Teacher = require("../models/Teacher");
 
 const ClassController = {
   /**
