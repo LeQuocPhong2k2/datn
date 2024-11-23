@@ -9,8 +9,7 @@ const attendanceRouter = require("./attendance");
 const NotificatioRouter = require("./notification");
 const AdministratorRouter = require("./administrator");
 const transcriptsRouter = require("./transcripts");
-const teachingPlansRouter = require("./teachingPlans");
-const teachingReportRouter = require("./teachingReport");
+const parentsRouter = require("./parents");
 function route(app) {
   app.use("/accounts", accountsRouter),
     app.use("/teachers", teachersRouter),
@@ -23,8 +22,7 @@ function route(app) {
     app.use("/notification", NotificatioRouter),
     app.use("/administrator", AdministratorRouter),
     app.use("/transcripts", transcriptsRouter),
-    app.use("/teachingPlans", teachingPlansRouter),
-    app.use("/teachingReport", teachingReportRouter);
+    app.use("/parents", parentsRouter);
 }
 
 module.exports = route;

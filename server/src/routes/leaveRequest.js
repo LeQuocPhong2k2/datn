@@ -13,4 +13,8 @@ router.post(
   LeaveRequestController.getLeaveRequestsByTeacherId
 )
 router.post('/updateLeaveRequest', LeaveRequestController.updateLeaveRequest)
+router.post(
+  '/getLeaveRequestsByParentId',
+  LeaveRequestController.getLeaveRequestsByParentId
+)
 module.exports = router

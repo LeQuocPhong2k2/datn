@@ -12,7 +12,18 @@ app.use(express.json())
 // import connectDB từ file index.js trong folder config/db
 const connectDB = require('./config/db/db.js')
 // sử dụng cors để cho phép truy cập từ các nguồn khác
-app.use(cors())
+app.use(
+  cors({
+    origin: '*',
+
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+)
+
+// Increase payload size limit
+app.use(express.json({ limit: '50mb' }))
+app.use(express.urlencoded({ limit: '50mb', extended: true }))
 // lấy api route từ file index.js trong folder routes
 const route = require('./routes/index.js')
 route(app)

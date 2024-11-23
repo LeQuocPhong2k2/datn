@@ -7,11 +7,12 @@ import { getFullInfoStudentByCode, getStudentByAccountId } from '../../api/Stude
 import { changePassword } from '../../api/Accounts';
 import 'react-toastify/dist/ReactToastify.css';
 import { Toaster, toast } from 'react-hot-toast';
-import { createLeaveRequest, getLeaveRequestsByStudentId } from '../../api/LeaveRequest';
+import { createLeaveRequest, getLeaveRequestsByStudentId, getLeaveRequestsByParentId } from '../../api/LeaveRequest';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { getAllNotifications } from '../../api/Notifications';
-import { getTeachingReports } from '../../api/TeachingReport';
+import { getFullParentInfo } from '../../api/Parents';
+
 import Schedule from './Schedule';
 
 export default function Student() {
@@ -72,8 +73,8 @@ export default function Student() {
         console.log(error);
       });
   }, []);
-  // hiện console.log để xem thông tin học sinh
-  console.log('studentInfo là:', studentInfo);
+  // // hiện console.log để xem thông tin học sinh
+  // console.log('studentInfo là:', studentInfo);
 
   // gọi tới apiu getFullInfoStudentByCode đựa trên studentCode ở trong cookie
 
@@ -117,32 +118,75 @@ export default function Student() {
     });
   }, []);
 
-  // chỗ sự kiện đơn xin nghĩ học
-  // data mẫu đơn nghĩ học
+  const [parentInfo, setParentInfo] = useState({ students: [] });
+  const [selectedStudents, setSelectedStudents] = useState([]);
+
+  // chỗ sự kiện tab đơn xin nghĩ học
+  const handleResetLeaveRequest = () => {
+    setStartDate('');
+    setEndDate('');
+    setSelectedSessions([]);
+    setLeaveReason('');
+    setSelectedStudents([]); // Reset selected students
+  };
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (studentInfo.parents && studentInfo.parents.length > 0) {
+          const res = await getFullParentInfo(studentInfo.parents[0]._id);
+          console.log('Parent Info:', res);
+          if (res && res.students) {
+            // Kiểm tra res và res.students tồn tại
+            setParentInfo(res);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching parent info:', error);
+      }
+    };
+
+    fetchData();
+  }, [studentInfo.parents]); // Thêm dependency
+
+  // Handler để xử lý chọn/bỏ chọn
+  const handleStudentSelection = (student) => {
+    if (selectedStudents.find((s) => s.student_id === student.student_id)) {
+      setSelectedStudents(selectedStudents.filter((s) => s.student_id !== student.student_id));
+    } else {
+      setSelectedStudents([...selectedStudents, student]);
+    }
+  };
+
   const [leaveRequests, setLeaveRequests] = useState([]);
   // lưu trữ đơn nghỉ học được chọn
   const [selectedLeaveRequest, setSelectedLeaveRequest] = useState(null);
-
-  // useEffect để lấy tất cả đơn nghĩ học
+  // khi selectedLeaveRequest có sự thay đỔi thì console.log để xem thông tin
+  useEffect(() => {
+    console.log('Selected leave request:', selectedLeaveRequest);
+  }, [selectedLeaveRequest]);
 
   useEffect(() => {
-    if (studentInfo._id) {
-      getLeaveRequestsByStudentId(studentInfo._id).then((res) => {
-        console.log('Leave Requests:', res.data);
-        setLeaveRequests(res.data);
-      });
+    if (parentInfo?.parent?._id) {
+      getLeaveRequestsByParentId(parentInfo.parent._id)
+        .then((res) => {
+          console.log('Leave Requests lúc đầU là:', res.data);
+          setLeaveRequests(res.data);
+        })
+        .catch((error) => {
+          console.error('Error fetching leave requests:', error);
+        });
     }
-  }, []);
+  }, [parentInfo]);
   // Sự kiện show đơn đã gửi
   const handleShowInfoLeaveRequestSent = () => {
-    if (studentInfo._id) {
-      getLeaveRequestsByStudentId(studentInfo._id).then((res) => {
-        console.log('Leave Requests:', res.data);
+    getLeaveRequestsByParentId(parentInfo.parent._id)
+      .then((res) => {
+        console.log('Leave Requests lúc đầU là:', res.data);
         setLeaveRequests(res.data);
+      })
+      .catch((error) => {
+        console.error('Error fetching leave requests:', error);
       });
-    }
-    // setShowInfoLeaveRequest(false);
-    // setShowLeaveRequestSent(true);
   };
 
   // biến quản lý thông tin nhập vào đơn nghĩ học
@@ -274,39 +318,91 @@ export default function Student() {
 
   // tạo biến lưu lý do nghỉ học
   const [leaveReason, setLeaveReason] = useState('');
-  // xử lý sự kiện khi bấm gửi đơn nghỉ học
+
+  // const handleSubmitLeaveRequest = () => {
+  //   const formattedSessions = generateDateRange(startDate, endDate).map((date) => {
+  //     const dateString = new Date(date).toISOString().split('T')[0];
+  //     return {
+  //       date: new Date(date).toISOString(),
+  //       morning: selectedSessions.includes(`${dateString}-morning`) ? true : false,
+  //       afternoon: selectedSessions.includes(`${dateString}-afternoon`) ? true : false,
+  //     };
+  //   });
+
+  //   // Tạo mảng promises cho mỗi học sinh được chọn
+  //   const createRequestPromises = selectedStudents.map((student) =>
+  //     createLeaveRequest(
+  //       student.student_id,
+  //       studentInfo.parents[0]._id,
+  //       student.class.homeRoomTeacher, // Use student-specific homeRoomTeacher
+  //       student.class.class_id, // Use student-specific class_id
+  //       startDate,
+  //       endDate,
+  //       leaveReason,
+  //       formattedSessions
+  //     )
+  //   );
+
+  //   // Thực thi tất cả các promises
+  //   Promise.all(createRequestPromises)
+  //     .then((responses) => {
+  //       console.log('Leave requests created successfully:', responses);
+  //       alert(`Đã gửi ${selectedStudents.length} đơn nghỉ học thành công`);
+  //       setShowFullInfoLeaveRequest(false);
+  //       setShowInfoLeaveRequest(true);
+  //     })
+  //     .catch((error) => {
+  //       console.error('Error creating leave requests:', error);
+  //       alert('Đã xảy ra lỗi khi gửi đơn nghỉ học. Vui lòng thử lại sau.' + error);
+  //     });
+  // };
+
   const handleSubmitLeaveRequest = () => {
-    // Chuyển đổi selectedSessions thành định dạng mong muốn
+    // Helper function to convert to Vietnam timezone
+    const convertToVNTime = (date) => {
+      const vnTime = new Date(date);
+      vnTime.setHours(vnTime.getHours() + 7); // Convert to Vietnam timezone (UTC+7)
+      return vnTime;
+    };
+
     const formattedSessions = generateDateRange(startDate, endDate).map((date) => {
-      const dateString = new Date(date).toISOString().split('T')[0];
+      // Convert the date to Vietnam timezone
+      const vnDate = convertToVNTime(date);
+      const dateString = vnDate.toISOString().split('T')[0];
+
       return {
-        date: new Date(date).toISOString(),
+        date: vnDate.toISOString(), // Store in ISO format but with correct timezone offset
         morning: selectedSessions.includes(`${dateString}-morning`) ? true : false,
         afternoon: selectedSessions.includes(`${dateString}-afternoon`) ? true : false,
       };
     });
 
-    createLeaveRequest(
-      studentInfo._id,
-      studentInfo.parents[0]._id,
-      studentInfo.homeRoomTeacher_id,
-      studentInfo.class_id,
-      startDate,
-      endDate,
-      leaveReason,
-      formattedSessions
-    )
-      .then((response) => {
-        console.log('Leave request created successfully:', response);
-        alert('Đã gửi đơn nghỉ học thành công');
+    // Convert start and end dates to Vietnam timezone
+    const vnStartDate = convertToVNTime(startDate);
+    const vnEndDate = convertToVNTime(endDate);
+
+    const createRequestPromises = selectedStudents.map((student) =>
+      createLeaveRequest(
+        student.student_id,
+        studentInfo.parents[0]._id,
+        student.class.homeRoomTeacher,
+        student.class.class_id,
+        vnStartDate.toISOString(), // Use Vietnam timezone
+        vnEndDate.toISOString(), // Use Vietnam timezone
+        leaveReason,
+        formattedSessions
+      )
+    );
+
+    Promise.all(createRequestPromises)
+      .then((responses) => {
+        console.log('Leave requests created successfully:', responses);
+        alert(`Đã gửi ${selectedStudents.length} đơn nghỉ học thành công`);
         setShowFullInfoLeaveRequest(false);
         setShowInfoLeaveRequest(true);
-        // chuyển qua tab xem đơn đã gửi
-        // setShowLeaveRequestSent(true);
-        // setShowScheduleLeaveRequest(false);
       })
       .catch((error) => {
-        console.error('Error creating leave request:', error);
+        console.error('Error creating leave requests:', error);
         alert('Đã xảy ra lỗi khi gửi đơn nghỉ học. Vui lòng thử lại sau.' + error);
       });
   };
@@ -1808,7 +1904,27 @@ export default function Student() {
                   <div className="flex items-center mb-4">
                     <i className="fas fa-user text-green-500 mr-2"></i>
                     <span className="text-gray-600">Chọn con:</span>
-                    <span className="ml-2 text-blue-500 font-semibold">{studentInfo.parents[0].userName}</span>
+                    <div className="ml-2">
+                      {parentInfo && parentInfo.students && parentInfo.students.length > 0 ? (
+                        parentInfo.students.map((student) => (
+                          <div key={student.student_id} className="flex items-center mb-2">
+                            <input
+                              type="checkbox"
+                              id={student.student_id}
+                              // Thay đổi điều kiện checked
+                              checked={selectedStudents.some((s) => s.student_id === student.student_id)}
+                              onChange={() => handleStudentSelection(student)}
+                              className="mr-2"
+                            />
+                            <label htmlFor={student.student_id} className="text-green font-bold text-green-600">
+                              {student.student_name}
+                            </label>
+                          </div>
+                        ))
+                      ) : (
+                        <p>Không có thông tin học sinh</p>
+                      )}
+                    </div>
                   </div>
                   <div className="border-t border-gray-200 pt-4 mb-4">
                     <div className="flex items-center border-b border-gray-200 mb-4">
@@ -1827,13 +1943,6 @@ export default function Student() {
                         <span className="text-gray-600 whitespace-nowrap" style={{ marginRight: '22px' }}>
                           Nghỉ từ:
                         </span>
-                        {/* <input
-                          type="date"
-                          className="ml-6 text-black  font-bold  w-60" // Adjusted to use full width
-                          min={new Date().toISOString().split('T')[0]}
-                          value={startDate}
-                          onChange={(e) => setStartDate(e.target.value)}
-                        /> */}
 
                         <DatePicker
                           selected={startDate}
@@ -1972,10 +2081,7 @@ export default function Student() {
                     <button
                       className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 mr-4"
                       onClick={() => {
-                        setStartDate('');
-                        setEndDate('');
-                        setSelectedSessions([]);
-                        setLeaveReason('');
+                        handleResetLeaveRequest();
                       }}
                     >
                       Nhập lại
@@ -1983,7 +2089,11 @@ export default function Student() {
                     <button
                       className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
                       onClick={() => {
-                        if (selectedSessions.length === 0 || !leaveReason) {
+                        // thêm điều kiện cần chọn con ở selectedStudents
+                        if (selectedStudents.length === 0) {
+                          alert('Vui lòng chọn con');
+                          return;
+                        } else if (selectedSessions.length === 0 || !leaveReason) {
                           alert('Vui lòng chọn ngày nghỉ và ghi lý do');
                           return;
                         }
@@ -2028,7 +2138,12 @@ export default function Student() {
                       <h2 className="text-lg font-semibold">Người làm đơn</h2>
                     </div>
                     <p className="ml-6">- Tôi tên là: {studentInfo.parents[0].userName} </p>
-                    <p className="ml-6">- Phụ huynh của em: {studentInfo.userName}</p>
+                    <p className="ml-6">
+                      - Phụ huynh của em:
+                      {selectedStudents.map((student) => (
+                        <span key={student.student_id}>{student.student_name}, </span>
+                      ))}
+                    </p>
                     <p className="ml-6">- Lớp: {studentInfo.className}</p>
                   </div>
                   <div className="mb-4">
@@ -2114,14 +2229,27 @@ export default function Student() {
                     <p className="ml-6">. Ban giám hiệu nhà trường</p>
                     <p className="ml-6">. Giáo viên chủ nhiệm lớp {studentInfo.className} và các thầy cô bộ môn</p>
                   </div>
+                  {/* <div className="mb-4">
+                    <div className="flex items-center mb-2">
+                      <i className="fas fa-user-circle text-blue-500 mr-2"></i>
+                      <h2 className="text-lg font-semibold">Người làm đơn</h2>
+                    </div>
+                    <p className="ml-6">- Tôi tên là: {studentInfo.parents[0].userName} </p>
+                    <p className="ml-6">
+                      - Phụ huynh của em:
+                      {selectedStudents.map((student) => (
+                        <span key={student.student_id}>{student.student_name}, </span>
+                      ))}
+                    </p>
+                    <p className="ml-6">- Lớp: {studentInfo.className}</p>
+                  </div> */}
                   <div className="mb-4">
                     <div className="flex items-center mb-2">
                       <i className="fas fa-user-circle text-blue-500 mr-2"></i>
                       <h2 className="text-lg font-semibold">Người làm đơn</h2>
                     </div>
                     <p className="ml-6">- Tôi tên là: {studentInfo.parents[0].userName} </p>
-                    <p className="ml-6">- Phụ huynh của em: {studentInfo.userName}</p>
-                    <p className="ml-6">- Lớp: {studentInfo.className}</p>
+                    <p className="ml-6">- Phụ huynh của em: {selectedLeaveRequest.student_name}</p>
                   </div>
                   <div className="mb-4">
                     <div className="flex items-center mb-2">
