@@ -12,6 +12,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { getAllNotifications } from '../../api/Notifications';
 import { getFullParentInfo } from '../../api/Parents';
+import { getTeachingReports } from '../../api/TeachingReport';
 
 import Schedule from './Schedule';
 
