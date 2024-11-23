@@ -6,5 +6,6 @@ const TeachingPlanController = require("../app/controllers/TeachingPlanControlle
 router.post("/getTeachingPlanByTeacherAndByGradeAndBySchoolYear", TeachingPlanController.getTeachingPlanByTeacherAndByGradeAndBySchoolYear);
 
 router.post("/createTeachingPlan", TeachingPlanController.createTeachingPlan);
+router.post("/updateTeachingPlan", TeachingPlanController.updateTeachingPlan);
 
 module.exports = router;

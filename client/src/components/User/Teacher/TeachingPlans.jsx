@@ -1,24 +1,27 @@
 import React from 'react';
 import 'flowbite';
 import { useEffect, useState, useRef } from 'react';
-import { IoIosAdd } from 'react-icons/io';
 import { RiSubtractFill } from 'react-icons/ri';
 import { BiExport } from 'react-icons/bi';
 
 import Menu from './Menu';
 
-import { saveTeachingPlans, getTeachingPlanByTeacherAndByGradeAndBySchoolYear } from '../../../api/TeachingPlan';
+import {
+  saveTeachingPlans,
+  getTeachingPlanByTeacherAndByGradeAndBySchoolYear,
+  updateTeachingPlan,
+} from '../../../api/TeachingPlan';
 import { getHomRoomTeacherCurrent } from '../../../api/Class';
 import { getSubjectByGrade } from '../../../api/Subject';
 
 import { Toaster, toast } from 'react-hot-toast';
-import { set } from 'mongoose';
 
 export default function TeachingPlans() {
   /**
    * State variables
    */
-  const [grade, setGrade] = useState(1);
+  const [academicYear, setAcademicYear] = useState('');
+  const [grade, setGrade] = useState('');
   const [showUpdatedPlan, setShowUpdatedPlan] = useState(false);
   const [indexWeek, setIndexWeek] = useState(0);
   const [indexSubject, setIndexSubject] = useState(0);
@@ -37,7 +40,7 @@ export default function TeachingPlans() {
   const [plans, setPlan] = useState([
     {
       academicYear: '',
-      grade: '1',
+      grade: '',
       subject: '',
       weeks: [
         {
@@ -68,12 +71,22 @@ export default function TeachingPlans() {
       });
   }, [grade]);
 
-  const handleSearchTeachingPlan = () => {
+  const handleSearchTeachingPlan = async () => {
+    if (academicYear === '') {
+      toast.error('Hãy chọn năm học');
+      return;
+    }
+
+    if (grade === '') {
+      toast.error('Hãy chọn khối lớp');
+      return;
+    }
+
     const teacher_phoneNumber = localStorage.getItem('phoneNumberTeacher');
-    getHomRoomTeacherCurrent(teacher_phoneNumber)
+    await getHomRoomTeacherCurrent(teacher_phoneNumber)
       .then((res) => {
         setTeacherInfo(res);
-        getTeachingPlanByTeacherAndByGradeAndBySchoolYear(res.teacher_id, grade, getCurrentSchoolYear())
+        getTeachingPlanByTeacherAndByGradeAndBySchoolYear(res.teacher_id, grade, academicYear)
           .then((data) => {
             setListPlans(data);
           })
@@ -87,15 +100,40 @@ export default function TeachingPlans() {
   };
 
   const handleOnClickCreatePlan = () => {
+    if (academicYear === '') {
+      toast.error('Hãy chọn năm học');
+      return;
+    }
+
+    if (isAcademicYearSmaller(getCurrentSchoolYear(), academicYear)) {
+      toast.error('Năm học này đã kết thúc');
+      return;
+    }
     handleResetPlans();
     setCreatePlan(true);
     setShowUpdatedPlan(false);
   };
 
+  function isAcademicYearSmaller(currentYear, targetYear) {
+    // Chuyển đổi năm học thành các số nguyên
+    const [currentStart, currentEnd] = currentYear.split('-').map(Number);
+    const [targetStart, targetEnd] = targetYear.split('-').map(Number);
+
+    // So sánh năm bắt đầu
+    if (targetStart < currentStart) {
+      return true; // Năm học cần kiểm tra bé hơn
+    }
+    if (targetStart === currentStart && targetEnd < currentEnd) {
+      return true; // Năm bắt đầu bằng nhau nhưng năm kết thúc nhỏ hơn
+    }
+
+    return false; // Năm học không bé hơn
+  }
+
   const handleAddPlan = () => {
     const newPlan = {
-      academicYear: getCurrentSchoolYear(),
-      grade: '',
+      academicYear: academicYear,
+      grade: grade,
       subject: '',
       weeks: [
         {
@@ -162,7 +200,7 @@ export default function TeachingPlans() {
     setPlan(updatedPlan);
   };
 
-  const handleSavePlan = () => {
+  const handleSavePlan = async () => {
     const isValid = plans.every((plan) => {
       if (plan.className === '') {
         toast.error('Lớp học không được để trống');
@@ -201,11 +239,13 @@ export default function TeachingPlans() {
 
     try {
       const updatedPlan = [...plans];
-      updatedPlan[0].academicYear = getCurrentSchoolYear();
+      updatedPlan[0].academicYear = academicYear;
       updatedPlan[0].grade = grade;
       setPlan(updatedPlan);
-      saveTeachingPlans(plans, teacherPhoneNumber, getCurrentSchoolYear());
-      refreshListPlan();
+      await saveTeachingPlans(plans, teacherPhoneNumber, academicYear);
+      handleSearchTeachingPlan();
+      setCreatePlan(false);
+      setShowUpdatedPlan(false);
       toast.success('Tạo kế hoạch giảng dạy thành công');
     } catch (error) {
       console.error(error);
@@ -234,26 +274,6 @@ export default function TeachingPlans() {
     } else {
       return `${currentYear - 1}-${currentYear}`;
     }
-  };
-
-  const refreshListPlan = async () => {
-    const teacher_phoneNumber = localStorage.getItem('phoneNumberTeacher');
-    getHomRoomTeacherCurrent(teacher_phoneNumber)
-      .then((res) => {
-        setTeacherInfo(res);
-        getTeachingPlanByTeacherAndByGradeAndBySchoolYear(res.teacher_id, res.className, getCurrentSchoolYear())
-          .then((data) => {
-            setListPlans(data);
-          })
-          .catch((error) => {
-            console.error(error);
-          });
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-    setCreatePlan(false);
-    handleResetPlans();
   };
 
   const handleItemClick = (indexSubject, indexWeek, indexTopic) => {
@@ -307,7 +327,7 @@ export default function TeachingPlans() {
     ]);
   };
 
-  const handleUpdatePlan = () => {
+  const handleUpdatePlan = async () => {
     const isValid = planEdit.week.every((plan) => {
       if (planEdit._id === '') {
         toast.error('Môn học không được để trống');
@@ -333,8 +353,25 @@ export default function TeachingPlans() {
       toast.error('Không tìm thấy thông tin giáo viên');
       return;
     }
-    console.log('update plan');
-    console.log(planEdit);
+
+    try {
+      await updateTeachingPlan(planEdit, teacherPhoneNumber, academicYear, grade);
+      toast.success('Cập nhật kế hoạch giảng dạy thành công');
+      handleSearchTeachingPlan();
+      setSelectedItemTopic({
+        indexWeek: indexWeek,
+        indexSubject: indexSubject,
+        indexTopic: indexTopic,
+        name: listPlans[indexSubject].week[indexWeek].topics[indexTopic][0].name,
+        duration: listPlans[indexSubject].week[indexWeek].topics[indexTopic][0].duration,
+        process: listPlans[indexSubject].week[indexWeek].topics[indexTopic][0].process,
+      });
+      setCreatePlan(false);
+      setShowUpdatedPlan(false);
+    } catch (error) {
+      console.error(error);
+      toast.error('Cập nhật kế hoạch giảng dạy thất bại');
+    }
   };
 
   const handleRemoveTopicUpdate = (weekIndex, topicIndex) => {
@@ -345,9 +382,42 @@ export default function TeachingPlans() {
     setPlanEdit(updatedPlan);
   };
 
+  const handleAddTopicUpdate = (weekIndex) => {
+    const newTopic = [
+      {
+        name: '',
+        duration: 0,
+        process: 0,
+      },
+    ];
+    const week = planEdit.week[weekIndex];
+    week.topics.push(newTopic);
+    const updatedPlan = { ...planEdit };
+    updatedPlan.week[weekIndex] = week;
+    setPlanEdit(updatedPlan);
+  };
+
   const handleRemoveWeekUpdate = (weekIndex) => {
     const updatedPlan = { ...planEdit };
     updatedPlan.week.splice(weekIndex, 1);
+    setPlanEdit(updatedPlan);
+  };
+
+  const handleAddWeekUpdate = () => {
+    const newWeek = {
+      weekNumber: planEdit.week.length + 1,
+      topics: [
+        [
+          {
+            name: '',
+            duration: 0,
+            process: 0,
+          },
+        ],
+      ],
+    };
+    const updatedPlan = { ...planEdit };
+    updatedPlan.week.push(newWeek);
     setPlanEdit(updatedPlan);
   };
 
@@ -363,15 +433,28 @@ export default function TeachingPlans() {
                 <div className="col-span-7 flex flex-wrap items-center justify-start gap-4 py-4 text-lg">
                   <div className="flex items-center justify-start gap-2">
                     <div className="px-2 py-1 w-28 bg-gray-300">
-                      <span className="font-semibold">Năm học</span>
+                      <span className="font-semibold">
+                        Năm học<span className="text-red-700">*</span>
+                      </span>
                     </div>
-                    <select className="h-8 px-2 py-1 rounded w-32" name="" id="">
-                      <option value="">2024-2025</option>
+                    <select
+                      onChange={(e) => {
+                        setAcademicYear(e.target.value);
+                      }}
+                      value={academicYear}
+                      className="h-8 px-2 py-1 rounded w-32"
+                      defaultValue={''}
+                    >
+                      <option value=""></option>
+                      <option value="2023-2024">2023-2024</option>
+                      <option value="2024-2025">2024-2025</option>
                     </select>
                   </div>
                   <div className="flex items-center justify-start gap-2">
                     <div className="px-2 py-1 w-28 bg-gray-300">
-                      <span className="font-semibold">Khối lớp</span>
+                      <span className="font-semibold">
+                        Khối lớp<span className="text-red-700">*</span>
+                      </span>
                     </div>
                     <select
                       onChange={(e) => {
@@ -384,8 +467,9 @@ export default function TeachingPlans() {
                       className="h-8 rounded w-20 px-2 py-1"
                       name=""
                       id=""
-                      defaultValue={'1'}
+                      defaultValue={''}
                     >
+                      <option value={''}></option>
                       <option value={'1'}>1</option>
                       <option value={'2'}>2</option>
                       <option value={'3'}>3</option>
@@ -393,27 +477,7 @@ export default function TeachingPlans() {
                       <option value={'5'}>5</option>
                     </select>
                   </div>
-                  {/* <div className="flex items-center justify-start gap-2">
-                    <div className="px-2 py-1 w-28 bg-gray-300">
-                      <span className="font-semibold">Môn học</span>
-                    </div>
-                    <select
-                      onChange={(e) => {
-                        setSubject(e.target.value);
-                      }}
-                      value={subject}
-                      className="h-8 w-36 px-2 py-1 rounded"
-                      name=""
-                      id=""
-                      defaultValue={''}
-                    >
-                      <option value=""></option>
-                      <option value="all">Tất cả</option>
-                      {listSubjects.map((subject) => (
-                        <option value={subject._id}>{subject.subjectName}</option>
-                      ))}
-                    </select>
-                  </div> */}
+
                   <div className="flex items-center justify-start">
                     <div
                       onClick={handleSearchTeachingPlan}
@@ -478,7 +542,13 @@ export default function TeachingPlans() {
                                         className="py-1 cursor-pointer text-gray-700 hover:underline text-lg"
                                         onClick={() => handleItemClick(indexSubject, indexWeek, indexTopic)}
                                       >
-                                        {'Bài ' + 1 + '. ' + topic[0].name + ' (' + topic[0].duration + ' tiết)'}
+                                        {'Bài ' +
+                                          indexTopic +
+                                          '. ' +
+                                          topic[0].name +
+                                          ' (' +
+                                          topic[0].duration +
+                                          ' tiết)'}
                                       </li>
                                     ))}
                                   </ul>
@@ -605,7 +675,7 @@ export default function TeachingPlans() {
                   </div>
                   <div>
                     <input
-                      value={getCurrentSchoolYear()}
+                      value={academicYear}
                       className="h-8 rounded w-44 bg-gray-200 text-gray-800 border-none"
                       type="text"
                       disabled
@@ -628,6 +698,7 @@ export default function TeachingPlans() {
                           setPlan(updatedPlan);
                           setGrade(e.target.value);
                         }}
+                        value={grade}
                         className="h-8 rounded w-20 px-2 py-1"
                         name=""
                         id=""
@@ -647,14 +718,20 @@ export default function TeachingPlans() {
                 <div class="card mb-4 overflow-hidden chapter-container">
                   <div class="px-2 grid grid-cols-10">
                     <div className="col-span-2 py-1 px-2 border-t border-l bg-gray-400">
-                      <span className="font-medium">Chapters</span>
+                      <span className="font-medium">
+                        Chapters<span className="text-red-700">*</span>
+                      </span>
                     </div>
                     <div className="col-span-8 grid grid-cols-10">
                       <div className="col-span-3 py-1 px-2 border-t border-l bg-gray-400">
-                        <span className="font-medium">Weeks</span>
+                        <span className="font-medium">
+                          Weeks<span className="text-red-700">*</span>
+                        </span>
                       </div>
                       <div className="col-span-7 py-1 px-2 border-t border-r border-l bg-gray-400">
-                        <span className="font-medium">Topics</span>
+                        <span className="font-medium">
+                          Topics<span className="text-red-700">*</span>
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -840,7 +917,7 @@ export default function TeachingPlans() {
                   </div>
                   <div>
                     <input
-                      value={getCurrentSchoolYear()}
+                      value={academicYear}
                       className="h-8 rounded w-44 bg-gray-200 text-gray-800 border-none"
                       type="text"
                       disabled
@@ -867,7 +944,7 @@ export default function TeachingPlans() {
                   <div class="card-body px-2 grid grid-cols-10 chapter-template">
                     <div class="col-span-2 border-l border-b">
                       <div className="border-t px-2 py-2 grid grid-cols-10 gap-2">
-                        <div className="col-span-9">
+                        <div className="col-span-10">
                           <select
                             value={planEdit._id}
                             onChange={(e) => {
@@ -875,6 +952,7 @@ export default function TeachingPlans() {
                               updatedPlan._id = e.target.value;
                               setPlanEdit(updatedPlan);
                             }}
+                            disabled
                             className="w-full rounded h-10 border"
                           >
                             <option value=""></option>
@@ -882,17 +960,6 @@ export default function TeachingPlans() {
                               <option value={subject.subjectCode}>{subject.subjectName}</option>
                             ))}
                           </select>
-                        </div>
-                        <div className="col-span-1 flex items-center">
-                          {plans.length > 1 ? (
-                            <button className="px-1 py-1 rounded-full text-white bg-red-500 hover:bg-red-600">
-                              <RiSubtractFill />
-                            </button>
-                          ) : (
-                            <button className="px-1 py-1 rounded-full text-white bg-red-500 hover:bg-red-600 cursor-not-allowed">
-                              <RiSubtractFill />
-                            </button>
-                          )}
                         </div>
                       </div>
                     </div>
@@ -924,7 +991,7 @@ export default function TeachingPlans() {
                           <div class="col-span-7 p-2 topics-container">
                             {week.topics.map((topic, topicIndex) => (
                               <div className="grid grid-flow-col gap-4 topic-template">
-                                <div class="col-span-6 mb-3 grid grid-flow-row gap-2">
+                                <div class="col-span-4 mb-3 grid grid-flow-row gap-2">
                                   <label for="subject" class="form-label">
                                     Topic Name<span className="text-red-500">*</span>
                                   </label>
@@ -951,8 +1018,26 @@ export default function TeachingPlans() {
                                     }}
                                     value={topic[0].duration}
                                     type="number"
-                                    min={0}
+                                    min={1}
                                     max={10}
+                                    required
+                                    className="rounded-lg h-10 border-gray-300"
+                                  />
+                                </div>
+                                <div class="col-span-3 mb-3 grid grid-flow-row gap-2">
+                                  <label for="subject" class="form-label">
+                                    Process<span className="text-red-500">*</span>
+                                  </label>
+                                  <input
+                                    onChange={(e) => {
+                                      const updatedPlan = { ...planEdit };
+                                      updatedPlan.week[weekIndex].topics[topicIndex][0].process = e.target.value;
+                                      setPlanEdit(updatedPlan);
+                                    }}
+                                    value={topic[0].process}
+                                    type="number"
+                                    min={1}
+                                    max={100}
                                     required
                                     className="rounded-lg h-10 border-gray-300"
                                   />
@@ -974,6 +1059,7 @@ export default function TeachingPlans() {
                               </div>
                             ))}
                             <button
+                              onClick={() => handleAddTopicUpdate(weekIndex)}
                               type="button"
                               class="px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded-md add-topic-btn"
                             >
@@ -984,6 +1070,7 @@ export default function TeachingPlans() {
                       ))}
                       <div className="px-2 py-2 border-b">
                         <button
+                          onClick={handleAddWeekUpdate}
                           type="button"
                           class="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-md add-topic-btn"
                         >

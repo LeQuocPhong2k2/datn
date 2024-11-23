@@ -13,7 +13,8 @@ import ProtectedRoute from './middleware/ProtectedRoute';
 import Cookies from 'cookie-universal';
 import Message from './components/User/Teacher/Message';
 import TeachingPlans from './components/User/Teacher/TeachingPlans';
-
+import TeachingReport from './components/User/Teacher/TeachingReport';
+import InputScore from './components/User/InputScore';
 import './App.css';
 
 function App() {
@@ -86,6 +87,22 @@ function App() {
           element={
             <ProtectedRoute allowedRole="Teacher">
               <TeachingPlans />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teacher/teaching-report"
+          element={
+            <ProtectedRoute allowedRole="Teacher">
+              <TeachingReport />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teacher/input-score"
+          element={
+            <ProtectedRoute allowedRole="Teacher">
+              <InputScore />
             </ProtectedRoute>
           }
         />

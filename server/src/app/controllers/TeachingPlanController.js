@@ -136,32 +136,31 @@ const TeachingPlanController = {
 
       for (let i = 0; i < plans.length; i++) {
         const plan = plans[i];
-        let weeks = [];
+
         for (let j = 0; j < plan.weeks.length; j++) {
-          let topics = [];
           for (let k = 0; k < plan.weeks[j].topics.length; k++) {
+            let weeks = [];
+            let topics = [];
             topics.push({
               name: plan.weeks[j].topics[k].name,
               duration: plan.weeks[j].topics[k].duration,
             });
+            weeks.push({
+              weekNumber: plan.weeks[j].weekNumber,
+              topics: topics,
+            });
+            const teachingPlan = new TeachingPlan({
+              academicYear: academicYear,
+              grade: plan.grade,
+              subject: plan.subject,
+              teacher: teacher._id,
+              weeks: weeks,
+            });
+
+            console.log("saving teaching plan...");
+            await teachingPlan.save();
           }
-
-          weeks.push({
-            weekNumber: plan.weeks[j].weekNumber,
-            topics: topics,
-          });
         }
-
-        const teachingPlan = new TeachingPlan({
-          academicYear: academicYear,
-          grade: plan.grade,
-          subject: plan.subject,
-          teacher: teacher._id,
-          weeks: weeks,
-        });
-
-        console.log("saving teaching plan...");
-        await teachingPlan.save();
       }
 
       return res.status(200).json(plans);
@@ -186,7 +185,7 @@ const TeachingPlanController = {
         {
           $match: {
             teacher: new ObjectId(teacherId),
-            grade: grade,
+            grade: grade + "",
             academicYear: academicYear,
           },
         },
@@ -254,6 +253,43 @@ const TeachingPlanController = {
       }
 
       return res.status(200).json([]);
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
+  },
+
+  async updateTeachingPlan(req, res) {
+    const { plans, teacherPhoneNumber, academicYear, grade } = req.body;
+    try {
+      const teacher = await Teacher.findOne({ phoneNumber: teacherPhoneNumber });
+      if (teacher) {
+        await TeachingPlan.deleteMany({ academicYear: academicYear, grade: grade, teacher: new ObjectId(teacher._id), subject: plans._id });
+        for (let j = 0; j < plans.week.length; j++) {
+          for (let k = 0; k < plans.week[j].topics.length; k++) {
+            let weeks = [];
+            let topics = [];
+            topics.push({
+              name: plans.week[j].topics[k][0].name,
+              duration: plans.week[j].topics[k][0].duration,
+              process: plans.week[j].topics[k][0].process,
+            });
+            weeks.push({
+              weekNumber: plans.week[j].weekNumber,
+              topics: topics,
+            });
+
+            const teachingPlan = new TeachingPlan({
+              academicYear: academicYear,
+              grade: grade,
+              subject: plans._id,
+              teacher: teacher._id,
+              weeks: weeks,
+            });
+            await teachingPlan.save();
+          }
+        }
+      }
+      return res.status(200).json(plans);
     } catch (error) {
       return res.status(500).json({ message: error.message });
     }

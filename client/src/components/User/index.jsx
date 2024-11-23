@@ -11,10 +11,38 @@ import { createLeaveRequest, getLeaveRequestsByStudentId } from '../../api/Leave
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { getAllNotifications } from '../../api/Notifications';
-
+import { getTeachingReports } from '../../api/TeachingReport';
 import Schedule from './Schedule';
 
 export default function Student() {
+  const [academicYear, setAcademicYear] = useState('');
+  const [classQuery, setClassQuery] = useState('');
+  const [dateQuery, setDateQuery] = useState(new Date());
+  const [academicYearQuery, setAcademicYearQuery] = useState('');
+  const [listReports, setListReports] = useState([]);
+  const handleSearchBaoBai = async () => {
+    const teacher_phoneNumber = localStorage.getItem('phoneNumberTeacher');
+    await getTeachingReports('', getCurrentSchoolYear(), studentInfo.className, dateQuery)
+      .then((res) => {
+        setListReports(res);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
+  const getCurrentSchoolYear = () => {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+
+    if (currentMonth >= 8) {
+      return `${currentYear}-${currentYear + 1}`;
+    } else {
+      return `${currentYear - 1}-${currentYear}`;
+    }
+  };
+
   const [accounts, setAccounts] = useState([]);
   const [studentInfo, setStudentInfo] = useState({});
 
@@ -742,7 +770,10 @@ export default function Student() {
             <div
               // className={`tab ${activeTab === 'lesson' ? 'active' : ''}`}
               className={`tab ${activeTab === 'lesson' ? 'active' : ''} ${window.innerWidth <= 768 ? 'text-sm p-2' : ' p-3'}`}
-              onClick={() => setActiveTab('lesson')}
+              onClick={() => {
+                setActiveTab('lesson');
+                handleSearchBaoBai();
+              }}
               style={{
                 backgroundColor: activeTab === 'lesson' ? '#0B6FA1' : '#929498',
                 borderRadius: '5%',
@@ -1270,37 +1301,45 @@ export default function Student() {
                   {/*  Card 0*/}
 
                   {/* Card 1 */}
-                  <div className="flex flex-col md:flex-row border-b pb-4 mb-4">
-                    {/* Image Section */}
-                    <div className="w-full md:w-1/3 mb-4 md:mb-0">
-                      <img
-                        src="https://i.imgur.com/3sxrx5Q_d.png?maxwidth=520&shape=thumb&fidelity=high"
-                        alt="App Edu.One"
-                        className="object-cover w-full h-full rounded-md"
-                      />
-                    </div>
 
-                    {/* Text Section */}
-                    <div className="w-full md:w-2/3 md:pl-4">
-                      <h2 className="text-lg md:text-xl font-bold">Báo bài ngày 12 tháng 10 năm 2024 – Lớp 1A</h2>
-                      <div className="mt-2 p-4 bg-gray-100 rounded">
-                        <span>Thông báo bài học ngày 12 tháng 10 năm 2024 của lớp 1A.</span>
+                  {listReports.map((report, index) => (
+                    <div className="flex flex-col md:flex-row border-b pb-4 mb-4">
+                      {/* Image Section */}
+                      <div className="w-full md:w-1/3 mb-4 md:mb-0">
+                        <img
+                          src="https://i.imgur.com/3sxrx5Q_d.png?maxwidth=520&shape=thumb&fidelity=high"
+                          alt="App Edu.One"
+                          className="object-cover w-full h-full rounded-md"
+                        />
                       </div>
-                      <p className="text-sm text-gray-500 mt-2">
-                        08/10/2024 |{' '}
-                        <a
-                          href="#"
-                          className="text-blue-500"
-                          onClick={() => {
-                            setShowLesson(false);
-                            setShowDetailLesson(true);
-                          }}
-                        >
-                          Xem Chi Tiết
-                        </a>
-                      </p>
+
+                      {/* Text Section */}
+
+                      <div className="w-full md:w-2/3 md:pl-4">
+                        <h2 className="text-lg md:text-xl font-bold">
+                          Báo bài môn: {report.subject[0].subjectName} - {report._id.date}
+                        </h2>
+                        <div className="mt-2 p-4 bg-gray-100 rounded">
+                          {/* <span>
+                            Thông báo bài học ngày {report._id.date} của lớp {studentInfo.className}
+                          </span> */}
+                          <span className="font-semibold">
+                            Bài hôm nay: <span className="font-normal">{report.reports[0].content}</span>
+                          </span>
+                          <br />
+                          <span className="font-semibold">
+                            Bài tiếp theo:<span className="font-normal">{report.reports[0].contentNext}</span>{' '}
+                          </span>
+                          <br />
+                          <span className="font-semibold">
+                            Ghi chú:
+                            <span className="font-normal">{report.reports[0].note}</span>
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-500 mt-2">{report._id.date}</p>
+                      </div>
                     </div>
-                  </div>
+                  ))}
 
                   {/*  Card 2 */}
                   <div className="flex flex-col border-t pt-4">

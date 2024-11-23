@@ -10,6 +10,7 @@ const NotificatioRouter = require("./notification");
 const AdministratorRouter = require("./administrator");
 const transcriptsRouter = require("./transcripts");
 const teachingPlansRouter = require("./teachingPlans");
+const teachingReportRouter = require("./teachingReport");
 function route(app) {
   app.use("/accounts", accountsRouter),
     app.use("/teachers", teachersRouter),
@@ -22,7 +23,8 @@ function route(app) {
     app.use("/notification", NotificatioRouter),
     app.use("/administrator", AdministratorRouter),
     app.use("/transcripts", transcriptsRouter),
-    app.use("/teachingPlans", teachingPlansRouter);
+    app.use("/teachingPlans", teachingPlansRouter),
+    app.use("/teachingReport", teachingReportRouter);
 }
 
 module.exports = route;

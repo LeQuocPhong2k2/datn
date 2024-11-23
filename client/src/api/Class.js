@@ -157,6 +157,24 @@ async function getHomRoomTeacherCurrent(phoneNumber) {
   }
 }
 
+async function getAllClassTeacher(phoneNumber, academicYear) {
+  try {
+    const response = await axios.post(
+      `${API_URL}/class/getAllClassTeacher`,
+      { phoneNumber, academicYear },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Get all class teachers error:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+}
+
 export {
   addLopHoc,
   getLopHocByNamHocVaKhoi,
@@ -168,4 +186,5 @@ export {
   deleteClass,
   getStudentListByClassNameAndAcademicYear,
   getHomRoomTeacherCurrent,
+  getAllClassTeacher,
 };

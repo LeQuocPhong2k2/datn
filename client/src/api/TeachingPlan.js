@@ -22,4 +22,14 @@ async function getTeachingPlanByTeacherAndByGradeAndBySchoolYear(teacherId, grad
   return response.data;
 }
 
-export { saveTeachingPlans, getTeachingPlanByTeacherAndByGradeAndBySchoolYear };
+async function updateTeachingPlan(plans, teacherPhoneNumber, academicYear, grade) {
+  const response = await axios.post(`${API_URL}/teachingPlans/updateTeachingPlan`, {
+    plans,
+    teacherPhoneNumber,
+    academicYear,
+    grade,
+  });
+  return response.data;
+}
+
+export { saveTeachingPlans, getTeachingPlanByTeacherAndByGradeAndBySchoolYear, updateTeachingPlan };
