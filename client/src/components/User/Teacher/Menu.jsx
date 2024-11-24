@@ -276,7 +276,9 @@ export default function Menu({ children, active }) {
                           setShowProfile(false);
                         }}
                       >
-                        <span>Thông tin cá nhân</span>
+                        <Link to="/teacher2/personal-information">
+                          <span>Thông tin cá nhân</span>
+                        </Link>
                       </div>
                       <div
                         className="py-2 px-2 hover:bg-gray-300 cursor-pointer"
