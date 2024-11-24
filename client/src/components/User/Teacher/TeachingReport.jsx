@@ -16,7 +16,6 @@ import { saveTeachingReport, getTeachingReports } from '../../../api/TeachingRep
 
 import Menu from './Menu';
 import { Toaster, toast } from 'react-hot-toast';
-import { get } from 'mongoose';
 
 export default function TeachingPlans() {
   /**
