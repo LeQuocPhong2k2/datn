@@ -1,0 +1,23 @@
+.attendance-report {
+  padding: 1rem;
+}
+
+@media (max-width: 768px) {
+  .attendance-report .ant-select {
+    width: 100% !important;
+  }
+
+  .attendance-report .ant-card {
+    margin-bottom: 1rem;
+  }
+
+  .attendance-report .ant-row {
+    flex-direction: column;
+  }
+}
+
+@media (min-width: 769px) {
+  .attendance-report .ant-select {
+    width: 200px;
+  }
+}

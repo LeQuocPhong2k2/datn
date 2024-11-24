@@ -122,10 +122,10 @@ export default function StudentAttendance() {
     const dayOfWeek = vietnamDate.getDay(); // Lấy ngày trong tuần
 
     // kiểm tra n���u không phải ngày hiện tại thì không cho điểm danh
-    if (vietnamDate.toDateString() !== new Date().toDateString()) {
-      toast.error('Không thể chọn ngày không phải hôm nay.');
-      return;
-    }
+    // if (vietnamDate.toDateString() !== new Date().toDateString()) {
+    //   toast.error('Không thể chọn ngày không phải hôm nay.');
+    //   return;
+    // }
 
     if (dayOfWeek !== 6 && dayOfWeek !== 0) {
       console.log('Ngày hiện tại:', formattedDate);
