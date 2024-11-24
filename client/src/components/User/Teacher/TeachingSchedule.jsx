@@ -93,11 +93,11 @@ export default function TeachingSchedule() {
                   </th>
                 </tr>
                 <tr>
-                  <th className="border border-gray-400 bg-gray-100 max-w-96 min-w-32 w-64">2</th>
-                  <th className="border border-gray-400 bg-gray-100 max-w-96 min-w-32 w-64">3</th>
-                  <th className="border border-gray-400 bg-gray-100 max-w-96 min-w-32 w-64">4</th>
-                  <th className="border border-gray-400 bg-gray-100 max-w-96 min-w-32 w-64">5</th>
-                  <th className="border border-gray-400 bg-gray-100 max-w-96 min-w-32 w-64">6</th>
+                  <th className="border border-gray-400 bg-gray-100 min-w-32">2</th>
+                  <th className="border border-gray-400 bg-gray-100 min-w-32">3</th>
+                  <th className="border border-gray-400 bg-gray-100 min-w-32">4</th>
+                  <th className="border border-gray-400 bg-gray-100 min-w-32">5</th>
+                  <th className="border border-gray-400 bg-gray-100 min-w-32">6</th>
                 </tr>
               </thead>
 

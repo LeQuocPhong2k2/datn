@@ -62,9 +62,11 @@ export default function Menu({ children, active }) {
   return (
     <>
       <Toaster toastOptions={{ duration: 2200 }} />
-      <div className="h-screen w-screen flex flex-row gap-[1px] font-sans bg-gray-300 ">
+      <div className="h-screen w-screen flex flex-row gap-[1px] font-sans ">
         {toggleMenu && (
-          <div className={`w-80 h-screen bg-white shadow-lg lg:relative fixed max-h-screen overflow-y-auto`}>
+          <div
+            className={`min-w-64 h-screen max-h-screen overflow-y-auto lg:relative md:fixed bg-white shadow-lg z-50`}
+          >
             <div className={`h-14 grid grid-cols-10 items-center justify-start border-b px-5`}>
               <div className="col-span-8">
                 <span className="text-xl text-black font-semibold">Gv.{user.userName}</span>
@@ -175,6 +177,16 @@ export default function Menu({ children, active }) {
                     </span>
                   </Link>
                 </li>
+                <li
+                  className={` ${active === 'report' ? 'bg-gray-300' : 'bg-white'} px-5 py-2 my-2 md:px-2 md:text-sm lg:text-lg lg:px-4 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
+                >
+                  <Link to="/teacher2/report">
+                    <span className="w-full flex justify-start items-center">
+                      <i style={{ color: '#d55557' }} class="fa-solid fa-chart-pie mr-2"></i>
+                      Thống kê
+                    </span>
+                  </Link>
+                </li>
                 {/* thêm mục kế hoạch giảng dạy */}
                 {/* <li
                   className={` ${active === 'teaching-plans' ? 'bg-gray-300' : 'bg-white'} px-5 py-2 my-2 md:px-2 md:text-sm lg:text-lg lg:px-4 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
@@ -189,20 +201,28 @@ export default function Menu({ children, active }) {
           </div>
         )}
 
-        <div className={`w-full h-screen flex flex-col`}>
+        <div className={`w-full h-screen flex flex-col lex-1 bg-gray-300 overflow-x-auto `}>
           <Toaster toastOptions={{ duration: 2500 }} />
           <header className="grid grid-flow-col items-center p-2 bg-white">
-            <div className="flex items-center justify-start gap-2 ">
+            <div className="flex items-center justify-start gap-2">
               {!toggleMenu && (
                 <button
                   onClick={() => {
                     setToggleMenu(!toggleMenu);
                   }}
-                  className="flex items-center justify-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                  className="text-lg md:block hidden"
                 >
-                  <span className="sr-only">Toggle menu</span>
-                  <i className="fas fa-bars"></i>
+                  <i className="fas fa-bars" style={{ color: '#429AB8' }}></i>
                 </button>
+                // <button
+                //   onClick={() => {
+                //     setToggleMenu(!toggleMenu);
+                //   }}
+                //   className="flex items-center justify-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                // >
+                //   <span className="sr-only">Toggle menu</span>
+                //   <i className="fas fa-bars"></i>
+                // </button>
               )}
 
               <a href="/teacher">
@@ -275,8 +295,13 @@ export default function Menu({ children, active }) {
                 </div>
               </div>
               {/* Hiện menu cho màn hình điện thoại */}
-              <button className="md:hidden" onClick={() => setToggleMenu(!toggleMenu)}>
-                <i className="fas fa-bars" style={{ color: '#429AB8' }}></i> {/* Dấu ba gạch */}
+              <button
+                onClick={() => {
+                  setToggleMenu(!toggleMenu);
+                }}
+                className="md:hidden"
+              >
+                <i className="fas fa-bars" style={{ color: '#429AB8' }}></i>
               </button>
             </div>
 

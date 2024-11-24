@@ -17,6 +17,7 @@ import TeachingSchedule from './components/User/Teacher/TeachingSchedule';
 import StudentAttendance from './components/User/Teacher/StudentAttendance';
 import Notification from './components/User/Teacher/Notification';
 import LeaveRequest from './components/User/Teacher/LeaveRequest';
+import Report from './components/User/Teacher/Report';
 import './App.css';
 
 function App() {
@@ -68,7 +69,7 @@ function App() {
           }
         />
 
-        <Route path="/teacher2" element={<Navigate to="/teacher/teaching-schedule" replace />} />
+        <Route path="/teacher2" element={<Navigate to="/teacher2/teaching-schedule" replace />} />
         <Route
           path="/teacher/menu"
           element={
@@ -142,6 +143,15 @@ function App() {
           element={
             <ProtectedRoute allowedRole="Teacher">
               <LeaveRequest />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/teacher2/report"
+          element={
+            <ProtectedRoute allowedRole="Teacher">
+              <Report />
             </ProtectedRoute>
           }
         />
