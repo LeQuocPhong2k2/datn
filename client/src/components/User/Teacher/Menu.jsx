@@ -1,44 +1,31 @@
 import React from 'react';
 import 'flowbite';
-
-import { useEffect, useState, useRef } from 'react';
-
+import { useEffect, useState, useContext } from 'react';
 import imgLogo from '../../../assets/logo_datn_png.png';
+import { Toaster, toast } from 'react-hot-toast';
+import { Link } from 'react-router-dom';
+import { UserContext } from '../../../UserContext';
 
 import { IoMdArrowDropdown } from 'react-icons/io';
 import { IoMdArrowDropup } from 'react-icons/io';
-import { TbGridDots } from 'react-icons/tb';
-import { SiGoogleclassroom } from 'react-icons/si';
-
-import { Toaster, toast } from 'react-hot-toast';
 
 import { changePassword } from '../../../api/Accounts';
-import { getHomRoomTeacherCurrent } from '../../../api/Class';
 
 export default function Menu({ children, active }) {
   /**
    *
    */
+  const { user } = useContext(UserContext);
   const [toggleMenu, setToggleMenu] = useState(true);
   const [showAllMenu, setShowAllMenu] = useState(true);
-  const [showTeacherProfile, setShowTeacherProfile] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const [activeTab, setActiveTab] = useState('profile');
-  const [teacherInfo, setTeacherInfo] = useState({});
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [oldPassword, setOldPassword] = useState();
   const [newPassword, setNewPassword] = useState();
   const [confirmPassword, setConfirmPassword] = useState();
 
   useEffect(() => {
-    const teacher_phoneNumber = localStorage.getItem('phoneNumberTeacher');
-    getHomRoomTeacherCurrent(teacher_phoneNumber)
-      .then((res) => {
-        setTeacherInfo(res);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    document.title = 'Trang chủ giáo viên';
   }, []);
 
   /**
@@ -60,8 +47,8 @@ export default function Menu({ children, active }) {
       toast.error('Mật khẩu xác nhận không đúng');
       return;
     } else {
-      // gọi tới api changePassword do userName trong studentInfo là tên còn trong account là mã học sinh nên ở đây truyền mã học sinh
-      changePassword(teacherInfo.phoneNumber, oldPassword, newPassword)
+      const phoneNumber = localStorage.getItem('phoneNumberTeacher');
+      changePassword(phoneNumber, oldPassword, newPassword)
         .then((res) => {
           toast.dismiss();
           toast.success(res.data.message);
@@ -75,23 +62,21 @@ export default function Menu({ children, active }) {
   return (
     <>
       <Toaster toastOptions={{ duration: 2200 }} />
-      <div className="h-screen grid grid-cols-10 gap-[1px] font-sans bg-gray-100">
+      <div className="h-screen w-screen flex flex-row gap-[1px] font-sans ">
         {toggleMenu && (
-          <div className={`col-span-2 h-screen bg-white shadow-lg ${toggleMenu ? 'slide-right' : 'slide-left'}`}>
-            <div
-              className={`h-14 grid grid-cols-10 items-center justify-start border-b px-5 ${showAllMenu ? 'block' : 'hidden'}`}
-            >
+          <div className={`min-w-64 h-screen max-h-screen overflow-y-auto lg:relative fixed bg-white shadow-lg z-50`}>
+            <div className={`h-14 grid grid-cols-10 items-center justify-start border-b px-5`}>
               <div className="col-span-8">
-                <span className="text-xl text-black font-semibold">{teacherInfo.userName}</span>
+                <span className="text-xl text-black font-semibold">Gv.{user.userName}</span>
                 <br />
 
-                <span className="text-lg text-gray-800">
-                  {teacherInfo.className === ''
-                    ? 'Lớp chủ nhiệm: Chờ phân công'
-                    : 'Lớp chủ nhiệm: ' + teacherInfo.className}
-                </span>
+                <div className="flex items-center justify-start min-w-80">
+                  <span className="text-lg text-gray-800">
+                    {user.className === '' ? 'Lớp chủ nhiệm: Chờ phân công' : 'Lớp chủ nhiệm: ' + user.className}
+                  </span>
+                </div>
               </div>
-              <div className="col-span-2 flex items-center justify-end">
+              <div className="col-span-2 flex items-center justify-end md:justify-center">
                 <button
                   onClick={() => {
                     setToggleMenu(!toggleMenu);
@@ -103,130 +88,154 @@ export default function Menu({ children, active }) {
                 </button>
               </div>
             </div>
-            <div className="px-5 mt-10">
-              <div>
-                <p className="text-lg font-bold text-gray-500">Chức năng</p>
-              </div>
+            <div className="px-5 md:px-2 lg:px-4">
               <ul>
                 <li
-                  className={` ${active === 'message' ? 'bg-gray-300' : 'bg-white'} w-full px-5 py-2 my-2 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
+                  className={` ${active === 'personal-information' ? 'bg-gray-300' : 'bg-white'} w-full px-5 py-2 my-2 md:px-2 md:text-sm lg:text-lg lg:px-4 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
                 >
-                  <a className="w-full" href="/teacher/message">
-                    <i style={{ color: '#d55557' }} className="fa-regular fa-message mr-2"></i>
-                    Tin nhắn
-                  </a>
+                  <Link to="/teacher2/personal-information">
+                    <span className="w-full flex justify-start items-center">
+                      <i style={{ color: '#d55557' }} class="fa-solid fa-circle-info mr-2"></i>
+                      Thông tin cá nhân
+                    </span>
+                  </Link>
                 </li>
                 <li
-                  className={` ${active === 'calendar-teaching' ? 'bg-gray-300' : 'bg-white'} px-5 py-2 my-2 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
+                  className={` ${active === 'teaching-schedule' ? 'bg-gray-300' : 'bg-white'} px-5 py-2 my-2 md:px-2 md:text-sm lg:text-lg lg:px-4 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
                 >
-                  <a className="w-full" href="/teacher/attendance-management">
-                    <i style={{ color: '#d55557' }} className="fa-regular fa-calendar mr-2"></i>
-                    Lịch giảng dạy
-                  </a>
+                  <Link to="/teacher2/teaching-schedule">
+                    <span className="w-full flex justify-start items-center">
+                      <i style={{ color: '#d55557' }} className="fa-regular fa-calendar mr-2"></i>
+                      Lịch giảng dạy
+                    </span>
+                  </Link>
                 </li>
                 <li
-                  className={` ${active === 'tin-nhan' ? 'bg-gray-300' : 'bg-white'} px-5 py-2 my-2 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
+                  className={` ${active === 'notification' ? 'bg-gray-300' : 'bg-white'} px-5 py-2 my-2 md:px-2 md:text-sm lg:text-lg lg:px-4 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
                 >
-                  <a className="w-full" href="/teacher/attendance-management">
-                    <i style={{ color: '#d55557' }} className="fas fa-calendar-alt mr-2"></i>
-                    Quản lý điểm danh
-                  </a>
+                  <Link to="/teacher2/notification">
+                    <span className="w-full flex justify-start items-center">
+                      <i style={{ color: '#d55557' }} class="fa-solid fa-bell mr-2"></i>
+                      Xem thông báo
+                    </span>
+                  </Link>
                 </li>
                 <li
-                  className={` ${active === 'tin-nhan' ? 'bg-gray-300' : 'bg-white'} px-5 py-2 my-2 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
+                  className={` ${active === 'student-attendance' ? 'bg-gray-300' : 'bg-white'} px-5 py-2 my-2 md:px-2 md:text-sm lg:text-lg lg:px-4 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
                 >
-                  <a className="w-full" href="/teacher/class-management">
+                  <Link to="/teacher2/student-attendance">
+                    <span className="w-full flex justify-start items-center">
+                      <i style={{ color: '#d55557' }} className="fas fa-calendar-alt mr-2"></i>
+                      Quản lý điểm danh
+                    </span>
+                  </Link>
+                </li>
+                <li
+                  className={` ${active === 'leave-request' ? 'bg-gray-300' : 'bg-white'} px-5 py-2 my-2 md:px-2 md:text-sm lg:text-lg lg:px-4 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
+                >
+                  <Link to="/teacher2/leave-request">
+                    <span className="w-full flex justify-start items-center">
+                      <i style={{ color: '#d55557' }} class="fa-solid fa-envelope-open-text mr-2"></i>
+                      Đơn xin nghỉ học
+                    </span>
+                  </Link>
+                </li>
+
+                <li
+                  className={` ${active === 'teaching-report' ? 'bg-gray-300' : 'bg-white'} px-5 py-2 my-2 md:px-2 md:text-sm lg:text-lg lg:px-4 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
+                >
+                  <Link to="/teacher2/teaching-report">
+                    <span className="w-full flex justify-start items-center">
+                      <i style={{ color: '#d55557' }} class="fa-solid fa-briefcase mr-2"></i>
+                      Báo bài
+                    </span>
+                  </Link>
+                </li>
+
+                <li
+                  className={` ${active === 'teaching-report2' ? 'bg-gray-300' : 'bg-white'} px-5 py-2 my-2 md:px-2 md:text-sm lg:text-lg lg:px-4 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
+                >
+                  <Link to="/teacher2/teaching-report2">
+                    <span className="w-full flex justify-start items-center">
+                      <i style={{ color: '#d55557' }} class="fa-solid fa-briefcase mr-2"></i>
+                      Báo bài 2
+                    </span>
+                  </Link>
+                </li>
+
+                {/* <li
+                  className={` ${active === 'tin-nhan' ? 'bg-gray-300' : 'bg-white'} px-5 py-2 my-2 md:px-2 md:text-sm lg:text-lg lg:px-4 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
+                >
+                  <a className="w-full flex justify-start items-center" href="/teacher/class-management">
                     <i style={{ color: '#d55557' }} className="fas fa-chalkboard-teacher mr-2"></i>
                     Quản lý lớp học
                   </a>
-                </li>
-                <li
-                  className={` ${active === 'tin-nhan' ? 'bg-gray-300' : 'bg-white'} px-5 py-2 my-2 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
+                </li> */}
+                {/* <li
+                  className={` ${active === 'tin-nhan' ? 'bg-gray-300' : 'bg-white'} px-5 py-2 my-2 md:px-2 md:text-sm lg:text-lg lg:px-4 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
                 >
-                  <a className="w-full" href="/teacher/student-management">
+                  <a className="w-full flex justify-start items-center" href="/teacher/student-management">
                     <i style={{ color: '#d55557' }} className="fas fa-user-graduate mr-2"></i>
                     Quản lý học sinh
                   </a>
-                </li>
+                </li> */}
                 {/* mục quản lý điểm sô */}
                 <li
-                  className={` ${active === 'tin-nhan' ? 'bg-gray-300' : 'bg-white'} px-5 py-2 my-2 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
+                  className={` ${active === 'input-score' ? 'bg-gray-300' : 'bg-white'} px-5 py-2 my-2 md:px-2 md:text-sm lg:text-lg lg:px-4 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
                 >
-                  <a className="w-full" href="/teacher/grade-management">
-                    <i style={{ color: '#d55557' }} className="fas fa-chart-bar mr-2"></i>
-                    Quản lý điểm số
-                  </a>
+                  <Link to="/teacher2/input-score">
+                    <span className="w-full flex justify-start items-center">
+                      <i style={{ color: '#d55557' }} className="fas fa-chart-bar mr-2"></i>
+                      Quản lý điểm số
+                    </span>
+                  </Link>
+                </li>
+                <li
+                  className={` ${active === 'report' ? 'bg-gray-300' : 'bg-white'} px-5 py-2 my-2 md:px-2 md:text-sm lg:text-lg lg:px-4 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
+                >
+                  <Link to="/teacher2/report">
+                    <span className="w-full flex justify-start items-center">
+                      <i style={{ color: '#d55557' }} class="fa-solid fa-chart-pie mr-2"></i>
+                      Thống kê
+                    </span>
+                  </Link>
                 </li>
                 {/* thêm mục kế hoạch giảng dạy */}
-                <li
-                  className={` ${active === 'teaching-plans' ? 'bg-gray-300' : 'bg-white'} px-5 py-2 my-2 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
+                {/* <li
+                  className={` ${active === 'teaching-plans' ? 'bg-gray-300' : 'bg-white'} px-5 py-2 my-2 md:px-2 md:text-sm lg:text-lg lg:px-4 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
                 >
-                  <a className="w-full" href="/teacher/teaching-plans">
+                  <a className="w-full flex justify-start items-center" href="/teacher/teaching-plans">
                     <i style={{ color: '#d55557' }} className="fas fa-calendar-plus mr-2"></i>
                     Quản lý kế hoạch giảng dạy
                   </a>
-                </li>
-              </ul>
-              <div>
-                <p className="text-lg font-bold text-gray-500">Lơp học của tôi</p>
-              </div>
-              <ul>
-                <li
-                  className={` ${active === 'random-student' ? 'bg-gray-300' : 'bg-white'} w-full px-5 py-2 my-2 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
-                >
-                  <a className="w-full flex items-center" href="/teacher/message">
-                    <SiGoogleclassroom style={{ color: '#d55557' }} className="mr-2" />
-                    {teacherInfo.className === '' ? 'Chờ phân công' : teacherInfo.className}
-                  </a>
-                </li>
-                <li
-                  className={` ${active === 'time-counter' ? 'bg-gray-300' : 'bg-white'} w-full px-5 py-2 my-2 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
-                >
-                  <a className="w-full flex items-center" href="/teacher/message">
-                    <TbGridDots style={{ color: '#d55557' }} className="mr-2" />
-                    Tất cả lớp học
-                  </a>
-                </li>
-              </ul>
-              <div>
-                <p className="text-lg font-bold text-gray-500">Bộ công cụ</p>
-              </div>
-              <ul>
-                <li
-                  className={` ${active === 'random-student' ? 'bg-gray-300' : 'bg-white'} w-full px-5 py-2 my-2 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
-                >
-                  <a className="w-full" href="/teacher/message">
-                    <i style={{ color: '#d55557' }} className="fa-solid fa-shuffle mr-2"></i>
-                    Ngẫu nhiên học sinh
-                  </a>
-                </li>
-                <li
-                  className={` ${active === 'time-counter' ? 'bg-gray-300' : 'bg-white'} w-full px-5 py-2 my-2 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
-                >
-                  <a className="w-full" href="/teacher/message">
-                    <i style={{ color: '#d55557' }} className="fa-regular fa-clock mr-2"></i>
-                    Bộ đếm thời gian
-                  </a>
-                </li>
+                </li> */}
               </ul>
             </div>
           </div>
         )}
 
-        <div className={`${toggleMenu ? 'col-span-8' : 'col-span-10'} h-screen`}>
+        <div className={`w-full h-screen flex flex-col lex-1 bg-gray-300 overflow-x-auto `}>
           <Toaster toastOptions={{ duration: 2500 }} />
-          <header className="grid grid-flow-col items-center p-2 bg-white border-b border-gray-300">
+          <header className="grid grid-flow-col items-center p-2 bg-white">
             <div className="flex items-center justify-start gap-2">
               {!toggleMenu && (
                 <button
                   onClick={() => {
                     setToggleMenu(!toggleMenu);
                   }}
-                  className="flex items-center justify-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                  className="text-lg md:block hidden"
                 >
-                  <span className="sr-only">Toggle menu</span>
-                  <i className="fas fa-bars"></i>
+                  <i className="fas fa-bars" style={{ color: '#429AB8' }}></i>
                 </button>
+                // <button
+                //   onClick={() => {
+                //     setToggleMenu(!toggleMenu);
+                //   }}
+                //   className="flex items-center justify-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                // >
+                //   <span className="sr-only">Toggle menu</span>
+                //   <i className="fas fa-bars"></i>
+                // </button>
               )}
 
               <a href="/teacher">
@@ -251,12 +260,10 @@ export default function Menu({ children, active }) {
                     <i className="fas fa-phone mr-2" style={{ color: '#77ac2f' }}></i>0907021954
                   </a>
                 </span>
-                <div className="relative ">
+                <div className="relative">
                   <span
                     className="flex items-center cursor-pointer"
                     onClick={() => {
-                      setShowTeacherProfile(true);
-                      setActiveTab('notice');
                       setShowAllMenu(false);
                     }}
                   >
@@ -270,7 +277,7 @@ export default function Menu({ children, active }) {
                     onClick={() => setShowProfile(!showProfile)}
                   >
                     <i className="fas fa-user-circle mr-2" style={{ color: '#429AB8' }}></i>
-                    {teacherInfo.userName}
+                    {user.userName}
                     {showProfile ? <IoMdArrowDropup /> : <IoMdArrowDropdown />}
                   </div>
                   {showProfile && (
@@ -278,8 +285,6 @@ export default function Menu({ children, active }) {
                       <div
                         className="py-2 px-2 hover:bg-gray-300 cursor-pointer"
                         onClick={() => {
-                          setShowTeacherProfile(true);
-                          setActiveTab('profile');
                           setShowAllMenu(false);
                           setShowProfile(false);
                         }}
@@ -302,9 +307,14 @@ export default function Menu({ children, active }) {
                   )}
                 </div>
               </div>
-              {/* Hiện menu cho màn hình điện thoại */}{' '}
-              <button className="md:hidden">
-                <i className="fas fa-bars" style={{ color: '#429AB8' }}></i> {/* Dấu ba gạch */}
+              {/* Hiện menu cho màn hình điện thoại */}
+              <button
+                onClick={() => {
+                  setToggleMenu(!toggleMenu);
+                }}
+                className="md:hidden"
+              >
+                <i className="fas fa-bars" style={{ color: '#429AB8' }}></i>
               </button>
             </div>
 
@@ -372,7 +382,7 @@ export default function Menu({ children, active }) {
               </div>
             )}
           </header>
-          <div className="overflow-y-auto max-h-[93%]">{children}</div>
+          <div className="overflow-y-auto flex-1 h-full">{children}</div>
         </div>
       </div>
     </>

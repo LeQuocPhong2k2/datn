@@ -644,43 +644,7 @@ const ClassController = {
         _id: { $in: classInfo.studentList },
       });
       // .select("_id studentCode userName ");
-      console.log("số lượng học sinh trong lớp:", students.length);
-      // chỉ lấy các trường cần thiết là _id, studentCode, userName
-
-      // Trả về danh sách học sinh
-      res.status(200).json({
-        class_id: classInfo._id,
-        students: students,
-      });
-    } catch (error) {
-      console.error("Lỗi khi lấy danh sách học sinh:", error);
-      res.status(500).json({ error: error.message });
-    }
-  },
-
-  /**
-   *
-   *
-   *
-   *
-   * @param {*} req
-   * @param {*} res
-   * @returns
-   */
-  getClassInfoByHomeRoomTeacher: async (req, res) => {
-    const { teacherId } = req.body;
-    try {
-      const classInfo = await Class.findOne({ homeRoomTeacher: teacherId });
-      if (!classInfo) {
-        return res.status(404).json({ message: "Không tìm thấy lớp học" });
-      }
-
-      // Lấy danh sách học sinh từ classInfo
-      const students = await Student.find({
-        _id: { $in: classInfo.studentList },
-      });
-      // .select("_id studentCode userName ");
-      console.log("số lượng học sinh trong lớp:", students.length);
+      //console.log("số lượng học sinh trong lớp:", students.length);
       // chỉ lấy các trường cần thiết là _id, studentCode, userName
 
       // Trả về danh sách học sinh
@@ -716,6 +680,74 @@ const ClassController = {
       res.status(200).json(result);
     } catch (error) {
       console.error("Lỗi khi lấy thông tin lớp học:", error);
+      res.status(500).json({ error: error.message });
+    }
+  },
+
+  getAllClassTeacher: async (req, res) => {
+    const { phoneNumber, academicYear } = req.body;
+    try {
+      let result = [];
+      let groupedResult = {}; // Đối tượng để nhóm các record theo className
+
+      const currentSchoolYear = getCurrentSchoolYear();
+      const teacher = await Teacher.findOne({ phoneNumber: phoneNumber });
+
+      if (teacher) {
+        const classInfo = await Class.findOne({ academicYear: academicYear, homeRoomTeacher: teacher._id });
+        if (classInfo) {
+          const resultElm = {
+            teacher_id: teacher._id,
+            userName: teacher.userName,
+            grade: classInfo.grade,
+            class_id: classInfo._id,
+            className: classInfo.className,
+            subject_id: "ALL",
+            subjectName: "ALL",
+          };
+          // Nhóm theo className
+          if (!groupedResult[classInfo.className]) {
+            groupedResult[classInfo.className] = [];
+          }
+          groupedResult[classInfo.className].push(resultElm);
+        }
+      }
+
+      const listTeacherSchedule = await Schedule.find({ scheduleTeacher: teacher._id, schoolYear: currentSchoolYear });
+      for (let i = 0; i < listTeacherSchedule.length; i++) {
+        const classInfo = await Class.findOne({ academicYear: currentSchoolYear, className: listTeacherSchedule[i].className });
+        if (classInfo) {
+          const subject = await Subject.findById(listTeacherSchedule[i].subject);
+          const resultElm = {
+            teacher_id: teacher._id,
+            userName: teacher.userName,
+            grade: classInfo ? classInfo.grade : "",
+            class_id: classInfo ? classInfo._id : "",
+            className: classInfo ? classInfo.className : "",
+            subject_id: subject._id,
+            subjectName: subject.subjectName,
+          };
+
+          // Nhóm theo className
+          if (!groupedResult[classInfo.className]) {
+            groupedResult[classInfo.className] = [];
+          }
+          groupedResult[classInfo.className].push(resultElm);
+        }
+      }
+
+      // Chuyển đổi nhóm lại thành mảng
+      for (let className in groupedResult) {
+        result.push({
+          className: className,
+          records: groupedResult[className], // Các record cùng className
+        });
+      }
+
+      console.log(result);
+      res.status(200).json(result);
+    } catch (error) {
+      console.error("Lỗi khi lấy danh sách lớp học:", error);
       res.status(500).json({ error: error.message });
     }
   },

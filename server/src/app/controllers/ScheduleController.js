@@ -2,6 +2,10 @@ require("dotenv").config({ path: "../../../../.env" });
 const Teacher = require("../models/Teacher");
 const Subject = require("../models/Subject");
 const Schedule = require("../models/Schedule");
+const Class = require("../models/Class");
+
+const mongoose = require("mongoose");
+const ObjectId = mongoose.Types.ObjectId;
 
 const ScheduleController = {
   async updateSchedule(req, res) {
@@ -196,6 +200,84 @@ const ScheduleController = {
         }
       }
       return res.status(201).json({ message: "Auto create teacher schedule successfully", schedule });
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  },
+
+  async getScheduleOfTeacher(req, res) {
+    const { teacherId, schoolYear } = req.body;
+    try {
+      const schedules = await Schedule.aggregate([
+        {
+          $match: {
+            schoolYear: schoolYear,
+            scheduleTeacher: new ObjectId(teacherId),
+          },
+        },
+        {
+          $unwind: "$timesSlot",
+        },
+        {
+          $project: {
+            _id: 1,
+            subject: "$scheduleTitle",
+            day: "$timesSlot.scheduleDay",
+            period: "$timesSlot.lessonNumber",
+            className: 1,
+          },
+        },
+      ]);
+      return res.status(200).json({ schedules });
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  },
+
+  async getClassByDayAndTeacher(req, res) {
+    const { teacherId, day, schoolYear } = req.body;
+
+    try {
+      const schedules = await Schedule.aggregate([
+        {
+          $match: {
+            schoolYear: schoolYear,
+            scheduleTeacher: new ObjectId(teacherId),
+            timesSlot: {
+              $elemMatch: {
+                scheduleDay: day,
+              },
+            },
+          },
+        },
+        {
+          $unwind: "$className",
+        },
+        {
+          $lookup: {
+            from: "Subject",
+            localField: "subject",
+            foreignField: "_id",
+            as: "subjectDetail",
+          },
+        },
+        {
+          $unwind: "$subjectDetail",
+        },
+        {
+          $group: {
+            _id: "$className",
+            subjects: { $push: "$subjectDetail" }, // Changed to $push to keep all subjects
+          },
+        },
+        {
+          $project: {
+            className: "$_id",
+            subjectNames: "$subjects.subjectName",
+          },
+        },
+      ]);
+      return res.status(200).json({ schedules });
     } catch (error) {
       return res.status(500).json({ error: error.message });
     }

@@ -1,19 +1,24 @@
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes, Navigate, useNavigate } from 'react-router-dom';
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Login from './components/Login';
 import Admin from './components/Admin';
 import Student from './components/User/index';
 import Teacher from './components/User/Teacher';
-import Teacher2 from './components/User/Teacherv2';
 import ForgotPassword from './components/User/ForgotPassword';
 import Error from './components/Error';
-import Home from './components/Home';
 import ProtectedRoute from './middleware/ProtectedRoute';
 import Cookies from 'cookie-universal';
 import Message from './components/User/Teacher/Message';
 import TeachingPlans from './components/User/Teacher/TeachingPlans';
-
+import TeachingReport from './components/User/Teacher/TeachingReport';
+import TeachingReport2 from './components/User/Teacher/TeachingReport2';
+import InputScore from './components/User/Teacher/InputScore';
+import PersonalInformation from './components/User/Teacher/PersonalInformation';
+import TeachingSchedule from './components/User/Teacher/TeachingSchedule';
+import StudentAttendance from './components/User/Teacher/StudentAttendance';
+import Notification from './components/User/Teacher/Notification';
+import LeaveRequest from './components/User/Teacher/LeaveRequest';
+import Report from './components/User/Teacher/Report';
 import './App.css';
 
 function App() {
@@ -28,8 +33,7 @@ function App() {
   return (
     <div>
       <Routes>
-        <Route path="" element={<Home />} />
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/error" element={<Error />} />
@@ -65,16 +69,10 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        <Route path="/teacher2" element={<Navigate to="/teacher2/teaching-schedule" replace />} />
         <Route
-          path="/teacher2"
-          element={
-            <ProtectedRoute allowedRole="Teacher">
-              <Teacher2 />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/teacher/message"
+          path="/teacher/menu"
           element={
             <ProtectedRoute allowedRole="Teacher">
               <Message />
@@ -82,10 +80,87 @@ function App() {
           }
         />
         <Route
-          path="/teacher/teaching-plans"
+          path="/teacher2/teaching-plans"
           element={
             <ProtectedRoute allowedRole="Teacher">
               <TeachingPlans />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teacher2/teaching-report"
+          element={
+            <ProtectedRoute allowedRole="Teacher">
+              <TeachingReport />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teacher2/teaching-report2"
+          element={
+            <ProtectedRoute allowedRole="Teacher">
+              <TeachingReport2 />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teacher2/input-score"
+          element={
+            <ProtectedRoute allowedRole="Teacher">
+              <InputScore />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teacher2/personal-information"
+          element={
+            <ProtectedRoute allowedRole="Teacher">
+              <PersonalInformation />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/teacher2/teaching-schedule"
+          element={
+            <ProtectedRoute allowedRole="Teacher">
+              <TeachingSchedule />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/teacher2/student-attendance"
+          element={
+            <ProtectedRoute allowedRole="Teacher">
+              <StudentAttendance />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/teacher2/notification"
+          element={
+            <ProtectedRoute allowedRole="Teacher">
+              <Notification />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/teacher2/leave-request"
+          element={
+            <ProtectedRoute allowedRole="Teacher">
+              <LeaveRequest />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/teacher2/report"
+          element={
+            <ProtectedRoute allowedRole="Teacher">
+              <Report />
             </ProtectedRoute>
           }
         />

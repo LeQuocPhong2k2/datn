@@ -6,12 +6,12 @@ import { useEffect, useState } from 'react';
 import Cookies from 'cookie-universal';
 import 'react-toastify/dist/ReactToastify.css';
 import { Toaster, toast } from 'react-hot-toast';
+import { getHomRoomTeacherCurrent } from '../api/Class';
 
 export default function Login() {
   useEffect(() => {
     document.title = 'Đăng nhập';
   }, []);
-
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
   const cookies = new Cookies();
@@ -43,8 +43,13 @@ export default function Login() {
       } else if (response.account.role === 'Student' || response.account.role === 'Parent') {
         window.location.href = '/student';
       } else if (response.account.role === 'Teacher') {
-        localStorage.setItem('phoneNumberTeacher', response.account.userName);
-        window.location.href = '/teacher';
+        getHomRoomTeacherCurrent(response.account.userName).then((res) => {
+          localStorage.setItem('teacherId', res.teacher_id);
+          localStorage.setItem('className', res.className);
+          localStorage.setItem('userName', res.userName);
+          localStorage.setItem('phoneNumberTeacher', response.account.userName);
+          window.location.href = '/teacher';
+        });
       }
     } catch (error) {
       if (error.response.status === 401) {
@@ -63,8 +68,8 @@ export default function Login() {
   return (
     <div className="w-screen h-screen grid grid-cols-12 login-wrapper">
       <div className="col-span-8 img-logo">
-        <div className="w-full h-full bg-blue-50">
-          <img className="w-10/12 h-10/12" src={imgLogin} alt="img-login" />
+        <div className="w-full h-full bg-blue-50 flex items-center justify-center">
+          <img className="w-9/12 h-10/12" src={imgLogin} alt="img-login" />
         </div>
       </div>
       {/* thư viện thông báo Toaster */}
@@ -96,13 +101,6 @@ export default function Login() {
                 type="password"
                 placeholder="Nhập mật khẩu"
               />
-
-              <div className="w-3/4 flex justify-end items-center gap-2 mt-4">
-                <input type="checkbox" id="remember" name="remember" value="remember" />
-                <label className="text-subtitle-login" htmlFor="remember">
-                  Ghi nhớ tài khoản
-                </label>
-              </div>
 
               <button onClick={handleLogin} className="w-3/4 h-12 btn-login rounded-lg mt-4">
                 Đăng nhập
