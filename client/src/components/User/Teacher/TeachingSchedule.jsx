@@ -107,7 +107,7 @@ export default function TeachingSchedule() {
                   <tr key={index}>
                     <th className="border border-gray-400 bg-gray-100 min-w-16">{index + 1}</th>
                     {row.map((subject, idx) => (
-                      <td key={idx} className="border border-gray-300">
+                      <td key={idx} className="border border-gray-300 text-left px-10">
                         {subject}
                       </td>
                     ))}

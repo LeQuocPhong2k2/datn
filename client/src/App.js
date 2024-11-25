@@ -11,6 +11,7 @@ import Cookies from 'cookie-universal';
 import Message from './components/User/Teacher/Message';
 import TeachingPlans from './components/User/Teacher/TeachingPlans';
 import TeachingReport from './components/User/Teacher/TeachingReport';
+import TeachingReport2 from './components/User/Teacher/TeachingReport2';
 import InputScore from './components/User/Teacher/InputScore';
 import PersonalInformation from './components/User/Teacher/PersonalInformation';
 import TeachingSchedule from './components/User/Teacher/TeachingSchedule';
@@ -91,6 +92,14 @@ function App() {
           element={
             <ProtectedRoute allowedRole="Teacher">
               <TeachingReport />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teacher2/teaching-report2"
+          element={
+            <ProtectedRoute allowedRole="Teacher">
+              <TeachingReport2 />
             </ProtectedRoute>
           }
         />
