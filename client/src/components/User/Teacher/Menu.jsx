@@ -64,17 +64,17 @@ export default function Menu({ children, active }) {
       <Toaster toastOptions={{ duration: 2200 }} />
       <div className="h-screen w-screen flex flex-row gap-[1px] font-sans ">
         {toggleMenu && (
-          <div
-            className={`min-w-64 h-screen max-h-screen overflow-y-auto lg:relative md:fixed bg-white shadow-lg z-50`}
-          >
+          <div className={`min-w-64 h-screen max-h-screen overflow-y-auto lg:relative fixed bg-white shadow-lg z-50`}>
             <div className={`h-14 grid grid-cols-10 items-center justify-start border-b px-5`}>
               <div className="col-span-8">
                 <span className="text-xl text-black font-semibold">Gv.{user.userName}</span>
                 <br />
 
-                <span className="text-lg text-gray-800">
-                  {user.className === '' ? 'Lớp chủ nhiệm: Chờ phân công' : 'Lớp chủ nhiệm: ' + user.className}
-                </span>
+                <div className="flex items-center justify-start min-w-80">
+                  <span className="text-lg text-gray-800">
+                    {user.className === '' ? 'Lớp chủ nhiệm: Chờ phân công' : 'Lớp chủ nhiệm: ' + user.className}
+                  </span>
+                </div>
               </div>
               <div className="col-span-2 flex items-center justify-end md:justify-center">
                 <button
@@ -144,10 +144,23 @@ export default function Menu({ children, active }) {
                 <li
                   className={` ${active === 'teaching-report' ? 'bg-gray-300' : 'bg-white'} px-5 py-2 my-2 md:px-2 md:text-sm lg:text-lg lg:px-4 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
                 >
-                  <a className="w-full flex justify-start items-center" href="/teacher/teaching-report">
-                    <i style={{ color: '#d55557' }} class="fa-solid fa-briefcase mr-2"></i>
-                    Báo bài
-                  </a>
+                  <Link to="/teacher2/teaching-report">
+                    <span className="w-full flex justify-start items-center">
+                      <i style={{ color: '#d55557' }} class="fa-solid fa-briefcase mr-2"></i>
+                      Báo bài
+                    </span>
+                  </Link>
+                </li>
+
+                <li
+                  className={` ${active === 'teaching-report2' ? 'bg-gray-300' : 'bg-white'} px-5 py-2 my-2 md:px-2 md:text-sm lg:text-lg lg:px-4 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
+                >
+                  <Link to="/teacher2/teaching-report2">
+                    <span className="w-full flex justify-start items-center">
+                      <i style={{ color: '#d55557' }} class="fa-solid fa-briefcase mr-2"></i>
+                      Báo bài 2
+                    </span>
+                  </Link>
                 </li>
 
                 {/* <li
