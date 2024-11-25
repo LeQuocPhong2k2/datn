@@ -1,14 +1,17 @@
 import React from 'react';
 import 'flowbite';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { Toaster, toast } from 'react-hot-toast';
+import { UserContext } from '../../../UserContext';
 
 import Menu from './Menu';
 
 import { updateLeaveRequest } from '../../../api/LeaveRequest';
 import { createAttendance } from '../../../api/Attendance';
+import { getLeaveRequestsByTeacherId } from '../../../api/LeaveRequest';
 
 export default function LeaveRequest() {
+  const { user } = useContext(UserContext);
   const [filterStatus, setFilterStatus] = useState('all');
   const [showTeacherLeaveRequests, setShowTeacherLeaveRequests] = useState(true);
   const [showFullInfoLeaveRequestSent, setShowFullInfoLeaveRequestSent] = useState(false);
@@ -84,6 +87,21 @@ export default function LeaveRequest() {
       toast.error('Có lỗi xảy ra khi cập nhật đơn nghỉ học');
     }
   };
+
+  useEffect(() => {
+    const fetchLeaveRequests = async () => {
+      if (!user.teacherId) return;
+
+      try {
+        const response = await getLeaveRequestsByTeacherId(user.teacherId);
+        setLeaveRequests(response.data);
+        console.log('Danh sách đơn nghỉ học:', response.data);
+      } catch (error) {
+        console.error('Lỗi lấy danh sách đơn nghỉ học:', error);
+      }
+    };
+    fetchLeaveRequests();
+  }, []);
 
   return (
     <Menu active="leave-request">

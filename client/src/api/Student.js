@@ -70,10 +70,10 @@ async function searchStudents(studentCode) {
   return response.data;
 }
 // getFullInfoStudentByCode cho trang sửa hồ sơ học sinh
-async function getFullInfoStudentByCode(studentCode) {
+async function getFullInfoStudentByCode(studentCode, academicYear) {
   const response = await axios.post(
     `${API_URL}/students/getFullInfoStudentByCode`,
-    { studentCode },
+    { studentCode, academicYear },
     {
       headers: {
         'Content-Type': 'application/json',

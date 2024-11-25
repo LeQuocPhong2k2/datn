@@ -22,16 +22,6 @@ export default function Student() {
   const [dateQuery, setDateQuery] = useState(new Date());
   const [academicYearQuery, setAcademicYearQuery] = useState('');
   const [listReports, setListReports] = useState([]);
-  const handleSearchBaoBai = async () => {
-    const teacher_phoneNumber = localStorage.getItem('phoneNumberTeacher');
-    await getTeachingReports('', getCurrentSchoolYear(), studentInfo.className, dateQuery)
-      .then((res) => {
-        setListReports(res);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
 
   const getCurrentSchoolYear = () => {
     const now = new Date();
@@ -43,6 +33,17 @@ export default function Student() {
     } else {
       return `${currentYear - 1}-${currentYear}`;
     }
+  };
+
+  const handleSearchBaoBai = async () => {
+    const teacher_phoneNumber = localStorage.getItem('phoneNumberTeacher');
+    await getTeachingReports('', getCurrentSchoolYear(), studentInfo.className, dateQuery)
+      .then((res) => {
+        setListReports(res);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   };
 
   const [accounts, setAccounts] = useState([]);
@@ -66,7 +67,7 @@ export default function Student() {
       .then((data) => {
         console.log(data);
         setAccounts(data);
-        getFullInfoStudentByCode(data.studentCode).then((res) => {
+        getFullInfoStudentByCode(data.studentCode, getCurrentSchoolYear()).then((res) => {
           setStudentInfo(res);
         });
       })

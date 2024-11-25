@@ -1,98 +1,104 @@
 import React from 'react';
 import 'flowbite';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useContext } from 'react';
+import { UserContext } from '../../../UserContext';
 
+import { format } from 'date-fns';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { BiCalendar } from 'react-icons/bi';
-import { IoMdAddCircle } from 'react-icons/io';
-import { IoAdd } from 'react-icons/io5';
 
-import { getAllClassTeacher } from '../../../api/Class';
+import { getClassByDayAndTeacher } from '../../../api/Schedules';
 import { getSubjectByGrade } from '../../../api/Subject';
-import { getTeachingPlanByTeacherAndByGradeAndBySchoolYear } from '../../../api/TeachingPlan';
-import { getHomRoomTeacherCurrent } from '../../../api/Class';
-import { saveTeachingReport, getTeachingReports } from '../../../api/TeachingReport';
 
 import Menu from './Menu';
 import { Toaster, toast } from 'react-hot-toast';
-import { get } from 'mongoose';
 
 export default function TeachingPlans() {
-  /**
-   * State
-   */
-  const [classQuery, setClassQuery] = useState('');
-  const [dateQuery, setDateQuery] = useState(new Date());
-  const [academicYearQuery, setAcademicYearQuery] = useState('');
-
-  const [classBaoBai, setClassBaoBai] = useState(new Date());
-  const [classTeachers, setClassTeachers] = useState([]);
-  const [classTeachersEdit, setClassTeachersEdit] = useState([]);
-  const [academicYear, setAcademicYear] = useState('');
-  const [createTeachingReport, setCreateTeachingReport] = useState(false);
-  const [indexClass, setIndexClass] = useState(0);
-  const [indexCreate, setIndexCreate] = useState(0);
-  const [opContent, setOpContent] = useState(true);
-  const [listSubjects, setListSubjects] = useState([]);
-  const [modalSelectTeachPlan, setModalSelectTeachPlan] = useState(false);
-  const [listPlans, setListPlans] = useState([]);
-  const [dateCreateTeachingReport, setDateCreateTeachingReport] = useState(new Date());
-  const [listReports, setListReports] = useState([]);
-
-  const [listBaoBai, setListBaoBai] = useState([
-    {
-      subject: '',
-      content: '',
-      contentNext: '',
-      process: 0,
-      note: '',
-    },
-  ]);
+  const { user } = useContext(UserContext);
+  const [activeTab, setActiveTab] = useState('create');
+  const [data, setData] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [schedules, setSchedules] = useState([]);
+  const [subjects, setSubjects] = useState([]);
+  const [className, setClassName] = useState('');
+  const [timetable, setTimetable] = useState({});
 
   useEffect(() => {
-    const teacher_phoneNumber = localStorage.getItem('phoneNumberTeacher');
-    getAllClassTeacher(teacher_phoneNumber, academicYearQuery)
-      .then((res) => {
-        setClassTeachers(res);
+    const grade = className.charAt(0);
+    getSubjectByGrade(grade)
+      .then((data) => {
+        setSubjects(data);
       })
-      .catch((err) => {
-        console.log(err);
+      .catch((error) => {
+        console.error('Get subject by grade error:', error.response ? error.response.data : error.message);
+        throw error;
       });
-    setClassQuery('');
-  }, [academicYearQuery]);
+  }, [className]);
 
-  const handleGetAllClassTeacher = async () => {
-    const teacher_phoneNumber = localStorage.getItem('phoneNumberTeacher');
-    await getAllClassTeacher(teacher_phoneNumber, getCurrentSchoolYear())
-      .then((res) => {
-        setClassTeachers(res);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
+  function getDayOfWeek(inputDate) {
+    const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-  const handleChangeClassCreateTeachingReport = (e) => {
-    const index = e.target.value;
-    setIndexClass(index);
-
-    if (index !== '') {
-      setClassBaoBai(classTeachers[index].className);
-      getSubjectByGrade(classTeachers[index].records[0].grade)
-        .then((res) => {
-          setListSubjects(res);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+    let date;
+    if (inputDate instanceof Date) {
+      date = inputDate;
+    } else if (typeof inputDate === 'string') {
+      date = new Date(inputDate);
     } else {
-      setListSubjects([]);
+      return 'Invalid date!';
     }
+
+    if (isNaN(date.getTime())) return 'Invalid date!';
+    return daysOfWeek[date.getDay()];
+  }
+
+  const handleCreateFromTimetable = () => {
+    const formattedDate = format(selectedDate, 'yyyy-MM-dd');
+    const subjects = timetable[formattedDate];
+    if (!subjects) {
+      alert('Không có thời khóa biểu cho ngày được chọn.');
+      return;
+    }
+
+    const newData = subjects.map((subject) => ({
+      name: subject,
+      content: '',
+      note: '',
+    }));
+
+    setData(newData);
   };
 
-  const handleChange = (date) => {
-    setDateQuery(date);
+  const handleDateChange = (date) => {
+    setSelectedDate(date);
+    const day = getDayOfWeek(date);
+    getClassByDayAndTeacher(user.teacherId, day, getCurrentSchoolYear())
+      .then((data) => {
+        setSchedules(data.schedules);
+      })
+      .catch((error) => {
+        console.error('Get class by day and teacher error:', error.response ? error.response.data : error.message);
+        throw error;
+      });
+  };
+
+  const handleAddNewReport = () => {
+    const newReport = {
+      name: '',
+      content: '',
+      note: '',
+    };
+    setData([...data, newReport]);
+  };
+
+  const handleRemoveReport = (index) => {
+    const newData = data.filter((_, i) => i !== index);
+    setData(newData);
+  };
+
+  const handleSave = () => {
+    alert('Date' + getDayOfWeek(selectedDate) + 'id' + user.teacherId);
+    console.log('Saving data:', data);
+    toast.success('Báo bài đã được lưu.');
   };
 
   const getCurrentSchoolYear = () => {
@@ -107,509 +113,247 @@ export default function TeachingPlans() {
     }
   };
 
-  const handleSearchTeachingPlan = async (index, op) => {
-    if (op === 'today') {
-      setOpContent(true);
-    } else {
-      setOpContent(false);
-    }
+  const handleChangeClass = (className) => {
+    let newTimetable = {};
+    schedules.forEach((schedule) => {
+      if (schedule.className === className) {
+        const date = format(selectedDate, 'yyyy-MM-dd');
+        let subjectNames = [];
 
-    setIndexCreate(index);
-    const teacher_phoneNumber = localStorage.getItem('phoneNumberTeacher');
-    await getHomRoomTeacherCurrent(teacher_phoneNumber)
-      .then((res) => {
-        getTeachingPlanByTeacherAndByGradeAndBySchoolYear(
-          res.teacher_id,
-          classTeachers[indexClass].records[0].grade,
-          getCurrentSchoolYear()
-        )
-          .then((data) => {
-            setListPlans(data);
-          })
-          .catch((error) => {
-            console.error(error);
-          });
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  };
+        schedule.subjectNames.forEach((subject) => {
+          subjectNames.push(subject);
+        });
 
-  const handleAddRowBaoBai = () => {
-    console.log('add row');
-    console.log('indexClass', indexClass);
-
-    const newListBaoBai = [...listBaoBai];
-    newListBaoBai.push({
-      content: '',
-      contentNext: '',
-      contentPlanID: '',
-      process: 0,
-      note: '',
-    });
-    console.log('newListBaoBai', newListBaoBai);
-    setListBaoBai(newListBaoBai);
-  };
-
-  const handleItemClick = (indexSubject, indexWeek, indexTopic) => {
-    const newListBaoBai = [...listBaoBai];
-
-    if (opContent) {
-      newListBaoBai[indexCreate] = {
-        ...newListBaoBai[indexCreate],
-        content: listPlans[indexSubject].week[indexWeek].topics[indexTopic][0].name,
-        process: listPlans[indexSubject].week[indexWeek].topics[indexTopic][0].process,
-      };
-    } else {
-      newListBaoBai[indexCreate] = {
-        ...newListBaoBai[indexCreate],
-        contentNext: listPlans[indexSubject].week[indexWeek].topics[indexTopic][0].name,
-      };
-    }
-    setListBaoBai(newListBaoBai);
-  };
-
-  const handleSaveBaoBai = async () => {
-    if (classBaoBai === '') {
-      toast.error('Vui lòng chọn lớp học');
-      return;
-    }
-
-    listBaoBai.forEach((item) => {
-      if (item.content === '') {
-        toast.error('Vui lòng chọn nội dung bài học');
-        return;
+        newTimetable[date] = subjectNames;
       }
     });
-
-    console.log('listBaoBai', listBaoBai);
-
-    const teacher_phoneNumber = localStorage.getItem('phoneNumberTeacher');
-
-    await saveTeachingReport(
-      getCurrentSchoolYear(),
-      classBaoBai,
-      teacher_phoneNumber,
-      dateCreateTeachingReport,
-      listBaoBai
-    );
-    toast.success('Lưu báo bài thành công');
-    setCreateTeachingReport(false);
-  };
-
-  const handleSearchBaoBai = async () => {
-    const teacher_phoneNumber = localStorage.getItem('phoneNumberTeacher');
-    await getTeachingReports(teacher_phoneNumber, academicYear, classQuery, dateQuery)
-      .then((res) => {
-        setListReports(res);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+    setTimetable(newTimetable);
   };
 
   return (
     <Menu active="teaching-report">
-      {modalSelectTeachPlan && (
-        <div
-          className="fixed top-0 bottom-0 left-0 right-0 z-50 flex items-center justify-center"
-          style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
-        >
-          <div className="bg-white rounded-lg shadow-lg flex items-center justify-center">
-            <div className="w-96 py-4">
-              <div className="grid grid-cols-10 w-full border-b px-4">
-                <div className="col-span-7 py-2">
-                  <h2 className="text-xl font-semibold">Chọn nội dung bài học</h2>
+      <Toaster toastOptions={{ duration: 2500 }} />
+      <div className="p-4">
+        <div className="rounded shadow bg-white pb-2">
+          <div className="px-4 py-2 border-b">
+            <h2 className="text-xl font-bold" style={{ color: '#0B6FA1' }}>
+              <i class="fa-solid fa-briefcase mr-2"></i>
+              BÁO BÀI
+            </h2>
+          </div>
+          <div class="mx-4 text-lg font-medium text-center text-gray-500 border-b border-gray-200 dark:text-gray-400 dark:border-gray-700">
+            <ul class="flex flex-wrap -mb-px">
+              <li onClick={() => setActiveTab('create')} class="me-2 cursor-pointer">
+                <span
+                  className={`block p-4 border-b-2 ${activeTab === 'create' ? 'text-blue-600 border-b-2 border-blue-600 rounded-t-lg active dark:text-blue-500 dark:border-blue-500' : 'hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300'}`}
+                  inline
+                  aria-current="page"
+                >
+                  Tạo báo bài
+                </span>
+              </li>
+              <li onClick={() => setActiveTab('view')} class="me-2 cursor-pointer">
+                <span
+                  className={`block p-4 border-b-2 ${activeTab === 'view' ? 'text-blue-600 border-b-2 border-blue-600 rounded-t-lg active dark:text-blue-500 dark:border-blue-500' : 'hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300'}`}
+                >
+                  Xem & Chỉnh sửa báo bài
+                </span>
+              </li>
+            </ul>
+          </div>
+
+          {activeTab === 'create' && (
+            <div className="mx-4 my-2">
+              <div className="flex flex-wrap items-end gap-2">
+                <div className="flex flex-col justify-end gap-2 py-2">
+                  <span>
+                    Ngày báo bài<span className="text-red-500">*</span>
+                  </span>
+                  <div>
+                    <DatePicker
+                      selected={selectedDate}
+                      onChange={(date) => handleDateChange(date)}
+                      dateFormat="dd/MM/yyyy"
+                      className="w-44 rounded border ring-0 outline-0 focus:ring-0 focus:border"
+                    />
+                  </div>
                 </div>
-                <div className="col-span-3 flex items-center justify-end">
+
+                <div className="flex flex-col justify-end gap-2 py-2">
+                  <span>
+                    Lớp báo bài<span className="text-red-500">*</span>
+                  </span>
+                  <div>
+                    <select
+                      onChange={(e) => {
+                        handleChangeClass(e.target.value);
+                        setClassName(e.target.value);
+                      }}
+                      className="w-44 rounded border ring-0 outline-0 focus:ring-0 focus:border"
+                      defaultValue=""
+                    >
+                      <option value="">Chọn lớp</option>
+                      {schedules.map((schedule, index) => (
+                        <option key={index} value={schedule.className}>
+                          {schedule.className}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex gap-2 py-2">
                   <button
-                    onClick={() => {
-                      setModalSelectTeachPlan(false);
-                    }}
-                    className="text-red-500"
+                    onClick={handleCreateFromTimetable}
+                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
                   >
-                    <i class="fa-solid fa-xmark"></i>
+                    Tạo báo bài theo TKB
+                  </button>
+                </div>
+                <div className="flex gap-2 py-2">
+                  <button
+                    onClick={handleAddNewReport}
+                    className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                  >
+                    Thêm mới 1 báo bài
+                  </button>
+                </div>
+                <div className="flex gap-2 py-2">
+                  <button
+                    onClick={handleSave}
+                    className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 w-[5rem]"
+                  >
+                    Lưu
                   </button>
                 </div>
               </div>
-              <div className="px-4 h-96 max-h-96 overflow-y-scroll">
-                <ul style={{ userSelect: 'none' }}>
-                  {listPlans.map((subject, indexSubject) => (
-                    <li key={subject.subjectName} className="py-2">
-                      <details className="group relative">
-                        <summary className="cursor-pointer font-bold text-base text-blue-600 hover:underline">
-                          {subject.subjectName}
-                        </summary>
-                        <ul className="ml-4 mt-2">
-                          {subject.week.map((week, indexWeek) => (
-                            <li key={week.weekNumber} className="py-2">
-                              <details className="group">
-                                <summary className="cursor-pointer font-medium text-lg text-green-600 hover:underline">
-                                  Tuần {week.weekNumber}
-                                </summary>
-                                <ul className="ml-4 mt-2">
-                                  {week.topics.map((topic, indexTopic) => (
-                                    <li
-                                      onClick={() => {
-                                        handleItemClick(indexSubject, indexWeek, indexTopic);
-                                        setModalSelectTeachPlan(false);
-                                      }}
-                                      key={indexTopic}
-                                      className="py-1 cursor-pointer text-gray-700 hover:underline text-lg"
-                                    >
-                                      {'Bài ' + indexTopic + '. ' + topic[0].name + ' (' + topic[0].duration + ' tiết)'}
-                                    </li>
-                                  ))}
-                                </ul>
-                              </details>
-                            </li>
-                          ))}
-                        </ul>
-                      </details>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <Toaster toastOptions={{ duration: 2500 }} />
-
-      <div className="flex flex-wrap">
-        <div className="w-full px-4 mb-4 mt-4 grid grid-cols-12">
-          {!createTeachingReport && (
-            <div className="col-span-12 p-6 bg-white rounded-lg shadow-lg">
-              <div className="flex flex-wrap gap-8 text-lg">
-                <div className="flex items-center justify-start gap-2">
-                  <div className="px-2 py-1 w-28 bg-gray-300">
-                    <span className="font-semibold">Năm học</span>
-                  </div>
-                  <select
-                    onChange={(e) => {
-                      setAcademicYear(e.target.value);
-                      setAcademicYearQuery(e.target.value);
-                      setClassQuery('');
-                      setClassTeachers([]);
-                    }}
-                    value={academicYearQuery}
-                    className="h-9 px-2 py-1 rounded w-32"
-                    defaultValue={''}
-                  >
-                    <option value=""></option>
-                    <option value="2023-2024">2023-2024</option>
-                    <option value="2024-2025">2024-2025</option>
-                  </select>
-                </div>
-                <div className="flex items-center justify-start gap-2">
-                  <div className="px-2 py-1 w-28 bg-gray-300">
-                    <span className="font-semibold">Lớp học</span>
-                  </div>
-                  <select
-                    onChange={(e) => {
-                      setClassQuery(e.target.value);
-                    }}
-                    value={classQuery}
-                    className="h-9 px-2 py-1 rounded w-48"
-                    defaultValue={''}
-                  >
-                    <option value=""></option>
-                    {classTeachers.map((classTeacher) => (
-                      <option key={classTeacher._id} value={classTeacher.className}>
-                        {classTeacher.className}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex items-center justify-start gap-2">
-                  <div className="px-2 py-1 w-28 bg-gray-300">
-                    <span className="font-semibold">Ngày</span>
-                  </div>
-                  <div className="flex items-center justify-start">
-                    <DatePicker
-                      selected={dateQuery}
-                      onChange={handleChange}
-                      dateFormat="dd/MM/yyyy"
-                      className="h-9 px-2 py-1 rounded w-36"
-                      placeholderText="dd/mm/yyyy"
-                    />
-                    <div className="relative">
-                      <BiCalendar
-                        className="absolute right-2 -top-3 text-gray-500 pointer-events-none cursor-pointer"
-                        size={24}
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center justify-start gap-2">
-                  <div
-                    onClick={handleSearchBaoBai}
-                    className="px-3 py-1 rounded bg-sky-500 hover:bg-sky-600 cursor-pointer text-white"
-                  >
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                  </div>
-                  <div className="">
-                    <button
-                      onClick={() => {
-                        setCreateTeachingReport(true);
-                        handleGetAllClassTeacher();
-                        setListSubjects([]);
-                        setListBaoBai([
-                          {
-                            content: '',
-                            contentNext: '',
-                            process: 0,
-                            contentPlanID: '',
-                            note: '',
-                          },
-                        ]);
-                      }}
-                      className="h-9 flex items-center gap-1 bg-sky-500 hover:bg-sky-600 text-white font-bold py-2 px-4 rounded"
+              <div className="grid grid-flow-row gap-2 py-2">
+                <div className="flex flex-wrap gap-5 items-center w-full">
+                  {data.map((subject, index) => (
+                    <div
+                      key={index}
+                      className="w-full lg:w-96 relative grid grid-flow-row gap-2 bg-white p-4 rounded shadow hover:shadow-lg border border-gray-200"
                     >
-                      <i class="fa-solid fa-plus"></i>
-                      Thêm báo bài
-                    </button>
-                  </div>
-                </div>
-              </div>
-              {/* table */}
-              <div>
-                {listReports.length === 0 && (
-                  <div className="text-center text-lg font-semibold py-4">Không có dữ liệu</div>
-                )}
-                {listReports.length > 0 &&
-                  listReports.map((report, index) => (
-                    <div key={index} className="mt-4">
-                      <div className="flex items-center justify-start gap-2 bg-gray-200 text-black uppercase text-xl leading-normal py-3 px-6">
-                        <p> {report.subject[0] && report.subject[0].subjectName + ' - ' + report._id.date}</p>
-                        <i class="fa-solid fa-pen-to-square text-blue-500 hover:text-blue-700 cursor-pointer"></i>
+                      <div className="flex items-center justify-end ">
+                        <i
+                          onClick={() => handleRemoveReport(index)}
+                          class="fa-solid fa-trash cursor-pointer text-red-500 hover:text-red-600"
+                        ></i>
                       </div>
-                      <div className="text-black text-lg font-light border-b border-gray-200 py-3 px-6">
-                        <p>
-                          <strong>Nội dung bài học hôm nay:</strong> {report.reports[0].content}
-                        </p>
-                        <p>
-                          <strong>Nội dung bài học tiếp theo:</strong> {report.reports[0].contentNext}
-                        </p>
-                        <p>
-                          <strong>Ghi chú:</strong> {report.reports[0].note}
-                        </p>
-                      </div>
+                      <select
+                        onChange={(e) => {
+                          const newData = [...data];
+                          newData[index].name = e.target.value;
+                          setData(newData);
+                        }}
+                        value={subject.name}
+                        defaultValue={''}
+                        className="w-full rounded bg-gray-100 px-3 py-2"
+                      >
+                        <option value=""></option>
+                        {subjects.map((subject, index) => (
+                          <option key={index} value={subject.subjectName}>
+                            {subject.subjectName}
+                          </option>
+                        ))}
+                      </select>
+                      <textarea
+                        value={subject.content}
+                        onChange={(e) => {
+                          const newData = [...data];
+                          newData[index].content = e.target.value;
+                          setData(newData);
+                        }}
+                        className="w-full rounded bg-gray-100"
+                        placeholder="Nội dung"
+                      ></textarea>
+                      <textarea
+                        value={subject.note}
+                        onChange={(e) => {
+                          const newData = [...data];
+                          newData[index].note = e.target.value;
+                          setData(newData);
+                        }}
+                        className="w-full rounded bg-gray-100"
+                        placeholder="Ghi chú"
+                      ></textarea>
                     </div>
                   ))}
+                </div>
               </div>
             </div>
           )}
 
-          {/* Tạo báo bài */}
-          {createTeachingReport && (
-            <div className="col-span-12 p-6 bg-white rounded-lg shadow-lg">
-              <div className="text-base font-semibold mb-4 flex items-center justify-start gap-10 p-2">
-                <div className="flex items-center justify-start gap-2">
-                  <button
-                    onClick={handleSaveBaoBai}
-                    className="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-700 text-white font-medium py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                  >
-                    <i class="fa-solid fa-check text-yellow-300"></i>Done
-                  </button>
-                  <button
-                    onClick={() => {
-                      setClassBaoBai('');
-                      setCreateTeachingReport(false);
-                      setListSubjects([]);
-                      setListBaoBai([
-                        {
-                          content: '',
-                          contentNext: '',
-                          process: 0,
-                          note: '',
-                        },
-                      ]);
-                    }}
-                    className="flex items-center justify-center gap-2 bg-red-500 hover:bg-red-700 text-white font-medium py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                  >
-                    <i class="fa-solid fa-xmark"></i>Close
-                  </button>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-8 text-base font-semibold mb-4 items-center justify-start p-2">
-                <div className="flex items-center justify-start gap-2">
-                  <div className="px-2 py-1 w-28 bg-gray-300">
-                    <span className="font-semibold">Năm học</span>
-                  </div>
-                  <select
-                    disabled
-                    value={getCurrentSchoolYear()}
-                    className="h-8 px-2 py-1 rounded w-32 font-normal"
-                    defaultValue={getCurrentSchoolYear()}
-                  >
-                    <option value=""></option>
-                    <option value="2023-2024">2023-2024</option>
-                    <option value="2024-2025">2024-2025</option>
-                  </select>
-                </div>
-                <div className="flex items-center justify-start gap-2">
-                  <div className="px-2 py-1 w-28 bg-gray-300">
-                    <span className="font-semibold">
-                      Lớp học<span className="text-red-700">*</span>
-                    </span>
-                  </div>
-                  <select
-                    onChange={(e) => handleChangeClassCreateTeachingReport(e)}
-                    className="h-8 px-2 py-1 rounded w-48 font-normal"
-                    defaultValue={''}
-                  >
-                    <option value=""></option>
-                    {classTeachers.map((classTeacher, indexClassTeacher) => (
-                      <option key={classTeacher._id} value={indexClassTeacher}>
-                        {classTeacher.className}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="flex items-center justify-start gap-2">
-                  <div className="px-2 py-1 w-32 bg-gray-300">
-                    <span className="font-semibold">Ngày hiện tại</span>
-                  </div>
-                  <div className="flex items-center justify-start">
+          {activeTab === 'view' && (
+            <div className="mx-4 my-2">
+              <div className="flex flex-wrap items-end gap-2">
+                <div className="flex flex-col justify-end gap-2 py-2">
+                  <span>
+                    Ngày báo bài<span className="text-red-500">*</span>
+                  </span>
+                  <div>
                     <DatePicker
-                      disabled
-                      selected={dateCreateTeachingReport}
-                      onChange={handleChange}
+                      selected={selectedDate}
+                      onChange={(date) => setSelectedDate(date)}
                       dateFormat="dd/MM/yyyy"
-                      className="h-8 px-2 py-1 rounded w-36 font-normal"
-                      placeholderText="dd/mm/yyyy"
+                      className="w-44 rounded border ring-0 outline-0 focus:ring-0 focus:border"
                     />
-                    <div className="relative">
-                      <BiCalendar
-                        className="absolute right-2 -top-3 text-gray-500 pointer-events-none cursor-pointer"
-                        size={24}
-                      />
-                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="text-base font-semibold mb-4 items-center justify-start p-2">
-                <table className="table-auto w-full border border-gray-300">
-                  <thead>
-                    <tr className="bg-gray-100">
-                      <th className="border border-gray-300 px-4 py-2 text-left w-24">
-                        Môn học<span className="text-red-700">*</span>
-                      </th>
-                      <th className="border border-gray-300 px-4 py-2 text-left w-32">
-                        Bài học hôm nay<span className="text-red-700">*</span>
-                      </th>
-                      <th className="border border-gray-300 px-4 py-2 text-center w-14">
-                        Tiến độ (%)<span className="text-red-700">*</span>
-                      </th>
-                      <th className="border border-gray-300 px-4 py-2 text-left w-32">
-                        Bài học tiếp theo<span className="text-red-700">*</span>
-                      </th>
-                      <th className="border border-gray-300 px-4 py-2 text-left w-60">Ghi chú</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {listBaoBai.map((item, index) => (
-                      <tr>
-                        <td className="border border-gray-300 px-4 py-2">
-                          <select
-                            onChange={(e) => {
-                              const newListBaoBai = [...listBaoBai];
-                              newListBaoBai[index] = {
-                                ...newListBaoBai[index],
-                                subject: e.target.value,
-                              };
-                              setListBaoBai(newListBaoBai);
-                            }}
-                            value={item.subject}
-                            className="w-full h-8 px-2 py-1 rounded font-normal"
-                          >
-                            {listSubjects.length > 0 &&
-                              listSubjects.map((subject) => (
-                                <option key={subject._id} value={subject._id}>
-                                  {subject.subjectName}
-                                </option>
-                              ))}
-                          </select>
-                        </td>
-                        <td className="border border-gray-300 px-4 py-2">
-                          {item.content === '' ? (
-                            <div
-                              onClick={() => {
-                                setModalSelectTeachPlan(true);
-                                handleSearchTeachingPlan(index, 'today');
-                              }}
-                              className="flex items-center justify-start cursor-pointer"
-                            >
-                              <IoAdd className="text-xl text-blue-500 hover:text-blue-700" />
-                              <p className="font-normal text-blue-500 hover:text-blue-700"> Thêm nội dung bài học</p>
-                            </div>
-                          ) : (
-                            <span className="font-normal">{item.content}</span>
-                          )}
-                        </td>
-                        <td className="border border-gray-300 px-4 py-2 text-center">
-                          <input
-                            value={item.process}
-                            type="number"
-                            onChange={(e) => {
-                              const newListBaoBai = [...listBaoBai];
-                              newListBaoBai[index] = {
-                                ...newListBaoBai[index],
-                                process: e.target.value,
-                              };
-                              setListBaoBai(newListBaoBai);
-                            }}
-                            className="w-full h-8 px-2 py-1 rounded font-normal"
-                          />
-                        </td>
-                        <td className="border border-gray-300 px-4 py-2">
-                          {item.contentNext === '' ? (
-                            <div
-                              onClick={() => {
-                                setModalSelectTeachPlan(true);
-                                handleSearchTeachingPlan(index, 'next');
-                              }}
-                              className="flex items-center justify-start cursor-pointer"
-                            >
-                              <IoAdd className="text-xl text-blue-500 hover:text-blue-700" />
-                              <p className="font-normal text-blue-500 hover:text-blue-700"> Thêm nội dung bài học</p>
-                            </div>
-                          ) : (
-                            <span className="font-normal">{item.contentNext}</span>
-                          )}
-                        </td>
-                        <td className="border border-gray-300 px-4 py-2">
-                          <input
-                            onChange={(e) => {
-                              const newListBaoBai = [...listBaoBai];
-                              newListBaoBai[index] = {
-                                ...newListBaoBai[index],
-                                note: e.target.value,
-                              };
-                              setListBaoBai(newListBaoBai);
-                            }}
-                            type="text"
-                            className="w-full h-8 px-2 py-1 rounded font-normal"
-                          />
-                        </td>
-                      </tr>
-                    ))}
 
-                    <tr>
-                      <div className="p-2">
-                        <IoMdAddCircle
-                          onClick={() => {
-                            handleAddRowBaoBai();
-                          }}
-                          className="text-xl text-blue-500 hover:text-blue-700 cursor-pointer"
-                        />
-                      </div>
-                    </tr>
-                  </tbody>
-                </table>
+                <div className="flex flex-col justify-end gap-2 py-2">
+                  <span>
+                    Lớp báo bài<span className="text-red-500">*</span>
+                  </span>
+                  <div>
+                    <select className="w-44 rounded border ring-0 outline-0 focus:ring-0 focus:border">
+                      <option value="">Lớp 1</option>
+                      <option value="">Lớp 2</option>
+                      <option value="">Lớp 3</option>
+                      <option value="">Lớp 4</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex gap-2 py-2">
+                  <button className="bg-sky-500 text-white px-4 py-2 rounded hover:bg-sky-600">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                  </button>
+                </div>
+              </div>
+
+              <h2 className="text-lg font-bold text-blue-600 mb-4">Tạo báo bài</h2>
+
+              {/* Chọn ngày */}
+              <div className="flex items-center mb-4">
+                <label htmlFor="date" className="mr-4 font-semibold">
+                  Ngày:
+                </label>
+                <input type="date" id="date" className="bg-white text-black px-3 py-2 rounded border" />
+              </div>
+
+              {/* Nút tạo báo bài */}
+              <div className="flex space-x-4">
+                <button className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                  Tạo báo bài theo thời khóa biểu
+                </button>
+                <button className="bg-emerald-500 text-white px-4 py-2 rounded hover:bg-emerald-600">
+                  Thêm báo bài mới
+                </button>
+              </div>
+
+              {/* Danh sách môn học */}
+
+              <div className="mt-6 space-y-4">
+                <div className="bg-white p-4 rounded shadow hover:shadow-lg border border-gray-200">
+                  <h3 className="text-blue-600 font-semibold">s</h3>
+                  <p className="mt-2 text-gray-700">
+                    <strong>Bài học:</strong>
+                  </p>
+                  <p className="mt-1 text-gray-500">
+                    <strong>Ghi chú:</strong>
+                  </p>
+                </div>
               </div>
             </div>
           )}
