@@ -121,6 +121,105 @@ const AttendanceController = {
 
   // api thống kê dựa của attendance theo class_id và dựa theo tháng và năm
 
+  // getAttendanceStatsByClassAndMonth: async (req, res) => {
+  //   try {
+  //     const { class_id, month, year } = req.body
+
+  //     // Tạo ngày đầu và cuối của tháng
+  //     const startDate = new Date(year, month - 1, 1)
+  //     const endDate = new Date(year, month, 0)
+
+  //     // Lấy dữ liệu điểm danh trong khoảng thời gian
+  //     const attendanceData = await Attendance.find({
+  //       class_id,
+  //       date: {
+  //         $gte: startDate,
+  //         $lte: endDate,
+  //       },
+  //     })
+
+  //     if (!attendanceData.length) {
+  //       return res.status(404).json({
+  //         message: 'Không tìm thấy dữ liệu điểm danh trong tháng này',
+  //       })
+  //     }
+
+  //     // Thống kê tổng số học sinh theo từng trạng thái
+  //     let tongSoHocSinhCoMat = 0
+  //     let tongSoHocSinhVangCoPhep = 0
+  //     let tongSoHocSinhVangKhongPhep = 0
+
+  //     // Map để theo dõi trạng thái của từng học sinh
+  //     const studentMap = new Map()
+
+  //     // Duyệt qua tất cả các bản ghi điểm danh
+  //     attendanceData.forEach((record) => {
+  //       record.attendanceRecords.forEach((student) => {
+  //         const { student_id, student_name, status, reason } = student
+  //         const studentKey = student_id.toString()
+
+  //         if (!studentMap.has(studentKey)) {
+  //           studentMap.set(studentKey, {
+  //             _id: studentKey,
+  //             hoTen: student_name,
+  //             trangThai: status,
+  //             ngayNghi: [],
+  //             lyDo: reason,
+  //           })
+  //         }
+
+  //         // Cập nhật thống kê
+  //         switch (status) {
+  //           case 'CM':
+  //             tongSoHocSinhCoMat++
+  //             break
+  //           case 'VCP':
+  //             tongSoHocSinhVangCoPhep++
+  //             // Thêm ngày nghỉ nếu vắng có phép
+  //             if (!studentMap.get(studentKey).ngayNghi.includes(record.date)) {
+  //               studentMap.get(studentKey).ngayNghi.push(
+  //                 new Date(record.date).toLocaleDateString('vi-VN', {
+  //                   day: '2-digit',
+  //                   month: '2-digit',
+  //                   year: 'numeric',
+  //                 })
+  //               )
+  //             }
+  //             break
+  //           case 'VKP':
+  //             tongSoHocSinhVangKhongPhep++
+  //             // Thêm ngày nghỉ nếu vắng không phép
+  //             if (!studentMap.get(studentKey).ngayNghi.includes(record.date)) {
+  //               studentMap.get(studentKey).ngayNghi.push(
+  //                 new Date(record.date).toLocaleDateString('vi-VN', {
+  //                   day: '2-digit',
+  //                   month: '2-digit',
+  //                   year: 'numeric',
+  //                 })
+  //               )
+  //             }
+  //             break
+  //         }
+  //       })
+  //     })
+
+  //     // Chuyển Map thành mảng để trả về
+  //     const danhSachHocSinh = Array.from(studentMap.values())
+  //     const tongSoHocSinh = danhSachHocSinh.length
+
+  //     res.status(200).json({
+  //       tongSoHocSinh,
+  //       tongSoHocSinhCoMat,
+  //       tongSoHocSinhVangCoPhep,
+  //       tongSoHocSinhVangKhongPhep,
+  //       danhSachHocSinh,
+  //     })
+  //   } catch (error) {
+  //     console.error('Lỗi khi lấy thống kê điểm danh:', error)
+  //     res.status(500).json({ error: 'Lỗi server' })
+  //   }
+  // },
+
   getAttendanceStatsByClassAndMonth: async (req, res) => {
     try {
       const { class_id, month, year } = req.body
@@ -129,14 +228,13 @@ const AttendanceController = {
       const startDate = new Date(year, month - 1, 1)
       const endDate = new Date(year, month, 0)
 
-      // Lấy dữ liệu điểm danh trong khoảng thời gian
       const attendanceData = await Attendance.find({
         class_id,
         date: {
           $gte: startDate,
           $lte: endDate,
         },
-      })
+      }).sort({ date: 1 })
 
       if (!attendanceData.length) {
         return res.status(404).json({
@@ -144,16 +242,16 @@ const AttendanceController = {
         })
       }
 
-      // Thống kê tổng số học sinh theo từng trạng thái
+      const studentMap = new Map()
       let tongSoHocSinhCoMat = 0
       let tongSoHocSinhVangCoPhep = 0
       let tongSoHocSinhVangKhongPhep = 0
 
-      // Map để theo dõi trạng thái của từng học sinh
-      const studentMap = new Map()
-
-      // Duyệt qua tất cả các bản ghi điểm danh
       attendanceData.forEach((record) => {
+        const currentDate = new Date(record.date).toLocaleDateString('vi-VN', {
+          day: '2-digit',
+        })
+
         record.attendanceRecords.forEach((student) => {
           const { student_id, student_name, status, reason } = student
           const studentKey = student_id.toString()
@@ -162,61 +260,47 @@ const AttendanceController = {
             studentMap.set(studentKey, {
               _id: studentKey,
               hoTen: student_name,
-              trangThai: status,
-              ngayNghi: [],
-              lyDo: reason,
+              ngayCoMat: [],
+              ngayVangCoPhep: [],
+              ngayVangKhongPhep: [],
+              trangThaiHienTai: status,
+              lyDoHienTai: reason,
             })
           }
 
-          // Cập nhật thống kê
+          const studentData = studentMap.get(studentKey)
+
           switch (status) {
             case 'CM':
               tongSoHocSinhCoMat++
+              studentData.ngayCoMat.push(currentDate)
               break
             case 'VCP':
               tongSoHocSinhVangCoPhep++
-              // Thêm ngày nghỉ nếu vắng có phép
-              if (!studentMap.get(studentKey).ngayNghi.includes(record.date)) {
-                studentMap.get(studentKey).ngayNghi.push(
-                  new Date(record.date).toLocaleDateString('vi-VN', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                  })
-                )
-              }
+              studentData.ngayVangCoPhep.push(currentDate)
               break
             case 'VKP':
               tongSoHocSinhVangKhongPhep++
-              // Thêm ngày nghỉ nếu vắng không phép
-              if (!studentMap.get(studentKey).ngayNghi.includes(record.date)) {
-                studentMap.get(studentKey).ngayNghi.push(
-                  new Date(record.date).toLocaleDateString('vi-VN', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                  })
-                )
-              }
+              studentData.ngayVangKhongPhep.push(currentDate)
               break
           }
         })
       })
 
-      // Chuyển Map thành mảng để trả về
       const danhSachHocSinh = Array.from(studentMap.values())
-      const tongSoHocSinh = danhSachHocSinh.length
 
-      res.status(200).json({
-        tongSoHocSinh,
+      const result = {
+        tongSoHocSinh: studentMap.size,
         tongSoHocSinhCoMat,
         tongSoHocSinhVangCoPhep,
         tongSoHocSinhVangKhongPhep,
         danhSachHocSinh,
-      })
+      }
+
+      return res.status(200).json(result)
     } catch (error) {
       console.error('Lỗi khi lấy thống kê điểm danh:', error)
-      res.status(500).json({ error: 'Lỗi server' })
+      return res.status(500).json({ message: 'Lỗi server' })
     }
   },
 }

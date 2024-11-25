@@ -88,6 +88,10 @@ export default function AttendanceReport() {
   };
 
   const totalWeekdays = calculateWeekdaysInMonth(selectedYear, selectedMonth);
+  // console.log('Total weekdays:', totalWeekdays);
+  useEffect(() => {
+    console.log('Total weekdays:', totalWeekdays);
+  }, [totalWeekdays]);
 
   // const studentAttendanceData = {
   //   tongSoHocSinh: 3,
@@ -144,19 +148,22 @@ export default function AttendanceReport() {
       key: 'hoTen',
     },
     {
-      title: 'Ngày nghỉ',
-      dataIndex: 'ngayNghi',
-      key: 'ngayNghi',
-      render: (ngayNghi) => {
-        if (!ngayNghi) return '-';
-        return Array.isArray(ngayNghi) ? ngayNghi.join(', ') : ngayNghi;
-      },
+      title: 'Ngày có mặt',
+      dataIndex: 'ngayCoMat',
+      key: 'ngayCoMat',
+      render: (ngayCoMat) => ngayCoMat?.join(', ') || 'Không có',
     },
     {
-      title: 'Lý do',
-      dataIndex: 'lyDo',
-      key: 'lyDo',
-      render: (lyDo) => lyDo || '-',
+      title: 'Ngày vắng có phép',
+      dataIndex: 'ngayVangCoPhep',
+      key: 'ngayVangCoPhep',
+      render: (ngayVangCoPhep) => ngayVangCoPhep?.join(', ') || 'Không có',
+    },
+    {
+      title: 'Ngày vắng không phép',
+      dataIndex: 'ngayVangKhongPhep',
+      key: 'ngayVangKhongPhep',
+      render: (ngayVangKhongPhep) => ngayVangKhongPhep?.join(', ') || 'Không có',
     },
   ];
 
@@ -199,7 +206,6 @@ export default function AttendanceReport() {
           <Select value={selectedYear} onChange={setSelectedYear} options={yearOptions} className="w-32" />
         </div>
       </div>
-
       {/* Cảnh báo học sinh cần nhắc nhở */}
       {studentsNeedingAttention.length > 0 && (
         <Collapse
@@ -237,7 +243,6 @@ export default function AttendanceReport() {
           defaultActiveKey={['1']} // Mặc định mở rộng
         />
       )}
-
       {/* Statistics Cards */}
       <Row gutter={[16, 16]} className="mb-6">
         <Col xs={24} sm={12} md={4}>
@@ -299,7 +304,6 @@ export default function AttendanceReport() {
           </b>
         </Col>
       </Row>
-
       {/* Charts Row - Thêm điều kiện kiểm tra có data không */}
       {(studentAttendanceData?.tongSoHocSinh || 0) > 0 ? (
         <Row gutter={[16, 16]} className="mb-6">
@@ -354,9 +358,8 @@ export default function AttendanceReport() {
           <div className="text-center p-4 text-gray-500">Không có dữ liệu điểm danh</div>
         </Card>
       )}
-
       {/* Danh sách học sinh theo trạng thái - Thêm điều kiện kiểm tra có data không */}
-      {studentAttendanceData?.danhSachHocSinh?.length > 0 ? (
+      {/* {studentAttendanceData?.danhSachHocSinh?.length > 0 ? (
         <Card>
           <Tabs
             defaultActiveKey="CM"
@@ -378,6 +381,16 @@ export default function AttendanceReport() {
               },
             ]}
           />
+        </Card>
+      ) : (
+        <Card>
+          <div className="text-center p-4 text-gray-500">Không có dữ liệu học sinh</div>
+        </Card>
+      )} */}
+
+      {studentAttendanceData?.danhSachHocSinh?.length > 0 ? (
+        <Card>
+          <Table columns={columns} dataSource={studentAttendanceData.danhSachHocSinh} rowKey="_id" />
         </Card>
       ) : (
         <Card>
