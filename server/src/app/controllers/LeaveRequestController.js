@@ -6,6 +6,75 @@ const Class = require('../models/Class')
 
 const LeaveRequestController = {
   // tạo đơn xin nghỉ học
+  //  createLeaveRequest: async (req, res) => {
+  //   try {
+  //     const {
+  //       student_id,
+  //       parent_id,
+  //       teacher_id,
+  //       class_id,
+  //       start_date,
+  //       end_date,
+  //       reason,
+  //       sessions,
+  //     } = req.body
+
+  //     // Kiểm tra xem đã có đơn xin nghỉ cho học sinh này và ngày này chưa
+  //     const existingLeaveRequest = await LeaveRequest.findOne({
+  //       student_id,
+  //       start_date: {
+  //         $gte: new Date(start_date).setHours(0, 0, 0, 0),
+  //         $lt: new Date(start_date).setHours(23, 59, 59, 999),
+  //       },
+  //       $or: [{ status: 'pending' }, { status: 'approved' }],
+  //     })
+
+  //     // Nếu đã tồn tại đơn xin nghỉ
+  //     if (existingLeaveRequest) {
+  //       return res.status(400).json({
+  //         success: false,
+  //         message:
+  //           'Đã tồn tại đơn xin nghỉ học cho ngày  , vui lòng kiểm tra lại thông tin',
+  //         existingRequest: existingLeaveRequest,
+  //       })
+  //     }
+
+  //     // Nếu không có đơn trùng, tạo đơn mới
+  //     const newLeaveRequest = new LeaveRequest({
+  //       student_id,
+  //       parent_id,
+  //       teacher_id,
+  //       class_id,
+  //       start_date,
+  //       end_date,
+  //       reason,
+  //       sessions,
+  //       status: 'pending', // Mặc định trạng thái là đang chờ duyệt
+  //       created_at: new Date(),
+  //       updated_at: new Date(),
+  //     })
+
+  //     const savedLeaveRequest = await newLeaveRequest.save()
+
+  //     res.status(201).json({
+  //       success: true,
+  //       message: 'Đơn xin nghỉ học đã được tạo thành công',
+  //       data: savedLeaveRequest,
+  //     })
+
+  //     console.log(
+  //       'Đơn xin nghỉ học đã được tạo thành công:',
+  //       savedLeaveRequest._id
+  //     )
+  //   } catch (error) {
+  //     console.error('Lỗi khi tạo đơn xin nghỉ học:', error)
+  //     res.status(500).json({
+  //       success: false,
+  //       message: 'Có lỗi xảy ra khi tạo đơn xin nghỉ học',
+  //       error: error.message,
+  //     })
+  //   }
+  // },
   createLeaveRequest: async (req, res) => {
     try {
       const {
@@ -19,26 +88,89 @@ const LeaveRequestController = {
         sessions,
       } = req.body
 
+      // Chuyển đổi ngày thành đối tượng Date
+      const startDate = new Date(start_date)
+      const endDate = new Date(end_date)
+
+      // Tạo mảng các ngày trong khoảng
+      const dateRange = []
+      const currentDate = new Date(startDate)
+      while (currentDate <= endDate) {
+        dateRange.push(new Date(currentDate))
+        currentDate.setDate(currentDate.getDate() + 1)
+      }
+
+      // Kiểm tra các ngày đã có đơn xin nghỉ - Sửa cách query
+      const existingLeaveRequests = await LeaveRequest.find({
+        student_id,
+        $or: dateRange.map((date) => ({
+          start_date: {
+            $gte: new Date(date.setHours(0, 0, 0, 0)),
+            $lt: new Date(date.setHours(23, 59, 59, 999)),
+          },
+        })),
+        status: { $in: ['pending', 'approved'] },
+      })
+
+      // Lọc ra các ngày đã có đơn
+      const existingDates = existingLeaveRequests.map(
+        (req) => new Date(req.start_date).toISOString().split('T')[0]
+      )
+
+      // Lọc ra các ngày chưa có đơn
+      const availableDates = dateRange.filter(
+        (date) => !existingDates.includes(date.toISOString().split('T')[0])
+      )
+
+      // Nếu không còn ngày nào để tạo đơn
+      if (availableDates.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Tất cả các ngày đã có đơn xin nghỉ',
+          existingRequests: existingLeaveRequests,
+        })
+      }
+
+      // Tạo sessions mới cho các ngày còn lại
+      const newSessions = availableDates.map((date) => ({
+        date: date,
+        morning: sessions[0]?.morning || false,
+        afternoon: sessions[0]?.afternoon || false,
+      }))
+
+      // Nếu còn ngày để tạo đơn
       const newLeaveRequest = new LeaveRequest({
         student_id,
         parent_id,
         teacher_id,
         class_id,
-        start_date,
-        end_date,
+        start_date: availableDates[0], // Lấy ngày đầu tiên
+        end_date: availableDates[availableDates.length - 1], // Lấy ngày cuối cùng
         reason,
-        sessions,
+        sessions: newSessions,
+        status: 'pending',
+        created_at: new Date(),
+        updated_at: new Date(),
       })
 
       const savedLeaveRequest = await newLeaveRequest.save()
 
       res.status(201).json({
         success: true,
-        message: 'Đơn xin nghỉ học đã được tạo thành công',
+        message: `Đơn xin nghỉ học đã được tạo thành công cho ${availableDates.length} ngày`,
         data: savedLeaveRequest,
+        availableDates: availableDates.map(
+          (date) => date.toISOString().split('T')[0]
+        ),
+        existingDates: existingDates,
       })
-      console.log('Đơn xin nghỉ học đã được tạo thành công:')
+
+      console.log(
+        'Đơn xin nghỉ học đã được tạo thành công:',
+        savedLeaveRequest._id
+      )
     } catch (error) {
+      console.error('Lỗi khi tạo đơn xin nghỉ học:', error)
       res.status(500).json({
         success: false,
         message: 'Có lỗi xảy ra khi tạo đơn xin nghỉ học',
@@ -46,6 +178,7 @@ const LeaveRequestController = {
       })
     }
   },
+
   getAllLeaveRequests: async (req, res) => {
     try {
       const leaveRequests = await LeaveRequest.find({})

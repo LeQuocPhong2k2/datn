@@ -403,8 +403,21 @@ export default function Student() {
         setShowInfoLeaveRequest(true);
       })
       .catch((error) => {
-        console.error('Error creating leave requests:', error);
-        alert('Đã xảy ra lỗi khi gửi đơn nghỉ học. Vui lòng thử lại sau.' + error);
+        // console.error('Error creating leave requests:', error);
+        // alert('Đã xảy ra lỗi khi gửi đơn nghỉ học. Vui lòng thử lại sau.' + error);
+        console.error('Lỗi khi tạo đơn xin nghỉ học:', error);
+
+        // Kiểm tra nếu là lỗi trùng đơn nghỉ học
+        if (error.response?.status === 400 && error.response?.data?.message) {
+          alert(error.response.data.message);
+          // Reset form or specific fields if needed
+          // về lại trang  trước
+          setShowFullInfoLeaveRequest(false);
+          setShowInfoLeaveRequest(true);
+        } else {
+          // Các lỗi khác
+          alert('Đã xảy ra lỗi khi gửi đơn nghỉ học. Vui lòng thử lại sau.', +error);
+        }
       });
   };
 
@@ -1800,6 +1813,8 @@ export default function Student() {
                   onClick={() => {
                     setShowInfoLeaveRequest(false);
                     setShowLeaveRequestSent(true);
+                    // setShowInfoLeaveRequest(!showInfoLeaveRequest);
+                    // setShowLeaveRequestSent(!showLeaveRequestSent);
                     handleShowInfoLeaveRequestSent();
                   }}
                 >
@@ -1810,6 +1825,7 @@ export default function Student() {
                   onClick={() => {
                     setShowInfoLeaveRequest(true);
                     setShowLeaveRequestSent(false);
+                    setShowFullInfoLeaveRequestSent(false);
                   }}
                 >
                   Tạo mới đơn nghỉ học
