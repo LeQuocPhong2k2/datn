@@ -8,4 +8,8 @@ router.post(
   '/getAttendanceByClassAndDateNow',
   AttendanceController.getAttendanceByClassAndDateNow
 )
+router.post(
+  '/getAttendanceStatsByClassAndMonth',
+  AttendanceController.getAttendanceStatsByClassAndMonth
+)
 module.exports = router

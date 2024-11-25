@@ -38,5 +38,24 @@ async function getAttendanceByClassAndDateNow(class_id) {
     throw error;
   }
 }
+// api thống kê getAttendanceStatsByClassAndMonth
+async function getAttendanceStatsByClassAndMonth(class_id, month, year) {
+  try {
+    const response = await axios.post(
+      `${API_URL}/attendance/getAttendanceStatsByClassAndMonth`,
+      { class_id, month, year },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    console.log('Kết quả trả về thồng kê là:', response);
+    return response;
+  } catch (error) {
+    console.error('Get attendance error:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+}
 
-export { createAttendance, getAttendanceByClassAndDateNow };
+export { createAttendance, getAttendanceByClassAndDateNow, getAttendanceStatsByClassAndMonth };

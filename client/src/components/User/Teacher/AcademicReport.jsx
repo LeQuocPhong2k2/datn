@@ -1,0 +1,10 @@
+import React from 'react';
+import Menu from './Menu';
+export default function AcademicReport() {
+  return (
+    <div>
+      <h3 className="text-lg font-semibold mb-4">Thống Kê Kết Quả Học Tập</h3>
+      {/* Add academic results statistics content here */}
+    </div>
+  );
+}

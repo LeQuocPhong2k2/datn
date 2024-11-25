@@ -16,6 +16,8 @@ function PersonalInformation() {
         const response = await getGiaoVienByPhoneNumber(phoneNumber);
         setTeacherInfo(response);
         console.log('Thông tin giáo viên:', response);
+        // trong thông tin giáo viên có array LopChuNhiem trong đó có _id của class mà giáo viên đó chủ nhiệm hãy lưu vào cookie để dùng cho việc điểm danh
+        localStorage.setItem('classId', response.lopChuNhiem[0]._id);
       } catch (error) {
         console.error('Lỗi lấy thông tin giáo viên:', error);
       }
