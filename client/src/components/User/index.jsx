@@ -321,43 +321,10 @@ export default function Student() {
   // tạo biến lưu lý do nghỉ học
   const [leaveReason, setLeaveReason] = useState('');
 
-  // const handleSubmitLeaveRequest = () => {
-  //   const formattedSessions = generateDateRange(startDate, endDate).map((date) => {
-  //     const dateString = new Date(date).toISOString().split('T')[0];
-  //     return {
-  //       date: new Date(date).toISOString(),
-  //       morning: selectedSessions.includes(`${dateString}-morning`) ? true : false,
-  //       afternoon: selectedSessions.includes(`${dateString}-afternoon`) ? true : false,
-  //     };
-  //   });
-
-  //   // Tạo mảng promises cho mỗi học sinh được chọn
-  //   const createRequestPromises = selectedStudents.map((student) =>
-  //     createLeaveRequest(
-  //       student.student_id,
-  //       studentInfo.parents[0]._id,
-  //       student.class.homeRoomTeacher, // Use student-specific homeRoomTeacher
-  //       student.class.class_id, // Use student-specific class_id
-  //       startDate,
-  //       endDate,
-  //       leaveReason,
-  //       formattedSessions
-  //     )
-  //   );
-
-  //   // Thực thi tất cả các promises
-  //   Promise.all(createRequestPromises)
-  //     .then((responses) => {
-  //       console.log('Leave requests created successfully:', responses);
-  //       alert(`Đã gửi ${selectedStudents.length} đơn nghỉ học thành công`);
-  //       setShowFullInfoLeaveRequest(false);
-  //       setShowInfoLeaveRequest(true);
-  //     })
-  //     .catch((error) => {
-  //       console.error('Error creating leave requests:', error);
-  //       alert('Đã xảy ra lỗi khi gửi đơn nghỉ học. Vui lòng thử lại sau.' + error);
-  //     });
-  // };
+  // console.log selectedStudents để xem thông tin
+  useEffect(() => {
+    console.log('Selected students:', selectedStudents);
+  }, [selectedStudents]);
 
   const handleSubmitLeaveRequest = () => {
     // Helper function to convert to Vietnam timezone
