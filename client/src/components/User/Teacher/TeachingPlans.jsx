@@ -82,7 +82,7 @@ export default function TeachingPlans() {
       return;
     }
 
-    const teacher_phoneNumber = localStorage.getItem('phoneNumberTeacher');
+    const teacher_phoneNumber = sessionStorage.getItem('phoneNumberTeacher');
     await getHomRoomTeacherCurrent(teacher_phoneNumber)
       .then((res) => {
         setTeacherInfo(res);
@@ -231,7 +231,7 @@ export default function TeachingPlans() {
       return;
     }
 
-    const teacherPhoneNumber = localStorage.getItem('phoneNumberTeacher');
+    const teacherPhoneNumber = sessionStorage.getItem('phoneNumberTeacher');
     if (!teacherPhoneNumber) {
       toast.error('Không tìm thấy thông tin giáo viên');
       return;
@@ -348,7 +348,7 @@ export default function TeachingPlans() {
     if (!isValid) {
       return;
     }
-    const teacherPhoneNumber = localStorage.getItem('phoneNumberTeacher');
+    const teacherPhoneNumber = sessionStorage.getItem('phoneNumberTeacher');
     if (!teacherPhoneNumber) {
       toast.error('Không tìm thấy thông tin giáo viên');
       return;

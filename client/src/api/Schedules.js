@@ -164,11 +164,47 @@ async function getScheduleOfTeacher(teacherId, schoolYear) {
   }
 }
 
-async function getClassByDayAndTeacher(teacherId, day, schoolYear) {
+async function getScheduleByWeekDays(teacherId, weekDays, schoolYear) {
   try {
     const response = await axios.post(
-      API_URL + '/schedules/getClassByDayAndTeacher',
+      API_URL + '/schedules/getScheduleByWeekDays',
+      { teacherId, weekDays, schoolYear },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Get class by day and teacher error:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+}
+
+async function getScheduleByDay(teacherId, day, schoolYear) {
+  try {
+    const response = await axios.post(
+      API_URL + '/schedules/getScheduleByDay',
       { teacherId, day, schoolYear },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Get class by day and teacher error:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+}
+
+async function getClassTeacherBySchoolYear(teacherId, schoolYear) {
+  try {
+    const response = await axios.post(
+      API_URL + '/schedules/getClassTeacherBySchoolYear',
+      { teacherId, schoolYear },
       {
         headers: {
           'Content-Type': 'application/json',
@@ -190,5 +226,7 @@ export {
   updateSchedule,
   getTeacherSchedule,
   getScheduleOfTeacher,
-  getClassByDayAndTeacher,
+  getScheduleByWeekDays,
+  getScheduleByDay,
+  getClassTeacherBySchoolYear,
 };

@@ -12,7 +12,7 @@ import { getAttendanceByClassAndDateNow } from '../../../api/Attendance';
 import { getGiaoVienByPhoneNumber } from '../../../api/Teacher';
 
 export default function StudentAttendance() {
-  const phoneNumber = localStorage.getItem('phoneNumberTeacher');
+  const phoneNumber = sessionStorage.getItem('phoneNumberTeacher');
   const [selectedClass, setSelectedClass] = useState('1A1');
   const [selectedAcademicYear, setSelectedAcademicYear] = useState('2024-2025');
   const [studentList, setStudentList] = useState([]);

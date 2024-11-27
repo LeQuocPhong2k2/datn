@@ -2,20 +2,16 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const TeachingReportSchema = new Schema({
-  subject: {
-    type: Schema.Types.ObjectId,
-    ref: "Subject",
-  },
-  className: { type: String, required: true },
   academicYear: { type: String, required: true },
-  teacher: {
+  className: { type: String, required: true },
+  teacherCreate: {
     type: Schema.Types.ObjectId,
     ref: "Teacher",
   },
-  date: { type: String, required: true },
+  dayCreate: { type: String, required: true },
+  dateCreate: { type: String, required: true },
+  subjectName: { type: String, required: true },
   content: { type: String, required: true },
-  contentNext: { type: String, required: true },
-  process: { type: Number, required: true },
   note: { type: String, required: false },
 });
 

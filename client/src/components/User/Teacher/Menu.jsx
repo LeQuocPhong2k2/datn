@@ -47,7 +47,7 @@ export default function Menu({ children, active }) {
       toast.error('Mật khẩu xác nhận không đúng');
       return;
     } else {
-      const phoneNumber = localStorage.getItem('phoneNumberTeacher');
+      const phoneNumber = sessionStorage.getItem('phoneNumberTeacher');
       changePassword(phoneNumber, oldPassword, newPassword)
         .then((res) => {
           toast.dismiss();

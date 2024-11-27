@@ -36,7 +36,7 @@ export default function Student() {
   };
 
   const handleSearchBaoBai = async () => {
-    const teacher_phoneNumber = localStorage.getItem('phoneNumberTeacher');
+    const teacher_phoneNumber = sessionStorage.getItem('phoneNumberTeacher');
     await getTeachingReports('', getCurrentSchoolYear(), studentInfo.className, dateQuery)
       .then((res) => {
         setListReports(res);
@@ -61,7 +61,7 @@ export default function Student() {
   // console.log('setStudentInfo');
   useEffect(() => {
     document.title = 'Học sinh';
-    const accountId = localStorage.getItem('_id');
+    const accountId = sessionStorage.getItem('_id');
     const resStudent = getStudentByAccountId(accountId);
     resStudent
       .then((data) => {
