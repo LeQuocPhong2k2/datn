@@ -4,7 +4,7 @@ const http = require('http')
 const cors = require('cors')
 const app = express()
 const port = process.env.PORT_SERVER
-const socket = require('./socket')
+const socketInit = require('./socket')
 const path = require('path')
 
 // Thêm middleware để phân tích cú pháp body của request
@@ -15,7 +15,6 @@ const connectDB = require('./config/db/db.js')
 app.use(
   cors({
     origin: '*',
-
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   })
@@ -43,8 +42,7 @@ app.get('/download-template', (req, res) => {
 })
 
 const server = http.createServer(app)
-
-socket.init(server)
+const io = socketInit.init(server)
 
 connectDB()
   .then(() => {

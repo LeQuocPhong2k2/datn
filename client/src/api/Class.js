@@ -174,6 +174,31 @@ async function getAllClassTeacher(phoneNumber, academicYear) {
     throw error;
   }
 }
+async function getHomeRoomTeacherByClassNameAndAcademicYear(className, academicYear) {
+  try {
+    // console.log của className và academicYear để kiểm tra
+    // console.log('className và academic', className + ' ' + academicYear);
+    const response = await axios.post(
+      `${API_URL}/class/getHomeRoomTeacherByClassNameAndAcademicYear`,
+      { className, academicYear },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    // console.log của response.data để kiểm tra
+    //console.log('response.data ở bên api là', response.data);
+
+    return response.data;
+  } catch (error) {
+    console.error(
+      'Get home room teacher by class name and academic year error:',
+      error.response ? error.response.data : error.message
+    );
+    throw error;
+  }
+}
 
 export {
   addLopHoc,
@@ -187,4 +212,5 @@ export {
   getStudentListByClassNameAndAcademicYear,
   getHomRoomTeacherCurrent,
   getAllClassTeacher,
+  getHomeRoomTeacherByClassNameAndAcademicYear,
 };

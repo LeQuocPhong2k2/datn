@@ -1,37 +1,94 @@
 import React from 'react';
 import 'flowbite';
 import { useEffect, useState, useRef } from 'react';
-import { getAllNotifications } from '../../../api/Notifications';
+import { getAllNotifications, getNotificationsByReceiverId } from '../../../api/Notifications';
 import Menu from './Menu';
+import io from 'socket.io-client';
 
 export default function Notification() {
-  const senderName = 'Admin01';
-  const createdAt = '2024-09-07T00:00:00.000Z';
-  const createdAt1 = '2023-12-24T00:00:00.000Z';
-  const [showContent, setShowContent] = useState(false);
   const [showContent1, setShowContent1] = useState(false);
   const [activeTab, setActiveTab] = useState('view'); // 'view' or 'send'
-  const content = {
-    text: 'Nhân dịp Lễ Giáng Sinh 2023 Chúc các thầy cô và các em học sinh có một kỳ nghỉ lễ vui vẻ và hạnh phúc bên gia đình và người thân. Chúc các em học sinh sẽ có một kỳ học mới đầy nhiệt huyết và hứng khởi. Merry Christmas and Happy New Year 2024!',
-    link: 'https://www.youtube.com/watch?v=4YBGRGBj7_w',
-    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRVLAlmZuyO7OQx5a9lyBLhl_t1gwimPhrMhw&s',
-  };
-  const content1 = {
-    // hãy viết text về họp phụ huynh
-    text: ' Kính mời quý phụ huynh tham dự buổi h���p phụ huynh học sinh vào lúc 7h30 ngày 10/10/2024 tại trường Tiểu học Nguyễn Bỉnh Khiêm. Đây là cơ hội để quý phụ huynh gặp gỡ và trò chuyện với giáo viên, cũng như nhận thông tin về quá trình học tập của con em mình. Hẹn gặp lại quý phụ huynh!',
-    link: 'https://www.youtube.com/watch?v=4YBGRGBj7_w',
-    image:
-      'https://www.canva.com/design/DAGTWH_JYfw/_ZLoUqEYAJgTzgSi6WQ3wQ/view?utm_content=DAGTWH_JYfw&utm_campaign=designshare&utm_medium=link&utm_source=editor',
-  };
 
   // gọi tới api get all notifications
   const [notifications, setNotifications] = useState([]);
+  const socket = useRef(null);
+  const URL = process.env.REACT_APP_SOCKET_URL;
+  // lấy_id của teacherId từ local storage
+  const teacherId = localStorage.getItem('teacherId');
+  console.log('teacherId:', teacherId);
+
   useEffect(() => {
-    getAllNotifications().then((res) => {
+    // getAllNotifications().then((res) => {
+    //   console.log('Notifications:', res.data);
+    //   setNotifications(res.data);
+    // });
+    getNotificationsByReceiverId(teacherId).then((res) => {
       console.log('Notifications:', res.data);
       setNotifications(res.data);
     });
+
+    console.log('socket:', URL);
+
+    const connectSocket = () => {
+      socket.current = io(URL, {
+        // Đảm bảo địa chỉ chính xác
+        withCredentials: true,
+        transports: ['websocket', 'polling'],
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
+      });
+
+      socket.current.on('connect', () => {
+        console.log('Client kết nối socket thành công:', socket.current.id);
+        // alert('Kết nối socket thành công');
+      });
+
+      socket.current.on('connect_error', (err) => {
+        console.error('Socket connection error:', err);
+        // alert('Kết nối socket thất bại');
+      });
+
+      socket.current.on('newNotification', (notification) => {
+        console.log(' newNotification ở socket kết nối thành công:', notification);
+        // const delay = new Date(notification.notification_time) - new Date();
+        // if (delay > 0) {
+        //   setTimeout(() => {
+        //     setNotifications((prev) => [notification, ...prev]);
+        //   }, delay);
+        // } else {
+        //   setNotifications((prev) => [notification, ...prev]);
+        // }
+        setNotifications((prev) => [notification, ...prev]);
+      });
+      // lắng nghe sự kiện getAllNotifications ở phía server socket
+      socket.current.on('getAllNotifications', (notifications) => {
+        console.log('getAllNotifications ở socket kết nối thành công:', notifications);
+        setNotifications(notifications);
+      });
+    };
+
+    connectSocket();
+
+    return () => {
+      if (socket.current) {
+        socket.current.disconnect();
+      }
+    };
   }, []);
+
+  // Thêm hàm format date
+  const formatDateTime = (dateString) => {
+    // Tách thời gian UTC thành các thành phần
+    const date = new Date(dateString);
+    const utcDay = date.getUTCDate().toString().padStart(2, '0');
+    const utcMonth = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+    const utcYear = date.getUTCFullYear();
+    const utcHour = date.getUTCHours().toString().padStart(2, '0');
+    const utcMinute = date.getUTCMinutes().toString().padStart(2, '0');
+
+    return `${utcHour}:${utcMinute} ${utcDay}/${utcMonth}/${utcYear}`;
+  };
 
   return (
     <Menu active="notification">
@@ -79,7 +136,7 @@ export default function Notification() {
                       </div>
                       <div>
                         <strong>Thời gian: </strong>
-                        {new Date(notification.created_at).toLocaleString()}
+                        {formatDateTime(notification.notification_time)}
                       </div>
                     </div>
                     <h3

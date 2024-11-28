@@ -1,27 +1,30 @@
-const { Server } = require("socket.io");
-let io;
-function init(server) {
-  io = new Server(server, {
-    cors: {
-      origin: "*",
-      methods: ["GET", "POST"],
-    },
-  });
+let io
 
-  io.on("connection", (socket) => {
-    console.log(`user connected: ${socket.id}`);
+module.exports = {
+  init: (httpServer) => {
+    io = require('socket.io')(httpServer, {
+      cors: {
+        origin: 'http://localhost:3000', // Thay bằng địa chỉ client của bạn
+        methods: ['GET', 'POST'],
+        credentials: true,
+      },
+    })
 
-    socket.on("send-message", (data) => {
-      console.log(data);
-    });
-  });
+    io.on('connection', (socket) => {
+      console.log('Client kết nối socket thành công:', socket.id)
+
+      socket.on('disconnect', () => {
+        console.log('Client ngừng kết nối:', socket.id)
+      })
+    })
+
+    console.log('Socket.io đã được khởi tạo!')
+    return io
+  },
+  getIO: () => {
+    if (!io) {
+      throw new Error('Socket.io không được khởi tạo!')
+    }
+    return io
+  },
 }
-
-function getIo() {
-  if (!io) {
-    throw new Error("Socket.io not initialized!");
-  }
-  return io;
-}
-
-module.exports = { init, getIo };
