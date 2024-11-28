@@ -8,10 +8,11 @@ const TeachingReportSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: "Teacher",
   },
+  teacherName: { type: String, required: true },
   dayCreate: { type: String, required: true },
   dateCreate: { type: String, required: true },
   subjectName: { type: String, required: true },
-  content: { type: String, required: true },
+  content: { type: String, required: false },
   note: { type: String, required: false },
 });
 

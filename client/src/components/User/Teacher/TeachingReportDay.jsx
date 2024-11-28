@@ -2,16 +2,18 @@ import React from 'react';
 import 'flowbite';
 import { useEffect, useState, useContext } from 'react';
 import { UserContext } from '../../../UserContext';
-import { format } from 'date-fns';
+import { format, parse } from 'date-fns';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
 import { getScheduleByDay, getClassTeacherBySchoolYear } from '../../../api/Schedules';
+import { saveTeachingReport } from '../../../api/TeachingReport';
 import toast from 'react-hot-toast';
+import { set } from 'mongoose';
 
 export default function TeachingReportDay() {
   const { user } = useContext(UserContext);
-  const [data, setData] = useState([]);
+  const [data, setData] = useState({});
   const [className, setClassName] = useState('');
   const [listClassNames, setListClassNames] = useState([]);
   const isWeekday = (date) => {
@@ -85,45 +87,94 @@ export default function TeachingReportDay() {
       .then((data) => {
         setData([]);
         let newTimetable = {};
-        let subjectNames = [];
+
+        if (data.schedules.length === 0) {
+          toast.error('Không tìm thấy lịch giảng dạy');
+          return;
+        }
+
         data.schedules[0].arrSubject.forEach((elm) => {
           if (elm.className === className) {
-            subjectNames.push(elm.subjectName);
+            const date = format(selectedDate, 'dd/MM/yyyy');
+            if (newTimetable[date]) {
+              newTimetable[date].push({
+                subjectName: elm.subjectName,
+                content: '',
+                note: '',
+              });
+            } else {
+              newTimetable[date] = [
+                {
+                  subjectName: elm.subjectName,
+                  content: '',
+                  note: '',
+                },
+              ];
+            }
           }
         });
-        const date = format(selectedDate, 'yyyy-MM-dd');
-        newTimetable[date] = subjectNames;
-        const subjects = newTimetable[date];
-        const newData = subjects.map((subject) => ({
-          subjectName: subject,
-          content: '',
-          note: '',
-        }));
 
-        //sort data by subject name
-        newData.sort((a, b) => {
-          if (a.subjectName < b.subjectName) {
-            return -1;
-          }
-          if (a.subjectName > b.subjectName) {
-            return 1;
-          }
-          return 0;
-        });
-        setData(newData);
+        newTimetable = Object.keys(newTimetable)
+          .sort((a, b) => {
+            const dateA = parse(a, 'dd/MM/yyyy', new Date());
+            const dateB = parse(b, 'dd/MM/yyyy', new Date());
+            return dateA - dateB;
+          })
+          .reduce((acc, key) => {
+            acc[key] = newTimetable[key].sort((a, b) => a.subjectName.localeCompare(b.subjectName));
+            return acc;
+          }, {});
+
+        // nếu không có dữ liệu thì thông báo
+        if (Object.keys(newTimetable).length === 0) {
+          toast('Không tìm thấy báo bài.', {
+            icon: 'ℹ️', // Biểu tượng thông tin
+            style: {
+              background: '#blue',
+              color: '#black',
+            },
+          });
+          return;
+        }
+
+        setData(newTimetable);
+        toast.success('Tạo báo bài thành công');
       })
       .catch((error) => {
         console.error('Get class by day and teacher error:', error.response ? error.response.data : error.message);
         throw error;
       });
-
-    toast.success('Tạo báo bài thành công');
   };
 
-  const handleRemoveReport = (index) => {
-    const newData = data.filter((_, i) => i !== index);
-    console.log(newData);
-    setData(newData);
+  const datesToShow = Object.keys(data);
+
+  const handleRemoveReport = (date, subIndex) => {
+    const newData = { ...data };
+    if (newData[date] && newData[date][subIndex]) {
+      newData[date].splice(subIndex, 1);
+      if (newData[date].length === 0) {
+        delete newData[date];
+      }
+      setData(newData);
+      toast.success('Đã xóa môn học thành công!');
+    } else {
+      toast.error('Không tìm thấy môn học cần xóa!');
+    }
+  };
+
+  const handleSaveReport = () => {
+    const academicYear = getCurrentSchoolYear();
+    const classReport = className;
+    const teachCreate = user.teacherId;
+    saveTeachingReport(academicYear, classReport, teachCreate, data)
+      .then((data) => {
+        toast.success(data.message);
+        setData({});
+      })
+      .catch((error) => {
+        console.error('Save teaching report error:', error.response ? error.response.data : error.message);
+        throw error;
+      });
   };
 
   return (
@@ -174,6 +225,15 @@ export default function TeachingReportDay() {
             Tạo báo bài
           </button>
         </div>
+
+        <div className="flex gap-2 py-2">
+          <button
+            onClick={handleSaveReport}
+            className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 w-[5rem]"
+          >
+            Lưu
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-flow-row gap-2 py-2">
@@ -184,48 +244,66 @@ export default function TeachingReportDay() {
               <th className="border border-gray-400 px-4 py-2 bg-gray-100 w-44 min-w-44">Môn học</th>
               <th className="border border-gray-400 px-4 py-2 bg-gray-100 w-72 min-w-72">Nội dung</th>
               <th className="border border-gray-400 px-4 py-2 bg-gray-100 w-72 min-w-72">Ghi chú</th>
-              <th className="border border-gray-400 px-4 py-2 bg-gray-100 w-10 min-w-10"></th>
+              <th className="border border-gray-400 px-4 py-2 bg-gray-100 w-14 min-w-14"></th>
             </tr>
           </thead>
           <tbody>
-            {data.map((subject, subIndex) => {
-              const dayName = getDayOfWeek(selectedDate);
+            {datesToShow.map((date, index) => {
+              const daySubjects = data[date] || [];
               return (
-                <tr key={subIndex}>
-                  {subIndex === 0 && (
-                    <td rowSpan={data.length} className="border border-gray-400 px-4 py-2 font-semibold">
-                      {dayName} ({format(selectedDate, 'dd/MM/yyyy')})
-                    </td>
-                  )}
-                  <td className="border border-gray-400 px-4 py-2">{subject.subjectName}</td>
-                  <td className="border border-gray-400 px-4 py-2">
-                    <textarea
-                      onChange={(e) => {
-                        const newData = [...data];
-                        newData[subIndex].content = e.target.value;
-                        setData(newData);
-                      }}
-                      value={subject.content}
-                      className="w-full h-16 rounded border border-gray-400 px-2 py-2"
-                    ></textarea>
-                  </td>
-                  <td className="border border-gray-400 px-4 py-2">
-                    <textarea
-                      onChange={(e) => {
-                        const newData = [...data];
-                        newData[subIndex].note = e.target.value;
-                        setData(newData);
-                      }}
-                      value={subject.note}
-                      className="w-full h-16 rounded border border-gray-400 px-2 py-2"
-                    ></textarea>
-                  </td>
-                  <td className="border border-gray-400 px-4 py-2">
-                    <div onClick={() => handleRemoveReport(subIndex)} className="flex items-center justify-center">
-                      <i class="fa-solid fa-trash cursor-pointer text-red-500 hover:text-red-600"></i>
-                    </div>
-                  </td>
-                </tr>
+                <React.Fragment key={index}>
+                  {daySubjects.map((subject, subIndex) => {
+                    const dayName = getDayOfWeek(selectedDate);
+                    return (
+                      <tr key={subIndex}>
+                        {subIndex === 0 && (
+                          <td rowSpan={daySubjects.length} className="border border-gray-400 px-4 py-2 font-semibold">
+                            {dayName} ({format(selectedDate, 'dd/MM/yyyy')})
+                          </td>
+                        )}
+                        <td className="border border-gray-400 px-4 py-2">{subject.subjectName}</td>
+                        <td className="border border-gray-400 px-4 py-2">
+                          <textarea
+                            onChange={(e) => {
+                              const newData = { ...data };
+                              if (newData[date] && newData[date][subIndex]) {
+                                newData[date][subIndex].content = e.target.value;
+                                setData(newData);
+                              } else {
+                                console.error('Invalid date or subIndex:', date, subIndex);
+                              }
+                            }}
+                            value={subject.content}
+                            className="w-full h-16 rounded border border-gray-400 px-2 py-2"
+                          ></textarea>
+                        </td>
+                        <td className="border border-gray-400 px-4 py-2">
+                          <textarea
+                            onChange={(e) => {
+                              const newData = { ...data };
+                              if (newData[date] && newData[date][subIndex]) {
+                                newData[date][subIndex].note = e.target.value;
+                                setData(newData);
+                              } else {
+                                console.error('Invalid date or subIndex:', date, subIndex);
+                              }
+                            }}
+                            value={subject.note}
+                            className="w-full h-16 rounded border border-gray-400 px-2 py-2"
+                          ></textarea>
+                        </td>
+                        <td className="border border-gray-400 px-4 py-2">
+                          <div
+                            onClick={() => handleRemoveReport(date, subIndex)}
+                            className="flex items-center justify-center"
+                          >
+                            <i class="fa-solid fa-trash cursor-pointer text-red-500 hover:text-red-600"></i>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </React.Fragment>
               );
             })}
           </tbody>

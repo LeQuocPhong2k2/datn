@@ -216,7 +216,7 @@ export default function Menu({ children, active }) {
 
         <div className={`w-full h-screen flex flex-col lex-1 bg-gray-300 overflow-x-auto `}>
           <Toaster toastOptions={{ duration: 2500 }} />
-          <header className="grid grid-flow-col items-center p-2 bg-white">
+          <header className="grid grid-flow-col items-center p-2 bg-white shadow-md z-50">
             <div className="flex items-center justify-start gap-2">
               {!toggleMenu && (
                 <button

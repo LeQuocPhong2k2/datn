@@ -8,6 +8,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 
 import { getClassTeacherBySchoolYear } from '../../../api/Schedules';
 import { getScheduleByWeekDays } from '../../../api/Schedules';
+import { saveTeachingReport } from '../../../api/TeachingReport';
 import toast from 'react-hot-toast';
 
 export default function TeachingReportManyDay() {
@@ -181,6 +182,21 @@ export default function TeachingReportManyDay() {
     }
   };
 
+  const handleSaveReport = () => {
+    const academicYear = getCurrentSchoolYear();
+    const classReport = className;
+    const teachCreate = user.teacherId;
+    saveTeachingReport(academicYear, classReport, teachCreate, dataManyDay)
+      .then((data) => {
+        toast.success('Lưu báo bài thành công');
+      })
+      .catch((error) => {
+        console.error('Save teaching report error:', error.response ? error.response.data : error.message);
+        toast.error('Lưu báo bài thất bại');
+        throw error;
+      });
+  };
+
   return (
     <div>
       <div className="flex flex-wrap items-end gap-2 py-2">
@@ -245,7 +261,12 @@ export default function TeachingReportManyDay() {
         </div>
 
         <div className="flex gap-2 py-2">
-          <button className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 w-[5rem]">Lưu</button>
+          <button
+            onClick={handleSaveReport}
+            className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 w-[5rem]"
+          >
+            Lưu
+          </button>
         </div>
       </div>
 
@@ -290,7 +311,7 @@ export default function TeachingReportManyDay() {
               <th className="border border-gray-400 px-4 py-2 bg-gray-100 w-44 min-w-44 text-left">Môn học</th>
               <th className="border border-gray-400 px-4 py-2 bg-gray-100 w-72 min-w-72 text-left">Nội dung</th>
               <th className="border border-gray-400 px-4 py-2 bg-gray-100 w-72 min-w-72 text-left">Ghi chú</th>
-              <th className="border border-gray-400 px-4 py-2 bg-gray-100 w-10 min-w-10"></th>
+              <th className="border border-gray-400 px-4 py-2 bg-gray-100 w-14 min-w-14"></th>
             </tr>
           </thead>
           <tbody>

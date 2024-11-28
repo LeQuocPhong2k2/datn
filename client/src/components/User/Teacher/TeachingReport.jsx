@@ -7,6 +7,7 @@ import Menu from './Menu';
 import { Toaster } from 'react-hot-toast';
 
 import TeachingReportCreate from './TeachingReportTabCreate';
+import TeachingReportView from './TeachingReportTabView';
 
 export default function TeachingReport() {
   const [activeTab, setActiveTab] = useState('create');
@@ -42,8 +43,8 @@ export default function TeachingReport() {
               </li>
             </ul>
           </div>
-
           {activeTab === 'create' && <TeachingReportCreate />}
+          {activeTab === 'view' && <TeachingReportView />}
         </div>
       </div>
     </Menu>
