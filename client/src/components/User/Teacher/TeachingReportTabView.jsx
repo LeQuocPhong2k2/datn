@@ -4,20 +4,23 @@ import { useEffect, useState, useContext } from 'react';
 import { UserContext } from '../../../UserContext';
 import 'react-datepicker/dist/react-datepicker.css';
 import DatePicker from 'react-datepicker';
-
+import toast from 'react-hot-toast';
 import { format, parse } from 'date-fns';
 
-import { getReportDetailByDayOrClassOrSubject } from '../../../api/TeachingReport';
+import { getReportDetailByDayOrClassOrSubject, updateTeachingReport } from '../../../api/TeachingReport';
 import { getClassTeacherBySchoolYear } from '../../../api/Schedules';
 import { getSubjectByGrade } from '../../../api/Subject';
+import { set } from 'mongoose';
 
 export default function TeachingPlans() {
   const { user } = useContext(UserContext);
+  const [status, setStatus] = useState('idle');
   const [className, setClassName] = useState('');
   const [subjectName, setSubjectName] = useState('');
   const [listClassNames, setListClassNames] = useState([]);
   const [listSubjects, setListSubjects] = useState([]);
   const [dataManyDay, setDataManyDay] = useState({});
+  const [dataManyBk, setDataManyBk] = useState({});
   const [currentPage, setCurrentPage] = useState(0);
   const [activeIndex, setActiveIndex] = useState({
     date: '',
@@ -82,12 +85,23 @@ export default function TeachingPlans() {
   }, [className]);
 
   const handleSearch = () => {
+    if (status === 'changed') {
+      const confirm = window.confirm('Bạn có thay đổi chưa lưu. Bạn có muốn tiếp tục mà không lưu không?');
+      if (!confirm) {
+        return;
+      }
+    }
     let date = '';
     if (selectedDate && !isNaN(new Date(selectedDate).getTime())) {
       date = format(new Date(selectedDate), 'dd/MM/yyyy');
     }
     getReportDetailByDayOrClassOrSubject(getCurrentSchoolYear(), className, date, subjectName, user.teacherId)
       .then((data) => {
+        if (data.teachingReports.length === 0) {
+          toast.error('Không tìm thấy báo bài!');
+          return;
+        }
+
         let dataMany = {};
         data.teachingReports.forEach((report) => {
           report.reports.forEach((subject) => {
@@ -97,6 +111,7 @@ export default function TeachingPlans() {
                 content: subject.content,
                 note: subject.note,
                 teacherName: subject.teacherName,
+                detele: 0,
               });
             } else {
               dataMany[report._id.date] = [
@@ -105,13 +120,14 @@ export default function TeachingPlans() {
                   content: subject.content,
                   note: subject.note,
                   teacherName: subject.teacherName,
+                  detele: 0,
                 },
               ];
             }
           });
         });
-        console.log(dataMany);
         setDataManyDay(dataMany);
+        setDataManyBk(dataMany);
       })
       .catch((error) => {
         console.error(
@@ -120,6 +136,7 @@ export default function TeachingPlans() {
         );
         throw error;
       });
+    setStatus('idle');
   };
 
   const handlePreviousPage = () => {
@@ -134,8 +151,84 @@ export default function TeachingPlans() {
     }
   };
 
+  const handleInputChange = (e, date, subIndex, field) => {
+    const newTimetable = JSON.parse(JSON.stringify(dataManyDay));
+    newTimetable[date][subIndex][field] = e.target.value;
+    setDataManyDay(newTimetable);
+    setStatus('changed');
+  };
+
+  const handleReset = (date, subIndex) => {
+    if (dataManyBk[date] && dataManyBk[date][subIndex]) {
+      const newTimetable = JSON.parse(JSON.stringify(dataManyDay));
+      newTimetable[date][subIndex].content = dataManyBk[date][subIndex].content;
+      newTimetable[date][subIndex].note = dataManyBk[date][subIndex].note;
+      console.log('dataManyBk[date][subIndex].content:', dataManyBk[date][subIndex].content);
+      setDataManyDay(newTimetable);
+      setActiveIndex({
+        date: '',
+        subIndex: '',
+      });
+      setStatus('idle');
+    } else {
+      console.error('Invalid date or subIndex:', date, subIndex);
+    }
+  };
+
+  const handleDeleteSubject = (date, subIndex) => {
+    const confirm = window.confirm('Bạn có chắc chắn muốn xóa môn học này không?');
+    if (!confirm) {
+      return;
+    }
+    const newTimetable = JSON.parse(JSON.stringify(dataManyDay));
+    newTimetable[date][subIndex]['delete'] = 1;
+    setDataManyDay(newTimetable);
+    setActiveIndex({
+      date: '',
+      subIndex: '',
+    });
+    setStatus('changed');
+    toast.success('Đã xóa môn học thành công!');
+  };
+
+  const handleNavigateAway = (e) => {
+    if (status === 'changed') {
+      const confirm = window.confirm('Bạn có thay đổi chưa lưu. Bạn có muốn tiếp tục mà không lưu không?');
+      if (!confirm) {
+        e.preventDefault();
+      }
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener('beforeunload', handleNavigateAway);
+    return () => {
+      window.removeEventListener('beforeunload', handleNavigateAway);
+    };
+  }, [status]);
+
   const datesToShow = Object.keys(dataManyDay).slice(currentPage * 5, (currentPage + 1) * 5);
   const totalPages = Math.ceil(Object.keys(dataManyDay).length / 5);
+
+  const handleSave = () => {
+    const academicYear = getCurrentSchoolYear();
+    const classReport = className;
+    const teachCreate = user.teacherId;
+    updateTeachingReport(academicYear, classReport, teachCreate, dataManyDay)
+      .then((data) => {
+        toast.success('Lưu báo bài thành công!');
+        setStatus('idle');
+      })
+      .catch((error) => {
+        console.error('Update teaching report error:', error.response ? error.response.data : error.message);
+        throw error;
+      });
+    setStatus('idle');
+    setActiveIndex({
+      date: '',
+      subIndex: '',
+    });
+  };
 
   return (
     <div>
@@ -202,6 +295,21 @@ export default function TeachingPlans() {
                 <i class="fa-solid fa-magnifying-glass"></i>
               </button>
             </div>
+
+            <div className="flex gap-2 py-2">
+              {status === 'changed' ? (
+                <button
+                  onClick={handleSave}
+                  className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 w-[8rem]"
+                >
+                  Lưu thay đổi
+                </button>
+              ) : (
+                <button className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 w-[8rem]">
+                  Lưu thay đổi
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center justify-start gap-4 py-2">
@@ -252,14 +360,13 @@ export default function TeachingPlans() {
                 {datesToShow.map((date, index) => {
                   const daySubjects = dataManyDay[date] || [];
                   const dayName = getDayOfWeek(date);
+                  const numberSubjectsDeleted = daySubjects.filter((subject) => subject.delete === 1).length;
                   return (
                     <React.Fragment key={index}>
                       {daySubjects.map((subject, subIndex) => (
                         <tr
                           key={subIndex}
-                          className={`
-                            ${activeIndex.date === date && activeIndex.subIndex === subIndex ? 'bg-blue-100' : ''}
-                          `}
+                          className={`${activeIndex.date === date && activeIndex.subIndex === subIndex ? 'bg-blue-100' : ''}`}
                         >
                           {subIndex === 0 && (
                             <td
@@ -272,70 +379,97 @@ export default function TeachingPlans() {
                               </div>
                             </td>
                           )}
-                          <td className="border border-gray-400 px-4 py-2">
-                            {subject.subjectName}
-                            {subject.teacherName !== user.userName ? (
-                              <span className="text-red-500"> ({subject.teacherName})</span>
-                            ) : null}
-                          </td>
-                          <td className="border border-gray-400 px-4 py-2">
-                            <textarea
-                              disabled={activeIndex.date !== date || activeIndex.subIndex !== subIndex ? true : false}
-                              onChange={(e) => {
-                                const newTimetable = { ...dataManyDay };
-                                newTimetable[date][subIndex].content = e.target.value;
-                                setDataManyDay(newTimetable);
-                              }}
-                              value={subject.content}
-                              className="w-full h-16 rounded border border-gray-400 px-2 py-2"
-                            ></textarea>
-                          </td>
-                          <td className="border border-gray-400 px-4 py-2">
-                            <textarea
-                              disabled={activeIndex.date !== date || activeIndex.subIndex !== subIndex ? true : false}
-                              onChange={(e) => {
-                                const newTimetable = { ...dataManyDay };
-                                newTimetable[date][subIndex].note = e.target.value;
-                                setDataManyDay(newTimetable);
-                              }}
-                              value={subject.note}
-                              className="w-full h-16 rounded border border-gray-400 px-2 py-2"
-                            ></textarea>
-                          </td>
-
-                          {activeIndex.date === date && activeIndex.subIndex === subIndex ? (
+                          {subject.delete !== 1 && (
                             <>
-                              <td className="border border-gray-400 px-4 py-2 w-10 min-w-10">
-                                <div className="flex items-center justify-center gap-2">
-                                  <i class="fa-solid fa-rotate-right cursor-pointer text-blue-500 hover:text-blue-600"></i>
-                                </div>
+                              <td className="border border-gray-400 px-4 py-2">
+                                {subject.subjectName}
+                                {subject.teacherName !== user.userName ? (
+                                  <span className="text-red-500"> ({subject.teacherName})</span>
+                                ) : null}
                               </td>
-                              <td className="border border-gray-400 px-4 py-2 w-10 min-w-10">
-                                <div className="flex items-center justify-center gap-2">
-                                  <i class="fa-solid fa-check cursor-pointer text-green-500 hover:text-green-600"></i>
-                                </div>
+                              <td className="border border-gray-400 px-4 py-2">
+                                <textarea
+                                  disabled={activeIndex.date !== date || activeIndex.subIndex !== subIndex}
+                                  onChange={(e) => handleInputChange(e, date, subIndex, 'content')}
+                                  value={subject.content}
+                                  className="w-full h-16 rounded border border-gray-400 px-2 py-2"
+                                ></textarea>
                               </td>
-                            </>
-                          ) : (
-                            <>
-                              <td className="border border-gray-400 px-4 py-2 w-10 min-w-10">
-                                <div className="flex items-center justify-center gap-2">
-                                  <i className="fa-solid fa-trash cursor-pointer text-red-500 hover:text-red-600"></i>
-                                </div>
-                              </td>
-                              <td className="border border-gray-400 px-4 py-2 w-10 min-w-10">
-                                <div
-                                  onClick={() => {
-                                    setActiveIndex({
-                                      date: date,
-                                      subIndex: subIndex,
-                                    });
+                              <td className="border border-gray-400 px-4 py-2">
+                                <textarea
+                                  disabled={activeIndex.date !== date || activeIndex.subIndex !== subIndex}
+                                  onChange={(e) => {
+                                    handleInputChange(e, date, subIndex, 'note');
                                   }}
-                                  className="flex items-center justify-center gap-2"
-                                >
-                                  <i class="fa-solid fa-pen-to-square cursor-pointer text-sky-500 hover:text-sky-600"></i>
-                                </div>
+                                  value={subject.note}
+                                  className="w-full h-16 rounded border border-gray-400 px-2 py-2"
+                                ></textarea>
                               </td>
+                              {activeIndex.date === date && activeIndex.subIndex === subIndex ? (
+                                <>
+                                  <td className="border border-gray-400 px-4 py-2 w-14 min-w-14">
+                                    <div
+                                      onClick={() => {
+                                        handleReset(date, subIndex);
+                                      }}
+                                      className="flex items-center justify-center gap-2"
+                                    >
+                                      <i className="fa-solid fa-rotate-right cursor-pointer text-blue-500 hover:text-blue-600"></i>
+                                    </div>
+                                  </td>
+                                  <td className="border border-gray-400 px-4 py-2 w-14 min-w-14">
+                                    <div
+                                      onClick={() => {
+                                        setActiveIndex({
+                                          date: '',
+                                          subIndex: '',
+                                        });
+                                      }}
+                                      className="flex items-center justify-center gap-2"
+                                    >
+                                      <i className="fa-solid fa-check cursor-pointer text-green-500 hover:text-green-600"></i>
+                                    </div>
+                                  </td>
+                                </>
+                              ) : (
+                                <>
+                                  <td className="border border-gray-400 px-4 py-2 w-14 min-w-14">
+                                    {user.userName === subject.teacherName ? (
+                                      <div
+                                        onClick={() => {
+                                          handleDeleteSubject(date, subIndex);
+                                        }}
+                                        className="flex items-center justify-center gap-2"
+                                      >
+                                        <i className="fa-solid fa-trash cursor-pointer text-red-500 hover:text-red-600"></i>
+                                      </div>
+                                    ) : (
+                                      <div className="flex items-center justify-center gap-2">
+                                        <i className="fa-solid fa-trash cursor-not-allowed text-gray-400 "></i>
+                                      </div>
+                                    )}
+                                  </td>
+                                  <td className="border border-gray-400 px-4 py-2 w-14 min-w-14">
+                                    {user.userName === subject.teacherName ? (
+                                      <div
+                                        onClick={() => {
+                                          setActiveIndex({
+                                            date: date,
+                                            subIndex: subIndex,
+                                          });
+                                        }}
+                                        className="flex items-center justify-center gap-2"
+                                      >
+                                        <i className="fa-solid fa-pen-to-square cursor-pointer text-sky-500 hover:text-sky-600"></i>
+                                      </div>
+                                    ) : (
+                                      <div className="flex items-center justify-center gap-2">
+                                        <i className="fa-solid fa-pen-to-square cursor-not-allowed text-gray-400"></i>
+                                      </div>
+                                    )}
+                                  </td>
+                                </>
+                              )}
                             </>
                           )}
                         </tr>

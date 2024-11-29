@@ -93,7 +93,7 @@ export default function Menu({ children, active }) {
                 <li
                   className={` ${active === 'personal-information' ? 'bg-gray-300' : 'bg-white'} w-full px-5 py-2 my-2 md:px-2 md:text-sm lg:text-lg lg:px-4 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
                 >
-                  <Link to="/teacher2/personal-information">
+                  <Link to="/teacher/personal-information">
                     <span className="w-full flex justify-start items-center">
                       <i style={{ color: '#d55557' }} class="fa-solid fa-circle-info mr-2"></i>
                       Thông tin cá nhân
@@ -103,7 +103,7 @@ export default function Menu({ children, active }) {
                 <li
                   className={` ${active === 'teaching-schedule' ? 'bg-gray-300' : 'bg-white'} px-5 py-2 my-2 md:px-2 md:text-sm lg:text-lg lg:px-4 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
                 >
-                  <Link to="/teacher2/teaching-schedule">
+                  <Link to="/teacher/teaching-schedule">
                     <span className="w-full flex justify-start items-center">
                       <i style={{ color: '#d55557' }} className="fa-regular fa-calendar mr-2"></i>
                       Lịch giảng dạy
@@ -113,7 +113,7 @@ export default function Menu({ children, active }) {
                 <li
                   className={` ${active === 'notification' ? 'bg-gray-300' : 'bg-white'} px-5 py-2 my-2 md:px-2 md:text-sm lg:text-lg lg:px-4 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
                 >
-                  <Link to="/teacher2/notification">
+                  <Link to="/teacher/notification">
                     <span className="w-full flex justify-start items-center">
                       <i style={{ color: '#d55557' }} class="fa-solid fa-bell mr-2"></i>
                       Xem thông báo
@@ -123,7 +123,7 @@ export default function Menu({ children, active }) {
                 <li
                   className={` ${active === 'student-attendance' ? 'bg-gray-300' : 'bg-white'} px-5 py-2 my-2 md:px-2 md:text-sm lg:text-lg lg:px-4 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
                 >
-                  <Link to="/teacher2/student-attendance">
+                  <Link to="/teacher/student-attendance">
                     <span className="w-full flex justify-start items-center">
                       <i style={{ color: '#d55557' }} className="fas fa-calendar-alt mr-2"></i>
                       Quản lý điểm danh
@@ -133,7 +133,7 @@ export default function Menu({ children, active }) {
                 <li
                   className={` ${active === 'leave-request' ? 'bg-gray-300' : 'bg-white'} px-5 py-2 my-2 md:px-2 md:text-sm lg:text-lg lg:px-4 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
                 >
-                  <Link to="/teacher2/leave-request">
+                  <Link to="/teacher/leave-request">
                     <span className="w-full flex justify-start items-center">
                       <i style={{ color: '#d55557' }} class="fa-solid fa-envelope-open-text mr-2"></i>
                       Đơn xin nghỉ học
@@ -144,21 +144,10 @@ export default function Menu({ children, active }) {
                 <li
                   className={` ${active === 'teaching-report' ? 'bg-gray-300' : 'bg-white'} px-5 py-2 my-2 md:px-2 md:text-sm lg:text-lg lg:px-4 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
                 >
-                  <Link to="/teacher2/teaching-report">
+                  <Link to="/teacher/teaching-report">
                     <span className="w-full flex justify-start items-center">
                       <i style={{ color: '#d55557' }} class="fa-solid fa-briefcase mr-2"></i>
                       Báo bài
-                    </span>
-                  </Link>
-                </li>
-
-                <li
-                  className={` ${active === 'teaching-report2' ? 'bg-gray-300' : 'bg-white'} px-5 py-2 my-2 md:px-2 md:text-sm lg:text-lg lg:px-4 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
-                >
-                  <Link to="/teacher2/teaching-report2">
-                    <span className="w-full flex justify-start items-center">
-                      <i style={{ color: '#d55557' }} class="fa-solid fa-briefcase mr-2"></i>
-                      Báo bài 2
                     </span>
                   </Link>
                 </li>
@@ -183,7 +172,7 @@ export default function Menu({ children, active }) {
                 <li
                   className={` ${active === 'input-score' ? 'bg-gray-300' : 'bg-white'} px-5 py-2 my-2 md:px-2 md:text-sm lg:text-lg lg:px-4 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
                 >
-                  <Link to="/teacher2/input-score">
+                  <Link to="/teacher/input-score">
                     <span className="w-full flex justify-start items-center">
                       <i style={{ color: '#d55557' }} className="fas fa-chart-bar mr-2"></i>
                       Quản lý điểm số
@@ -193,7 +182,7 @@ export default function Menu({ children, active }) {
                 <li
                   className={` ${active === 'report' ? 'bg-gray-300' : 'bg-white'} px-5 py-2 my-2 md:px-2 md:text-sm lg:text-lg lg:px-4 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
                 >
-                  <Link to="/teacher2/report">
+                  <Link to="/teacher/report">
                     <span className="w-full flex justify-start items-center">
                       <i style={{ color: '#d55557' }} class="fa-solid fa-chart-pie mr-2"></i>
                       Thống kê
@@ -289,7 +278,7 @@ export default function Menu({ children, active }) {
                           setShowProfile(false);
                         }}
                       >
-                        <Link to="/teacher2/personal-information">
+                        <Link to="/teacher/personal-information">
                           <span>Thông tin cá nhân</span>
                         </Link>
                       </div>

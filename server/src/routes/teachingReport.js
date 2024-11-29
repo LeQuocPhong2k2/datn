@@ -6,5 +6,6 @@ const TeachingReportController = require("../app/controllers/TeachingReportContr
 router.post("/saveTeachingReport", TeachingReportController.saveTeachingReport);
 router.post("/getTeachingReports", TeachingReportController.getTeachingReports);
 router.post("/getReportDetailByDayOrClassOrSubject", TeachingReportController.getReportDetailByDayOrClassOrSubject);
+router.post("/updateTeachingReport", TeachingReportController.updateTeachingReport);
 
 module.exports = router;

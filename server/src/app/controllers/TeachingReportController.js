@@ -39,8 +39,7 @@ const TeachingReportController = {
             });
 
             if (existingReport) {
-              console.log("deleting report ..." + existingReport);
-              await existingReport.deleteOne();
+              continue;
             }
 
             console.log("saveing report ..." + newReport);
@@ -49,6 +48,41 @@ const TeachingReportController = {
         }
       }
       return res.status(200).json({ message: "Teaching report saved successfully" });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  },
+
+  async updateTeachingReport(req, res) {
+    const { academicYear, className, teachCreate, dataSave } = req.body;
+    try {
+      const teacher = await Teacher.findById(new ObjectId(teachCreate));
+      if (teacher) {
+        for (const [date, subjects] of Object.entries(dataSave)) {
+          for (const subject of subjects) {
+            const existingReport = await TeachingReport.findOne({
+              academicYear: academicYear,
+              className: className,
+              teacherCreate: teacher._id,
+              dateCreate: date,
+              subjectName: subject.subjectName,
+            });
+
+            if (existingReport) {
+              if (subject.delete === 1) {
+                console.log("deleting report ..." + existingReport);
+                await existingReport.deleteOne();
+                continue;
+              }
+              existingReport.content = subject.content;
+              existingReport.note = subject.note;
+              console.log("updating report ..." + existingReport);
+              await existingReport.save();
+            }
+          }
+        }
+      }
+      return res.status(200).json({ message: "Teaching report updated successfully" });
     } catch (error) {
       res.status(500).json({ message: error.message });
     }

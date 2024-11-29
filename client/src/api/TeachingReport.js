@@ -21,6 +21,25 @@ async function saveTeachingReport(academicYear, className, teachCreate, dataSave
   return response.data;
 }
 
+async function updateTeachingReport(academicYear, className, teachCreate, dataSave) {
+  const response = await axios.post(
+    `${API_URL}/teachingReport/updateTeachingReport`,
+    {
+      academicYear,
+      className,
+      teachCreate,
+      dataSave,
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  return response.data;
+}
+
 async function getTeachingReports(teacherNumber, academicYear, className, date) {
   const response = await axios.post(
     `${API_URL}/teachingReport/getTeachingReports`,
@@ -60,4 +79,4 @@ async function getReportDetailByDayOrClassOrSubject(academicYear, className, dat
   return response.data;
 }
 
-export { saveTeachingReport, getTeachingReports, getReportDetailByDayOrClassOrSubject };
+export { saveTeachingReport, getTeachingReports, getReportDetailByDayOrClassOrSubject, updateTeachingReport };
