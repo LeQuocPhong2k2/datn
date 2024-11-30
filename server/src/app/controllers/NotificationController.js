@@ -103,18 +103,6 @@ const NotificationController = {
       })
     }
   },
-  // getAllNotifications: async (req, res) => {
-  //   try {
-  //     const notifications = await Notification.find({})
-  //     // lấy io và emit event
-  //     const io = socket.getIO()
-  //     io.emit('getAllNotifications', notifications)
-  //     res.json(notifications)
-  //   } catch (error) {
-  //     console.error('Error fetching notifications:', error)
-  //     res.status(500).json({ message: 'Internal server error' })
-  //   }
-  // },
   getAllNotifications: async (req, res) => {
     try {
       const notifications = await Notification.find({})
@@ -135,6 +123,54 @@ const NotificationController = {
       res.json(notifications)
     } catch (error) {
       console.error('Error fetching notifications:', error)
+      res.status(500).json({ message: 'Internal server error' })
+    }
+  },
+  // viết lại hàm updateNotification từ req.body
+  updateNotification: async (req, res) => {
+    try {
+      console.log('req.body ở updateNotification', req.body)
+      const { _id } = req.body
+      const notification = await Notification.findById(_id)
+      if (!notification) {
+        return res.status(404).json({
+          success: false,
+          message: 'Notification not found',
+        })
+      }
+      const updatedNotification = await Notification.findByIdAndUpdate(
+        _id,
+        req.body,
+        { new: true }
+      )
+      res.json({
+        success: true,
+        message: 'Notification updated successfully',
+        data: updatedNotification,
+      })
+    } catch (error) {
+      console.error('Error updating notification:', error)
+      res.status(500).json({ message: 'Internal server error' })
+    }
+  },
+  // viếT hàm xóa delete notification
+  deleteNotification: async (req, res) => {
+    try {
+      const { _id } = req.body
+      const notification = await Notification.findById(_id)
+      if (!notification) {
+        return res.status(404).json({
+          success: false,
+          message: 'Notification not found',
+        })
+      }
+      await Notification.findByIdAndDelete(_id)
+      res.json({
+        success: true,
+        message: 'Notification deleted successfully',
+      })
+    } catch (error) {
+      console.error('Error deleting notification:', error)
       res.status(500).json({ message: 'Internal server error' })
     }
   },

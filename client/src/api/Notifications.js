@@ -60,4 +60,46 @@ async function getNotificationsByReceiverId(receiver_id) {
     throw error;
   }
 }
-export { createNotification, getAllNotifications, getNotificationsByReceiverId };
+// thêm 2 hàm updateNotification và deleteNotification
+async function updateNotification(_id, notification) {
+  try {
+    const response = await axios.post(
+      `${API_URL}/notification/updateNotification`,
+      { _id, ...notification },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error updating notification:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+}
+async function deleteNotification(_id) {
+  try {
+    const response = await axios.post(
+      `${API_URL}/notification/deleteNotification`,
+      { _id },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting notification:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+}
+
+export {
+  createNotification,
+  getAllNotifications,
+  getNotificationsByReceiverId,
+  updateNotification,
+  deleteNotification,
+};

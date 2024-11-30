@@ -8,5 +8,7 @@ router.post(
   '/getNotificationsByReceiverId',
   NotificationController.getNotificationsByReceiverId
 )
+router.post('/updateNotification', NotificationController.updateNotification)
+router.post('/deleteNotification', NotificationController.deleteNotification)
 
 module.exports = router

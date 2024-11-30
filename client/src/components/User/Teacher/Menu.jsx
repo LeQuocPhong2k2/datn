@@ -116,7 +116,7 @@ export default function Menu({ children, active }) {
                   <Link to="/teacher2/notification">
                     <span className="w-full flex justify-start items-center">
                       <i style={{ color: '#d55557' }} class="fa-solid fa-bell mr-2"></i>
-                      Xem thông báo
+                      Quản Lý thông báo
                     </span>
                   </Link>
                 </li>
