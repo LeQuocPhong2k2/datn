@@ -1,67 +1,43 @@
 import React from 'react';
 import 'flowbite';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useContext } from 'react';
+import { UserContext } from '../../../UserContext';
 import { Toaster, toast } from 'react-hot-toast';
 
 import { RiEdit2Fill } from 'react-icons/ri';
 import { RiSave3Fill } from 'react-icons/ri';
 import { GrRefresh } from 'react-icons/gr';
-import { CiExport } from 'react-icons/ci';
 import { CiImport } from 'react-icons/ci';
 
 import * as XLSX from 'xlsx';
 
 import { getSubjectByGrade } from '../../../api/Subject';
 import { getTranscriptBySubjectAndClassAndSchoolYear, updateTranscript } from '../../../api/Transcripts';
+import { getClassTeacherBySchoolYear, getSubjectOfTeacher } from '../../../api/Schedules';
+import { checkHomeRoomTeacher } from '../../../api/Class';
 
 import Menu from './Menu';
 
 export default function InputScore() {
+  const { user } = useContext(UserContext);
+  const recordsPerPage = 10;
+  const [currentPage, setCurrentPage] = useState(1);
+  const [subjectOfSchedule, setSubjectOfSchedule] = useState([]);
+  const [activeEditSubject, setActiveEditSubject] = useState('');
   const [activeImport, setActiveImport] = useState(false);
   const [success, setSuccess] = useState(0);
   const [failed, setFailed] = useState(0);
   const [importProgress, setImportProgress] = useState(0);
   const [order, setOrder] = useState('ASC');
-  const [pageLoading, setPageLoading] = useState(true);
   const [selectedSemester, setSelectedSemester] = useState('');
   const [selectedSemesterNumber, setSelectedSemesterNumber] = useState('');
-  const [grade, setGrade] = useState('');
-  const [classroom, setClassroom] = useState('');
   const [subjectCode, setSubjectCode] = useState('');
   const [subjectList, setSubjectList] = useState([]);
-  const [student, setStudent] = useState([]);
   const [transcript, setTranscript] = useState([]);
   const [transcriptBk, setTranscriptBk] = useState([]);
   const [transcriptFileUpload, setTranscriptFileUpload] = useState([]);
-  const [subject, setSubject] = useState('');
   const [activeEdit, setActiveEdit] = useState('-1');
-  const [arrClassNames, setArrClassNames] = useState([
-    '1A1',
-    '1A2',
-    '1A3',
-    '1A4',
-    '1A5',
-    '2A1',
-    '2A2',
-    '2A3',
-    '2A4',
-    '2A5',
-    '3A1',
-    '3A2',
-    '3A3',
-    '3A4',
-    '3A5',
-    '4A1',
-    '4A2',
-    '4A3',
-    '4A4',
-    '4A5',
-    '5A1',
-    '5A2',
-    '5A3',
-    '5A4',
-    '5A5',
-  ]);
+  const [className, setClassName] = useState('');
   const [dataRow, setDataRow] = useState({
     stt: 1,
     mshs: 1,
@@ -78,33 +54,91 @@ export default function InputScore() {
     remarks: '',
   });
 
-  let arrClasses = [
-    '1A1',
-    '1A2',
-    '1A3',
-    '1A4',
-    '1A5',
-    '2A1',
-    '2A2',
-    '2A3',
-    '2A4',
-    '2A5',
-    '3A1',
-    '3A2',
-    '3A3',
-    '3A4',
-    '3A5',
-    '4A1',
-    '4A2',
-    '4A3',
-    '4A4',
-    '4A5',
-    '5A1',
-    '5A2',
-    '5A3',
-    '5A4',
-    '5A5',
-  ];
+  const [listClassNames, setListClassNames] = useState([]);
+
+  const getCurrentSchoolYear = () => {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+
+    if (currentMonth >= 8) {
+      return `${currentYear}-${currentYear + 1}`;
+    } else {
+      return `${currentYear - 1}-${currentYear}`;
+    }
+  };
+
+  useEffect(() => {
+    getClassTeacherBySchoolYear(user.teacherId, getCurrentSchoolYear())
+      .then((data) => {
+        setListClassNames(data.classNames);
+      })
+      .catch((error) => {
+        console.error('Get class teacher by school year error:', error.response ? error.response.data : error.message);
+        throw error;
+      });
+  }, [user.teacherId]);
+
+  useEffect(() => {
+    const phoneTeacher = sessionStorage.getItem('phoneNumberTeacher');
+    checkHomeRoomTeacher(phoneTeacher, getCurrentSchoolYear(), className)
+      .then((res) => {
+        const grade = className[0];
+        getSubjectByGrade(grade)
+          .then((res) => setSubjectList(res))
+          .catch((error) =>
+            console.error('Get subject by grade error:', error.response ? error.response.data : error.message)
+          );
+      })
+      .catch((error) => {
+        getSubjectOfTeacher(user.teacherId, getCurrentSchoolYear(), className)
+          .then((res) => {
+            setSubjectList(res.subjects);
+          })
+          .catch((error) =>
+            console.error('Get subject of teacher error:', error.response ? error.response.data : error.message)
+          );
+      });
+
+    getSubjectOfTeacher(user.teacherId, getCurrentSchoolYear(), className)
+      .then((res) => {
+        setSubjectOfSchedule(res.subjects);
+      })
+      .catch((error) =>
+        console.error('Get subject of teacher error:', error.response ? error.response.data : error.message)
+      );
+  }, [className, user.teacherId]);
+
+  useEffect(() => {
+    const schoolYear = getCurrentSchoolYear();
+    const grade = className[0];
+    getTranscriptBySubjectAndClassAndSchoolYear(subjectCode, className, schoolYear, grade)
+      .then((res) => {
+        setTranscript(res.data);
+        setTranscriptBk(res.data);
+      })
+      .catch((error) => {
+        setTranscript([]);
+        setTranscriptBk([]);
+        console.error(
+          'Get student list by class and academic year error:',
+          error.response ? error.response.data : error.message
+        );
+      });
+  }, [subjectCode, className]);
+
+  useEffect(() => {
+    setImportProgress(0);
+    setSuccess(0);
+    setFailed(0);
+
+    const isSubjectExist = subjectOfSchedule.some((subject) => subject.subjectCode === subjectCode);
+    if (isSubjectExist) {
+      setActiveEditSubject(false);
+    } else {
+      setActiveEditSubject(true);
+    }
+  }, [subjectCode, subjectOfSchedule]);
 
   /**
    * handle file upload
@@ -132,11 +166,7 @@ export default function InputScore() {
   };
 
   const handleImportTranscript = async () => {
-    if (grade === '') {
-      toast.error('Please select a grade');
-      return;
-    }
-    if (classroom === '') {
+    if (className === '') {
       toast.error('Please select a classroom');
       return;
     }
@@ -169,8 +199,8 @@ export default function InputScore() {
       const transcriptImport = transcriptFileUpload[index];
       dataRow.stt = index;
       dataRow.mshs = transcriptImport['Mã số học sinh'];
-      dataRow.className = classroom;
-      dataRow.schoolYear = getCurrentYear();
+      dataRow.className = className;
+      dataRow.schoolYear = getCurrentSchoolYear();
       dataRow.subjectCode = subjectCode;
       if (selectedSemesterNumber === 'Gk' && selectedSemester === '1') {
         dataRow.gk1 = transcriptImport['Điểm'];
@@ -228,88 +258,27 @@ export default function InputScore() {
     setTranscriptFileUpload([]);
   };
 
-  const filterClassesByGrade = (grade) => {
-    return arrClasses.filter((className) => className.startsWith(grade.toString()));
-  };
-
-  const handlePageLoading = () => {
-    setPageLoading(true);
-    setTimeout(() => {
-      setPageLoading(false);
-    }, 500);
-  };
-
-  const getCurrentYear = () => {
-    const date = new Date();
-    const year = date.getFullYear();
-    return `${year}-${year + 1}`;
-  };
-
-  useEffect(() => {
-    handlePageLoading();
-  }, []);
-
-  const handleChangeGrade = (e) => {
-    setGrade(e.target.value);
-    let filteredClasses = filterClassesByGrade(e.target.value);
-    setArrClassNames(filteredClasses);
-  };
-
-  useEffect(() => {
-    setSubjectCode('');
-    setClassroom('');
-    setSelectedSemester('');
-    setSelectedSemesterNumber('');
-    setTranscript([]);
-    setTranscriptBk([]);
-    setImportProgress(0);
-    setSuccess(0);
-    setFailed(0);
-    getSubjectByGrade(grade)
-      .then((res) => setSubjectList(res))
-      .catch((error) =>
-        console.error('Get subject by grade error:', error.response ? error.response.data : error.message)
-      );
-  }, [grade]);
-
-  useEffect(() => {
-    const schoolYear = getCurrentYear();
-    getTranscriptBySubjectAndClassAndSchoolYear(subjectCode, classroom, schoolYear, grade)
-      .then((res) => {
-        setTranscript(res.data);
-        setTranscriptBk(res.data);
-        if (res.data && res.data.length > 0) {
-          handlePageLoading();
-        }
-      })
-      .catch((error) => {
-        setTranscript([]);
-        setTranscriptBk([]);
-        console.error(
-          'Get student list by class and academic year error:',
-          error.response ? error.response.data : error.message
-        );
-      });
-  }, [subjectCode, classroom, grade]);
-
   const handleActiveEdit = (rowIndex) => {
-    const schoolYear = getCurrentYear();
+    const schoolYear = getCurrentSchoolYear();
     setActiveEdit((prev) => (prev === rowIndex ? '-1' : rowIndex));
+
+    let rowData = rowIndex - 1;
+
     setDataRow({
       ...dataRow,
-      stt: rowIndex,
-      mshs: transcript[rowIndex].studentCode,
-      className: classroom,
+      stt: rowData,
+      mshs: transcript[rowData].studentCode,
+      className: className,
       schoolYear: schoolYear,
       subjectCode: subjectCode,
-      gk1: transcript[rowIndex].hk1Gk,
-      ck1: transcript[rowIndex].hk1Ck,
-      tbhk1: transcript[rowIndex].hk1Tb,
-      gk2: transcript[rowIndex].hk2Gk,
-      ck2: transcript[rowIndex].hk2Ck,
-      tbhk2: transcript[rowIndex].hk2Tb,
-      tbcn: transcript[rowIndex].allYear,
-      remarks: transcript[rowIndex].remarks,
+      gk1: transcript[rowData].hk1Gk,
+      ck1: transcript[rowData].hk1Ck,
+      tbhk1: transcript[rowData].hk1Tb,
+      gk2: transcript[rowData].hk2Gk,
+      ck2: transcript[rowData].hk2Ck,
+      tbhk2: transcript[rowData].hk2Tb,
+      tbcn: transcript[rowData].allYear,
+      remarks: transcript[rowData].remarks,
     });
   };
 
@@ -335,23 +304,47 @@ export default function InputScore() {
     try {
       await updateTranscript(dataRow);
       toast.success('Cập nhật điểm thành công');
+      const schoolYear = getCurrentSchoolYear();
+      const grade = className[0];
+      getTranscriptBySubjectAndClassAndSchoolYear(subjectCode, className, schoolYear, grade)
+        .then((res) => {
+          setTranscript(res.data);
+        })
+        .catch((error) => {
+          setTranscript([]);
+          console.error(
+            'Get student list by class and academic year error:',
+            error.response ? error.response.data : error.message
+          );
+        });
     } catch (error) {
       toast.error('Cập nhật điểm thất bại');
+      const schoolYear = getCurrentSchoolYear();
+      const grade = className[0];
+      getTranscriptBySubjectAndClassAndSchoolYear(subjectCode, className, schoolYear, grade)
+        .then((res) => {
+          setTranscript(res.data);
+        })
+        .catch((error) => {
+          setTranscript([]);
+          console.error(
+            'Get student list by class and academic year error:',
+            error.response ? error.response.data : error.message
+          );
+        });
     }
-    refreshTranscript();
     setActiveEdit('-1');
   };
 
   const refreshTranscript = () => {
-    const schoolYear = getCurrentYear();
-    getTranscriptBySubjectAndClassAndSchoolYear(subjectCode, classroom, schoolYear, grade)
+    const schoolYear = getCurrentSchoolYear();
+    const grade = className[0];
+    getTranscriptBySubjectAndClassAndSchoolYear(subjectCode, className, schoolYear, grade)
       .then((res) => {
         setTranscript(res.data);
-        handlePageLoading();
       })
       .catch((error) => {
         setTranscript([]);
-        handlePageLoading();
         console.error(
           'Get student list by class and academic year error:',
           error.response ? error.response.data : error.message
@@ -438,6 +431,13 @@ export default function InputScore() {
     setTranscript(transcriptBk);
   };
 
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const totalPages = Math.ceil(transcript.length / recordsPerPage);
+  const currentRecords = transcript.slice((currentPage - 1) * recordsPerPage, currentPage * recordsPerPage);
+
   return (
     <>
       <Menu active="input-score">
@@ -450,40 +450,26 @@ export default function InputScore() {
                 QUẢN LÝ ĐIẾM SỐ
               </h2>
             </div>
-            <div className="px-4 w-full grid grid-cols-2 gap-4 mb-6">
-              <div>
-                <label className="block mb-2">
-                  Khối<span className="text-red-500">*</span>
-                </label>
-                <select
-                  className="w-full p-2 border rounded"
-                  value={grade}
-                  onChange={(e) => handleChangeGrade(e)}
-                  defaultValue={''}
-                >
-                  <option value="" selected></option>
-                  <option value={'1'}>Khối 1</option>
-                  <option value={'2'}>Khối 2</option>
-                  <option value={'3'}>Khối 3</option>
-                  <option value={'4'}>Khối 4</option>
-                  <option value={'5'}>Khối 5</option>
-                </select>
-              </div>
+            <div className="px-4 w-full grid grid-cols-4 gap-4 mb-6">
               <div>
                 <label className="block mb-2">
                   Lớp<span className="text-red-500">*</span>
                 </label>
                 <select
-                  value={classroom}
-                  onChange={(e) => setClassroom(e.target.value)}
+                  value={className}
+                  onChange={(e) => {
+                    setClassName(e.target.value);
+                    setSubjectCode('');
+                    setCurrentPage(1);
+                  }}
                   className="w-full p-2 border rounded"
                   style={{ zIndex: 10 }}
                   defaultValue={''}
                 >
-                  <option value="" selected></option>
-                  {arrClassNames.map((classroom, i) => (
-                    <option key={i} value={classroom}>
-                      {classroom}
+                  <option value="">Chọn lớp</option>
+                  {listClassNames.map((elm, index) => (
+                    <option key={index} value={elm.className}>
+                      {elm.className}
                     </option>
                   ))}
                 </select>
@@ -496,7 +482,10 @@ export default function InputScore() {
                   name="subjectCode"
                   value={subjectCode}
                   className="w-full p-2 border rounded"
-                  onChange={(e) => setSubjectCode(e.target.value)}
+                  onChange={(e) => {
+                    setSubjectCode(e.target.value);
+                    setCurrentPage(1);
+                  }}
                   defaultValue={''}
                 >
                   <option value="" selected></option>
@@ -550,7 +539,7 @@ export default function InputScore() {
                       <CiImport className="text-xl font-medium" />
                     </button>
                     {activeImport && (
-                      <div className="grid grid-flow-col gap-5">
+                      <div className="grid grid-flow-col gap-5 w-96 min-w-96">
                         <span>Process: {importProgress}%</span>
                         <span>Thành công: {success}</span>
                         <span>Thất bại: {failed}</span>
@@ -558,11 +547,18 @@ export default function InputScore() {
                     )}
                   </div>
                 </div>
-                <div className="flex items-end justify-end">
-                  <button className="w-48 font-medium relative flex items-center justify-start gap-2 border px-4 py-2 rounded shadow bg-gray-300 hover:bg-gray-400">
-                    <CiExport />
-                    Export bảng điểm
-                  </button>
+              </div>
+              <div className="col-span-2 w-full flex items-end justify-end">
+                <div className="flex justify-center mt-4">
+                  {Array.from({ length: totalPages }, (_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => handlePageChange(i + 1)}
+                      className={`px-4 py-2 mx-1 border rounded ${currentPage === i + 1 ? 'bg-blue-500 text-white' : 'bg-white text-blue-500'}`}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
@@ -813,83 +809,86 @@ export default function InputScore() {
                   </tr>
                 </thead>
                 <tbody>
-                  {transcript.map((student, index) => (
-                    <tr className="h-16 odd:bg-white even:bg-yellow-50" key={index}>
-                      <td className="border px-4 py-2 text-center">{index + 1}</td>
-                      <td className="border px-4 py-2 text-center">{student.studentCode}</td>
-                      <td className="border px-4 py-2">{student.userName}</td>
-                      <td className="border px-4 py-2">{student.dateOfBirth}</td>
-                      <td className="border px-4 py-2 text-center">
-                        {activeEdit === index ? (
-                          <input
-                            value={dataRow.gk1}
-                            onChange={(e) => handleOnChangeEdit(e)}
-                            type="number"
-                            min={0}
-                            max={10}
-                            name="gk1"
-                            className="w-16 p-1 border rounded text-center"
-                          />
-                        ) : (
-                          <span>{student.hk1Gk}</span>
-                        )}
-                      </td>
-                      <td className="border px-4 py-2 text-center">
-                        {activeEdit === index ? (
-                          <input
-                            value={dataRow.ck1}
-                            onChange={(e) => handleOnChangeEdit(e)}
-                            type="number"
-                            min={0}
-                            max={10}
-                            name="ck1"
-                            className="w-16 p-1 border rounded text-center"
-                          />
-                        ) : (
-                          <span>{student.hk1Ck}</span>
-                        )}
-                      </td>
-                      <td className="border px-4 py-2 text-center">
-                        <span>{student.hk1Tb}</span>
-                      </td>
-                      <td className="border px-4 py-2 text-center">
-                        {activeEdit === index ? (
-                          <input
-                            value={dataRow.gk2}
-                            onChange={(e) => handleOnChangeEdit(e)}
-                            type="number"
-                            min={0}
-                            max={10}
-                            name="gk2"
-                            className="w-16 p-1 border rounded text-center"
-                          />
-                        ) : (
-                          <span>{student.hk2Gk}</span>
-                        )}
-                      </td>
-                      <td className="border px-4 py-2 text-center">
-                        {activeEdit === index ? (
-                          <input
-                            value={dataRow.ck2}
-                            onChange={(e) => handleOnChangeEdit(e)}
-                            type="number"
-                            min={0}
-                            max={10}
-                            name="ck2"
-                            className="w-16 p-1 border rounded text-center"
-                          />
-                        ) : (
-                          <span>{student.hk2Ck}</span>
-                        )}
-                      </td>
-                      <td className="border px-4 py-2 text-center">
-                        <span>{student.hk2Tb}</span>
-                      </td>
-                      <td className="border px-4 py-2 text-center">
-                        <span>{student.allYear}</span>
-                      </td>
-                      <td className="border px-4 py-2 text-left">
-                        {/* {activeEdit === index ? (
+                  {currentRecords.map((student, index) => {
+                    let rowIndex = (currentPage - 1) * recordsPerPage + index + 1;
+                    return (
+                      <>
+                        <tr className="h-16 odd:bg-white even:bg-yellow-50" key={rowIndex}>
+                          <td className="border px-4 py-2 text-center">{rowIndex}</td>
+                          <td className="border px-4 py-2 text-center">{student.studentCode}</td>
+                          <td className="border px-4 py-2">{student.userName}</td>
+                          <td className="border px-4 py-2">{student.dateOfBirth}</td>
+                          <td className="border px-4 py-2 text-center">
+                            {activeEdit === rowIndex ? (
+                              <input
+                                value={dataRow.gk1}
+                                onChange={(e) => handleOnChangeEdit(e)}
+                                type="number"
+                                min={0}
+                                max={10}
+                                name="gk1"
+                                className="w-16 p-1 border rounded text-center"
+                              />
+                            ) : (
+                              <span>{student.hk1Gk}</span>
+                            )}
+                          </td>
+                          <td className="border px-4 py-2 text-center">
+                            {activeEdit === rowIndex ? (
+                              <input
+                                value={dataRow.ck1}
+                                onChange={(e) => handleOnChangeEdit(e)}
+                                type="number"
+                                min={0}
+                                max={10}
+                                name="ck1"
+                                className="w-16 p-1 border rounded text-center"
+                              />
+                            ) : (
+                              <span>{student.hk1Ck}</span>
+                            )}
+                          </td>
+                          <td className="border px-4 py-2 text-center">
+                            <span>{student.hk1Tb}</span>
+                          </td>
+                          <td className="border px-4 py-2 text-center">
+                            {activeEdit === rowIndex ? (
+                              <input
+                                value={dataRow.gk2}
+                                onChange={(e) => handleOnChangeEdit(e)}
+                                type="number"
+                                min={0}
+                                max={10}
+                                name="gk2"
+                                className="w-16 p-1 border rounded text-center"
+                              />
+                            ) : (
+                              <span>{student.hk2Gk}</span>
+                            )}
+                          </td>
+                          <td className="border px-4 py-2 text-center">
+                            {activeEdit === rowIndex ? (
+                              <input
+                                value={dataRow.ck2}
+                                onChange={(e) => handleOnChangeEdit(e)}
+                                type="number"
+                                min={0}
+                                max={10}
+                                name="ck2"
+                                className="w-16 p-1 border rounded text-center"
+                              />
+                            ) : (
+                              <span>{student.hk2Ck}</span>
+                            )}
+                          </td>
+                          <td className="border px-4 py-2 text-center">
+                            <span>{student.hk2Tb}</span>
+                          </td>
+                          <td className="border px-4 py-2 text-center">
+                            <span>{student.allYear}</span>
+                          </td>
+                          <td className="border px-4 py-2 text-left">
+                            {/* {activeEdit === rowIndex ? (
                           <input
                             value={dataRow.remarks}
                             onChange={(e) => handleOnChangeEdit(e)}
@@ -900,40 +899,47 @@ export default function InputScore() {
                         ) : (
                           <span>{student.remarks}</span>
                         )} */}
-                      </td>
-                      <td className="border px-4 py-2 text-center cursor-pointer text-xl">
-                        {activeEdit === index ? (
-                          <div
-                            onClick={() => handleSave()}
-                            className="flex items-center justify-center hover:text-blue-700"
-                          >
-                            <RiSave3Fill className="hover:text-green-700 text-green-500" />
-                          </div>
-                        ) : (
-                          <div
-                            onClick={() => handleActiveEdit(index)}
-                            className="flex items-center justify-center hover:text-blue-700"
-                          >
-                            <RiEdit2Fill className="hover:text-red-700 text-red-500" />
-                          </div>
-                        )}
-                      </td>
-                      <td className="border px-4 py-2 text-center text-xl">
-                        <div
-                          onClick={handleCancelEdit}
-                          className="flex items-center justify-center hover:text-blue-700"
-                        >
-                          <GrRefresh
-                            className={
-                              activeEdit === index
-                                ? 'cursor-pointer hover:text-blue-700 text-blue-500'
-                                : 'cursor-not-allowed text-gray-500 opacity-50'
-                            }
-                          />
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                          </td>
+                          <td className="border px-4 py-2 text-center  text-xl">
+                            {activeEdit === rowIndex ? (
+                              <div
+                                onClick={() => handleSave()}
+                                className="cursor-pointer flex items-center justify-center hover:text-blue-700"
+                              >
+                                <RiSave3Fill className="hover:text-green-700 text-green-500 cursor-pointer" />
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-center hover:text-blue-700">
+                                <button onClick={() => handleActiveEdit(rowIndex)} disabled={activeEditSubject}>
+                                  <RiEdit2Fill
+                                    className={
+                                      activeEditSubject
+                                        ? 'cursor-not-allowed text-gray-500 opacity-50'
+                                        : 'hover:text-red-700 text-red-500 cursor-pointer'
+                                    }
+                                  />
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                          <td className="border px-4 py-2 text-center text-xl">
+                            <div
+                              onClick={handleCancelEdit}
+                              className="flex items-center justify-center hover:text-blue-700"
+                            >
+                              <GrRefresh
+                                className={
+                                  activeEdit === rowIndex
+                                    ? 'cursor-pointer hover:text-blue-700 text-blue-500'
+                                    : 'cursor-not-allowed text-gray-500 opacity-50'
+                                }
+                              />
+                            </div>
+                          </td>
+                        </tr>
+                      </>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

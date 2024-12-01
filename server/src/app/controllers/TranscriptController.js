@@ -3,6 +3,7 @@ require("dotenv").config({ path: "../../../../.env" });
 const Transcript = require("../models/Transcript");
 const Student = require("../models/Student");
 const Class = require("../models/Class");
+const Subject = require("../models/Subject");
 
 const TranscriptController = {
   /**
@@ -133,20 +134,21 @@ const TranscriptController = {
         let tbhk2Avg = 0;
         let tbcnAvg = 0;
 
-        tbhk1Avg = (gk1 * 2 + ck1 * 3) / 5;
-        tbhk2Avg = (parseInt(gk2) * 2 + parseInt(ck2) * 3) / 5;
+        tbhk1Avg = tinhDiemTrungBinh(parseFloat(gk1), parseFloat(ck1));
+        tbhk2Avg = tinhDiemTrungBinh(parseFloat(gk2), parseFloat(ck2));
         tbcnAvg = (tbhk1Avg + tbhk2Avg) / 2;
+        tbcnAvg = Math.round(tbcnAvg * 100) / 100;
 
         transcriptUpdate.userName = student.userName;
         transcriptUpdate.lastName = student.lastName;
         transcriptUpdate.dateOfBirth = student.dateOfBirth;
         transcriptUpdate.hk1Gk = gk1;
         transcriptUpdate.hk1Ck = ck1;
-        transcriptUpdate.hk1Tb = tbhk1Avg.toFixed(2);
+        transcriptUpdate.hk1Tb = tbhk1Avg;
         transcriptUpdate.hk2Gk = gk2;
         transcriptUpdate.hk2Ck = ck2;
-        transcriptUpdate.hk2Tb = tbhk2Avg.toFixed(2);
-        transcriptUpdate.allYear = tbcnAvg.toFixed(2);
+        transcriptUpdate.hk2Tb = tbhk2Avg;
+        transcriptUpdate.allYear = tbcnAvg;
         transcriptUpdate.remarks = remarks;
 
         await transcriptUpdate.save();
@@ -156,9 +158,10 @@ const TranscriptController = {
         let tbhk2Avg = 0;
         let tbcnAvg = 0;
 
-        tbhk1Avg = (parseInt(gk1) * 2 + parseInt(ck1) * 3) / 5;
-        tbhk2Avg = (parseInt(gk2) * 2 + parseInt(ck2) * 3) / 5;
+        tbhk1Avg = tinhDiemTrungBinh(parseFloat(gk1), parseFloat(gk1));
+        tbhk2Avg = tinhDiemTrungBinh(parseFloat(gk2), parseFloat(ck2));
         tbcnAvg = (tbhk1Avg + tbhk2Avg) / 2;
+        tbcnAvg = Math.round(tbcnAvg * 100) / 100;
 
         const transcript = new Transcript({
           userName: student.userName,
@@ -170,11 +173,11 @@ const TranscriptController = {
           subjectCode: subjectCode,
           hk1Gk: gk1,
           hk1Ck: ck1,
-          hk1Tb: tbhk1Avg.toFixed(2),
+          hk1Tb: tbhk1Avg,
           hk2Gk: gk2,
           hk2Ck: ck2,
-          hk2Tb: tbhk2Avg.toFixed(2),
-          allYear: tbcnAvg.toFixed(2),
+          hk2Tb: tbhk2Avg,
+          allYear: tbcnAvg,
           remarks: remarks,
         });
 
@@ -185,6 +188,94 @@ const TranscriptController = {
       return res.status(500).json({ error: error.message });
     }
   },
+
+  async getTranscriptByStudentCodeAndClassAndSchoolYear(req, res) {
+    const { studentCode, className, schoolYear } = req.body;
+    try {
+      if (studentCode === undefined || studentCode === "" || studentCode === null) {
+        return res.status(200).json([]);
+      }
+
+      if (className === undefined || className === "" || className === null) {
+        return res.status(200).json([]);
+      }
+
+      if (schoolYear === undefined || schoolYear === "" || schoolYear === null) {
+        return res.status(200).json([]);
+      }
+
+      const transcript = await Transcript.aggregate([
+        {
+          $match: {
+            studentCode: studentCode,
+            className: className,
+            schoolYear: schoolYear,
+          },
+        },
+        {
+          $lookup: {
+            from: "Subject",
+            localField: "subjectCode",
+            foreignField: "subjectCode",
+            as: "subjectInfor",
+          },
+        },
+        {
+          $unwind: "$subjectInfor",
+        },
+        {
+          $project: {
+            studentCode: 1,
+            subjectCode: 1,
+            hk1Gk: 1,
+            hk1Ck: 1,
+            hk1Tb: 1,
+            hk2Gk: 1,
+            hk2Ck: 1,
+            hk2Tb: 1,
+            allYear: 1,
+            remarks: 1,
+            subjectName: "$subjectInfor.subjectName",
+          },
+        },
+      ]);
+
+      let điemTrungBinhMonCaNam = 0;
+      let count = 0;
+      transcript.forEach((element) => {
+        điemTrungBinhMonCaNam += element.allYear;
+        count++;
+      });
+
+      điemTrungBinhMonCaNam = điemTrungBinhMonCaNam / count;
+      điemTrungBinhMonCaNam = Math.round(điemTrungBinhMonCaNam * 100) / 100;
+
+      if (transcript) {
+        return res.status(200).json({
+          transcript: transcript,
+          average: điemTrungBinhMonCaNam,
+        });
+      } else {
+        return res.status(200).json({});
+      }
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  },
 };
+
+function tinhDiemTrungBinh(gk1, ck1) {
+  // Chuyển đổi chuỗi thành số thực
+  gk1 = parseFloat(gk1);
+  ck1 = parseFloat(ck1);
+
+  // Tính điểm trung bình theo công thức
+  let diemTrungBinh = (gk1 * 2 + ck1 * 3) / 5;
+
+  // Làm tròn điểm trung bình đến 2 chữ số thập phân
+  diemTrungBinh = Math.round(diemTrungBinh * 100) / 100;
+
+  return diemTrungBinh;
+}
 
 module.exports = TranscriptController;

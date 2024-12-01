@@ -200,6 +200,24 @@ async function getHomeRoomTeacherByClassNameAndAcademicYear(className, academicY
   }
 }
 
+async function checkHomeRoomTeacher(phoneNumber, academicYear, className) {
+  try {
+    const response = await axios.post(
+      `${API_URL}/class/checkHomeRoomTeacher`,
+      { phoneNumber, academicYear, className },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Check home room teacher error:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+}
+
 export {
   addLopHoc,
   getLopHocByNamHocVaKhoi,
@@ -213,4 +231,5 @@ export {
   getHomRoomTeacherCurrent,
   getAllClassTeacher,
   getHomeRoomTeacherByClassNameAndAcademicYear,
+  checkHomeRoomTeacher,
 };

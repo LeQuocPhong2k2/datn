@@ -44,6 +44,18 @@ export default function ListClass({ filterClass, action }) {
     ngayBatDau: '',
     buoiHoc: '',
   });
+
+  const getCurrentSchoolYear = () => {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+
+    if (currentMonth >= 8) {
+      return `${currentYear}-${currentYear + 1}`;
+    } else {
+      return `${currentYear - 1}-${currentYear}`;
+    }
+  };
   /**
    * handle page loading
    */
@@ -86,11 +98,11 @@ export default function ListClass({ filterClass, action }) {
   useEffect(() => {
     const date = new Date();
     const year = date.getFullYear();
-    setFilter({ ...filter, namHoc: `${year}-${year + 1}` });
+    setFilter({ ...filter, namHoc: getCurrentSchoolYear() });
 
     const fetchClasses = async () => {
       try {
-        const res = await getLopHocByNamHocOrKhoiOrTenLopOrBuoiHoc(`${year}-${year + 1}`, '', '', '');
+        const res = await getLopHocByNamHocOrKhoiOrTenLopOrBuoiHoc(getCurrentSchoolYear(), '', '', '');
         setClasses(res.data);
       } catch (error) {
         console.error('Lỗi khi tìm kiếm lớp học:', error);

@@ -9,7 +9,6 @@ import 'react-datepicker/dist/react-datepicker.css';
 import { getScheduleByDay, getClassTeacherBySchoolYear } from '../../../api/Schedules';
 import { saveTeachingReport } from '../../../api/TeachingReport';
 import toast from 'react-hot-toast';
-import { set } from 'mongoose';
 
 export default function TeachingReportDay() {
   const { user } = useContext(UserContext);

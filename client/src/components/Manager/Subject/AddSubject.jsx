@@ -1,7 +1,7 @@
 import 'flowbite';
 import React from 'react';
 import { useEffect, useState } from 'react';
-import { addSubject, findAllSubject, updateSubject, deleteSubject } from '../../../api/Subject';
+import { addSubject, findAllSubject, updateSubject, deleteSubject, getSubjectByGrade } from '../../../api/Subject';
 import { Toaster, toast } from 'react-hot-toast';
 import { IoWarningOutline } from 'react-icons/io5';
 import Modal from 'react-modal';
@@ -23,6 +23,7 @@ export default function AddSubject() {
   const [rowIndex, setRowIndex] = useState(-1);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [subjectToDelete, setSubjectToDelete] = useState(null);
+  const [grade, setGrade] = useState('1');
 
   useEffect(() => {
     handlePageLoading();
@@ -198,6 +199,12 @@ export default function AddSubject() {
     }));
   };
 
+  useEffect(() => {
+    getSubjectByGrade(grade).then((res) => {
+      setSubjects(res);
+    });
+  }, [grade]);
+
   return (
     <>
       {/* Modal */}
@@ -207,7 +214,7 @@ export default function AddSubject() {
         contentLabel="Search Teacher"
         style={{
           overlay: {
-            backgroundColor: 'rgba(0, 0, 0, 0.3)', // Change overlay background color here
+            backgroundColor: 'rgba(0, 0, 0, 0.3)',
           },
           content: {
             top: '50%',
@@ -367,15 +374,15 @@ export default function AddSubject() {
           <div>
             <label htmlFor="loaiMonHoc">Khối lớp</label>
             <select
-              onChange={(e) => handleOnchange(e)}
+              onChange={(e) => {
+                handleOnchange(e);
+                setGrade(e.target.value);
+              }}
               name="subjectType"
               id="loaiMonHoc"
               className="w-full p-2 border border-gray-300 rounded"
-              defaultValue=""
+              defaultValue="1"
             >
-              <option value="Tất cả" selected>
-                Tất cả
-              </option>
               <option value="1">1</option>
               <option value="2">2</option>
               <option value="3">3</option>
@@ -383,7 +390,7 @@ export default function AddSubject() {
               <option value="5">5</option>
             </select>
           </div>
-          <div>
+          {/* <div>
             <label htmlFor="loaiMonHoc">Loại môn học</label>
             <select
               onChange={(e) => handleOnchange(e)}
@@ -400,7 +407,7 @@ export default function AddSubject() {
               <option value="Ngoại ngữ">Ngoại ngữ</option>
               <option value="Thể chất">Thể chất</option>
             </select>
-          </div>
+          </div> */}
         </div>
         <div>
           <table className="min-w-full bg-white border border-gray-300">

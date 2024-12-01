@@ -218,6 +218,42 @@ async function getClassTeacherBySchoolYear(teacherId, schoolYear) {
   }
 }
 
+async function getSubjectOfTeacher(teacherId, schoolYear, className) {
+  try {
+    const response = await axios.post(
+      API_URL + '/schedules/getSubjectOfTeacher',
+      { teacherId, schoolYear, className },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Get subject of teacher error:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+}
+
+async function getScheduleOfHomroomTeacher(className, schoolYear) {
+  try {
+    const response = await axios.post(
+      API_URL + '/schedules/getScheduleOfHomroomTeacher',
+      { className, schoolYear },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Get schedule of homeroom teacher error:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+}
+
 export {
   createSchedule,
   getSchedulesByClass,
@@ -229,4 +265,6 @@ export {
   getScheduleByWeekDays,
   getScheduleByDay,
   getClassTeacherBySchoolYear,
+  getSubjectOfTeacher,
+  getScheduleOfHomroomTeacher,
 };
