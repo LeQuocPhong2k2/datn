@@ -11,6 +11,8 @@ router.post("/getSubjectNotInSchedule", ScheduleController.getSubjectNotInSchedu
 router.post("/deleteSchedule", ScheduleController.deleteSchedule);
 router.post("/updateSchedule", ScheduleController.updateSchedule);
 router.post("/getScheduleOfTeacher", ScheduleController.getScheduleOfTeacher);
-router.post("/getClassByDayAndTeacher", ScheduleController.getClassByDayAndTeacher);
+router.post("/getScheduleByWeekDays", ScheduleController.getScheduleByWeekDays);
+router.post("/getScheduleByDay", ScheduleController.getScheduleByDay);
+router.post("/getClassTeacherBySchoolYear", ScheduleController.getClassTeacherBySchoolYear);
 
 module.exports = router;
