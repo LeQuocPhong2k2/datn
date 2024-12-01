@@ -16,7 +16,7 @@ export default function Teacher() {
   useEffect(() => {
     document.title = 'Trang chủ giáo viên';
   }, []);
-  const phoneNumber = localStorage.getItem('phoneNumberTeacher');
+  const phoneNumber = sessionStorage.getItem('phoneNumberTeacher');
   const [teacherInfo, setTeacherInfo] = useState({});
   /// lấy thông tin giáo viên
   useEffect(() => {

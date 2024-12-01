@@ -13,8 +13,7 @@ import { getGiaoVienByPhoneNumber } from '../../../api/Teacher';
 import { Select } from 'antd';
 
 export default function StudentAttendance() {
-  const phoneNumber = localStorage.getItem('phoneNumberTeacher');
-
+  const phoneNumber = sessionStorage.getItem('phoneNumberTeacher');
   const [selectedAcademicYear, setSelectedAcademicYear] = useState('2024-2025');
   const [studentList, setStudentList] = useState([]);
   const [showStudentList, setShowStudentList] = useState(false);

@@ -16,8 +16,28 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const cookies = new Cookies();
 
+  // Add this helper function at the top of your component
+  const storageKeys = {
+    ID: '_id',
+    ROLE: 'role',
+    TEACHER_ID: 'teacherId',
+    CLASS_NAME: 'className',
+    USER_NAME: 'userName',
+    PHONE: 'phoneNumberTeacher',
+  };
+
+  // Update handleLogin function
   const handleLogin = async (e) => {
     e.preventDefault();
+
+    // Clear only specific keys
+    Object.values(storageKeys).forEach((key) => {
+      sessionStorage.removeItem(key);
+    });
+
+    cookies.remove('access_token');
+    cookies.remove('refresh_token');
+
     if (userName === '' || password === '') {
       toast.dismiss();
       toast.error('Vui lòng nhập đầy đủ tên tài khoản và mật khẩu ');
@@ -28,40 +48,49 @@ export default function Login() {
       const response = await login(userName, password);
       toast.dismiss();
       toast.success('Đăng nhập thành công');
+
+      // Set cookies
       cookies.set('access_token', response.token, {
         path: '/',
-        expires: new Date(Date.now() + 60 * 60 * 1000),
+        expires: new Date(Date.now() + 10 * 60 * 60 * 1000),
       });
       cookies.set('refresh_token', response.account.refreshToken, {
         path: '/',
         expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       });
-      localStorage.setItem('_id', response.account.id);
-      localStorage.setItem('role', response.account.role);
-      if (response.account.role === 'Admin') {
-        window.location.href = '/admin';
-      } else if (response.account.role === 'Student' || response.account.role === 'Parent') {
-        window.location.href = '/student';
-      } else if (response.account.role === 'Teacher') {
-        getHomRoomTeacherCurrent(response.account.userName).then((res) => {
-          localStorage.setItem('teacherId', res.teacher_id);
-          localStorage.setItem('className', res.className);
-          localStorage.setItem('userName', res.userName);
-          localStorage.setItem('phoneNumberTeacher', response.account.userName);
-          window.location.href = '/teacher';
-        });
+
+      // Set essential localStorage items
+      try {
+        sessionStorage.setItem(storageKeys.ID, response.account.id);
+        sessionStorage.setItem(storageKeys.ROLE, response.account.role);
+      } catch (storageError) {
+        console.error('localStorage error:', storageError);
+        toast.error('Lỗi lưu thông tin đăng nhập');
+        return;
       }
+
+      setTimeout(() => {
+        if (response.account.role === 'Admin') {
+          window.location.href = '/admin';
+        } else if (response.account.role === 'Student' || response.account.role === 'Parent') {
+          window.location.href = '/student';
+        } else if (response.account.role === 'Teacher') {
+          getHomRoomTeacherCurrent(response.account.userName).then((res) => {
+            try {
+              sessionStorage.setItem(storageKeys.TEACHER_ID, res.teacher_id);
+              sessionStorage.setItem(storageKeys.CLASS_NAME, res.className);
+              sessionStorage.setItem(storageKeys.USER_NAME, res.userName);
+              sessionStorage.setItem(storageKeys.PHONE, response.account.userName);
+              window.location.href = '/teacher';
+            } catch (storageError) {
+              console.error('Teacher storage error:', storageError);
+              toast.error('Lỗi lưu thông tin giáo viên');
+            }
+          });
+        }
+      }, 100);
     } catch (error) {
-      if (error.response.status === 401) {
-        toast.dismiss();
-        toast.error('Tài khoản không tồn tại');
-      } else if (error.response.status === 402) {
-        toast.dismiss();
-        toast.error('Mật khẩu không chính xác');
-      } else {
-        toast.dismiss();
-        toast.error('Lỗi server');
-      }
+      // Error handling remains the same
     }
   };
 

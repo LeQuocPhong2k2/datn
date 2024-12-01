@@ -8,7 +8,6 @@ import io from 'socket.io-client';
 export default function Notification() {
   const [showContent1, setShowContent1] = useState(false);
   const [activeTab, setActiveTab] = useState('view'); // 'view' or 'send'
-
   // gọi tới api get all notifications
   const [notifications, setNotifications] = useState([]);
   const socket = useRef(null);
@@ -89,6 +88,15 @@ export default function Notification() {
 
     return `${utcHour}:${utcMinute} ${utcDay}/${utcMonth}/${utcYear}`;
   };
+
+  // gọi tới api get all notifications
+
+  useEffect(() => {
+    getAllNotifications().then((res) => {
+      console.log('Notifications:', res.data);
+      setNotifications(res.data);
+    });
+  }, []);
 
   return (
     <Menu active="notification">
