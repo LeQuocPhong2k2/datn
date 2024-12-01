@@ -18,7 +18,6 @@ router.post("/getStudentListByClassNameAndAcademicYear", ClassController.getStud
 router.post("/getHomRoomTeacherCurrent", ClassController.getHomRoomTeacherCurrent);
 router.post("/getAllClassTeacher", ClassController.getAllClassTeacher);
 router.post("/getHomeRoomTeacherByClassNameAndAcademicYear", ClassController.getHomeRoomTeacherByClassNameAndAcademicYear);
-
+router.post("/getClassByTeacherId", ClassController.getClassByTeacherId);
 router.post("/checkHomeRoomTeacher", ClassController.checkHomeRoomTeacher);
-
 module.exports = router;

@@ -199,6 +199,26 @@ async function getHomeRoomTeacherByClassNameAndAcademicYear(className, academicY
     throw error;
   }
 }
+// LẤY DANH SÁCH HỌC SINH TỪ _ID CỦA GIÁO VIÊN CHỦ NHIỆM getClassByTeacherId
+async function getClassByTeacherId(teacherId) {
+  console.log('đã vào teacherid là', teacherId);
+  try {
+    const response = await axios.post(
+      `${API_URL}/class/getClassByTeacherId`,
+      { teacher_id: teacherId },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    console.log('getClassByTeacherId là ', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Get class by teacher id error:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+}
 
 async function checkHomeRoomTeacher(phoneNumber, academicYear, className) {
   try {
@@ -231,5 +251,6 @@ export {
   getHomRoomTeacherCurrent,
   getAllClassTeacher,
   getHomeRoomTeacherByClassNameAndAcademicYear,
+  getClassByTeacherId,
   checkHomeRoomTeacher,
 };
