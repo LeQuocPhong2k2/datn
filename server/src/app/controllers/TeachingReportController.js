@@ -30,17 +30,14 @@ const TeachingReportController = {
             });
 
             // Check if the teaching report already exists and delete it
-            const existingReport = await TeachingReport.findOne({
+            const existingReport = {
               academicYear: academicYear,
               className: className,
               teacherCreate: teacher._id,
               dateCreate: date,
               subjectName: subject.subjectName,
-            });
-
-            if (existingReport) {
-              continue;
-            }
+            };
+            await TeachingReport.deleteMany(existingReport);
 
             console.log("saveing report ..." + newReport);
             await newReport.save();
@@ -57,6 +54,8 @@ const TeachingReportController = {
     const { academicYear, className, teachCreate, dataSave } = req.body;
     try {
       const teacher = await Teacher.findById(new ObjectId(teachCreate));
+      console.log("teacher: " + teacher);
+      console.log("dataSave: " + dataSave);
       if (teacher) {
         for (const [date, subjects] of Object.entries(dataSave)) {
           for (const subject of subjects) {
@@ -164,7 +163,7 @@ const TeachingReportController = {
   },
 
   async getReportDetailByDayOrClassOrSubject(req, res) {
-    const { academicYear, className, date, subjectName, teacherId } = req.body;
+    const { academicYear, className, dateToStart, dateToEnd, subjectName, teacherId } = req.body;
 
     try {
       let query = {};
@@ -177,8 +176,16 @@ const TeachingReportController = {
         query.className = className;
       }
 
-      if (date) {
-        query.dateCreate = date;
+      if (dateToStart) {
+        query.dateCreate = dateToStart;
+      }
+
+      if (dateToEnd) {
+        query.dateCreate = dateToEnd;
+      }
+
+      if (dateToStart && dateToEnd) {
+        query.dateCreate = { $gte: dateToStart, $lte: dateToEnd };
       }
 
       if (subjectName) {
@@ -235,6 +242,31 @@ const TeachingReportController = {
       const teachingReports = await TeachingReport.find({ academicYear, className, dateCreate: date });
 
       res.status(200).json({ teachingReports });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  },
+
+  async checkBaoBaiisExsit(req, res) {
+    const { academicYear, className, teachCreate, date, subjectName } = req.body;
+
+    try {
+      const teacher = await Teacher.findById(new ObjectId(teachCreate));
+      if (teacher) {
+        const existingReport = await TeachingReport.findOne({
+          academicYear: academicYear,
+          className: className,
+          teacherCreate: teacher._id,
+          dateCreate: date,
+          subjectName: subjectName,
+        });
+
+        if (existingReport) {
+          return res.status(400).json({ message: "Báo bài đã tồn tại" });
+        }
+      }
+
+      return res.status(200).json({ message: "Báo bài chưa tồn tại" });
     } catch (error) {
       res.status(500).json({ message: error.message });
     }

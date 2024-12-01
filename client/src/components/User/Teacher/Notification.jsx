@@ -22,7 +22,7 @@ export default function Notification() {
   const socket = useRef(null);
   const URL = process.env.REACT_APP_SOCKET_URL;
   // lấy_id của teacherId từ local storage
-  const teacherId = localStorage.getItem('teacherId');
+  const teacherId = sessionStorage.getItem('teacherId');
   console.log('teacherId:', teacherId);
 
   const [subject, setSubject] = useState('');

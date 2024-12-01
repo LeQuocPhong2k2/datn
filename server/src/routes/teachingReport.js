@@ -8,5 +8,6 @@ router.post("/getTeachingReports", TeachingReportController.getTeachingReports);
 router.post("/getReportDetailByDayOrClassOrSubject", TeachingReportController.getReportDetailByDayOrClassOrSubject);
 router.post("/updateTeachingReport", TeachingReportController.updateTeachingReport);
 router.post("/getReportByClassAndDay", TeachingReportController.getReportByClassAndDay);
+router.post("/checkBaoBaiisExsit", TeachingReportController.checkBaoBaiisExsit);
 
 module.exports = router;

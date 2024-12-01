@@ -10,7 +10,6 @@ import { format, parse } from 'date-fns';
 import { getReportDetailByDayOrClassOrSubject, updateTeachingReport } from '../../../api/TeachingReport';
 import { getClassTeacherBySchoolYear } from '../../../api/Schedules';
 import { getSubjectByGrade } from '../../../api/Subject';
-import { set } from 'mongoose';
 
 export default function TeachingPlans() {
   const { user } = useContext(UserContext);
@@ -33,10 +32,16 @@ export default function TeachingPlans() {
     return day !== 0 && day !== 6;
   };
 
-  const [selectedDate, setSelectedDate] = useState(() => {
+  const [dateStart, setDateStart] = useState(() => {
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(today.getDate() + 0);
+    return yesterday;
+  });
+  const [dateEnd, setDateEnd] = useState(() => {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() + 1);
     return yesterday;
   });
 
@@ -91,11 +96,22 @@ export default function TeachingPlans() {
         return;
       }
     }
-    let date = '';
-    if (selectedDate && !isNaN(new Date(selectedDate).getTime())) {
-      date = format(new Date(selectedDate), 'dd/MM/yyyy');
+    let dateToStart = '';
+    let dateToEnd = '';
+    if (dateStart && !isNaN(new Date(dateStart).getTime())) {
+      dateToStart = format(new Date(dateStart), 'dd/MM/yyyy');
     }
-    getReportDetailByDayOrClassOrSubject(getCurrentSchoolYear(), className, date, subjectName, user.teacherId)
+    if (dateEnd && !isNaN(new Date(dateEnd).getTime())) {
+      dateToEnd = format(new Date(dateEnd), 'dd/MM/yyyy');
+    }
+    getReportDetailByDayOrClassOrSubject(
+      getCurrentSchoolYear(),
+      className,
+      dateToStart,
+      dateToEnd,
+      subjectName,
+      user.teacherId
+    )
       .then((data) => {
         if (data.teachingReports.length === 0) {
           toast.error('Không tìm thấy báo bài!');
@@ -234,6 +250,11 @@ export default function TeachingPlans() {
       }
     }
 
+    if (className === '') {
+      toast.error('Vui lòng chọn lớp');
+      return;
+    }
+
     const academicYear = getCurrentSchoolYear();
     const classReport = className;
     const teachCreate = user.teacherId;
@@ -262,8 +283,22 @@ export default function TeachingPlans() {
               <span>Ngày báo bài</span>
               <div>
                 <DatePicker
-                  selected={selectedDate}
-                  onChange={(date) => setSelectedDate(date)}
+                  selected={dateStart}
+                  onChange={(date) => setDateStart(date)}
+                  dateFormat="dd/MM/yyyy"
+                  filterDate={isWeekday}
+                  className="w-44 rounded border ring-0 outline-0 focus:ring-0 focus:border"
+                />
+              </div>
+            </div>
+            <div className="flex items-center justify-center">
+              <i class="fa-solid fa-link pb-5 text-blue-500"></i>
+            </div>
+            <div className="flex items-end justify-end gap-2 py-2">
+              <div>
+                <DatePicker
+                  selected={dateEnd}
+                  onChange={(date) => setDateEnd(date)}
                   dateFormat="dd/MM/yyyy"
                   filterDate={isWeekday}
                   className="w-44 rounded border ring-0 outline-0 focus:ring-0 focus:border"

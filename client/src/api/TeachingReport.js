@@ -59,13 +59,21 @@ async function getTeachingReports(teacherNumber, academicYear, className, date) 
   return response.data;
 }
 
-async function getReportDetailByDayOrClassOrSubject(academicYear, className, date, subjectName, teacherId) {
+async function getReportDetailByDayOrClassOrSubject(
+  academicYear,
+  className,
+  dateToStart,
+  dateToEnd,
+  subjectName,
+  teacherId
+) {
   const response = await axios.post(
     `${API_URL}/teachingReport/getReportDetailByDayOrClassOrSubject`,
     {
       academicYear,
       className,
-      date,
+      dateToStart,
+      dateToEnd,
       subjectName,
       teacherId,
     },
@@ -97,10 +105,31 @@ async function getReportByClassAndDay(academicYear, className, date) {
   return response.data;
 }
 
+async function checkBaoBaiisExsit(academicYear, className, teachCreate, date, subjectName) {
+  const response = await axios.post(
+    `${API_URL}/teachingReport/checkBaoBaiisExsit`,
+    {
+      academicYear,
+      className,
+      teachCreate,
+      date,
+      subjectName,
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  return response.data;
+}
+
 export {
   saveTeachingReport,
   getTeachingReports,
   getReportDetailByDayOrClassOrSubject,
   updateTeachingReport,
   getReportByClassAndDay,
+  checkBaoBaiisExsit,
 };

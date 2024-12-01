@@ -7,7 +7,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
 import { getScheduleByDay, getClassTeacherBySchoolYear } from '../../../api/Schedules';
-import { saveTeachingReport } from '../../../api/TeachingReport';
+import { saveTeachingReport, checkBaoBaiisExsit } from '../../../api/TeachingReport';
 import toast from 'react-hot-toast';
 
 export default function TeachingReportDay() {
@@ -161,7 +161,7 @@ export default function TeachingReportDay() {
     }
   };
 
-  const handleSaveReport = () => {
+  const handleSaveReport = async () => {
     // kiểm tra nếu content hoặc note rỗng thì thông báo
     for (const date in data) {
       for (const subject of data[date]) {
@@ -172,9 +172,20 @@ export default function TeachingReportDay() {
       }
     }
 
+    // Kiểm tra báo bài đã tồn tại
+    const isExist = await handleCheckIsEist(); // Sử dụng await
+    if (!isExist) {
+      const wConfim = window.confirm('Báo bài đã tồn tại, bạn có muốn tạo mới không?');
+      if (!wConfim) {
+        return;
+      }
+    }
+
+    // Tiến hành lưu báo bài
     const academicYear = getCurrentSchoolYear();
     const classReport = className;
     const teachCreate = user.teacherId;
+
     saveTeachingReport(academicYear, classReport, teachCreate, data)
       .then((data) => {
         toast.success(data.message);
@@ -184,6 +195,31 @@ export default function TeachingReportDay() {
         console.error('Save teaching report error:', error.response ? error.response.data : error.message);
         throw error;
       });
+  };
+
+  const handleCheckIsEist = async () => {
+    const academicYear = getCurrentSchoolYear();
+    const classReport = className;
+    const teachCreate = user.teacherId;
+    let check = true;
+
+    try {
+      for (const [date, subjects] of Object.entries(data)) {
+        for (const subject of subjects) {
+          try {
+            await checkBaoBaiisExsit(academicYear, classReport, teachCreate, date, subject.subjectName);
+          } catch (error) {
+            check = false;
+            console.error('Error checking Bao Bai:', error);
+            return;
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+    }
+
+    return check;
   };
 
   return (

@@ -2,13 +2,13 @@ import React from 'react';
 import 'flowbite';
 import { useEffect, useState, useContext } from 'react';
 import { UserContext } from '../../../UserContext';
-import { format, getDay, parse } from 'date-fns';
+import { format, getDay, parse, set } from 'date-fns';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
 import { getClassTeacherBySchoolYear } from '../../../api/Schedules';
 import { getScheduleByWeekDays } from '../../../api/Schedules';
-import { saveTeachingReport } from '../../../api/TeachingReport';
+import { saveTeachingReport, checkBaoBaiisExsit } from '../../../api/TeachingReport';
 import toast from 'react-hot-toast';
 
 export default function TeachingReportManyDay() {
@@ -182,7 +182,7 @@ export default function TeachingReportManyDay() {
     }
   };
 
-  const handleSaveReport = () => {
+  const handleSaveReport = async () => {
     for (const date in dataManyDay) {
       for (const subject of dataManyDay[date]) {
         if (subject.content === '') {
@@ -192,12 +192,22 @@ export default function TeachingReportManyDay() {
       }
     }
 
+    // Kiểm tra báo bài đã tồn tại
+    const isExist = await handleCheckIsEist(); // Sử dụng await
+    if (!isExist) {
+      const wConfim = window.confirm('Báo bài đã tồn tại, bạn có muốn tạo mới không?');
+      if (!wConfim) {
+        return;
+      }
+    }
+
     const academicYear = getCurrentSchoolYear();
     const classReport = className;
     const teachCreate = user.teacherId;
     saveTeachingReport(academicYear, classReport, teachCreate, dataManyDay)
       .then((data) => {
         toast.success('Lưu báo bài thành công');
+        setDataManyDay({});
       })
       .catch((error) => {
         console.error('Save teaching report error:', error.response ? error.response.data : error.message);
@@ -206,12 +216,37 @@ export default function TeachingReportManyDay() {
       });
   };
 
+  const handleCheckIsEist = async () => {
+    const academicYear = getCurrentSchoolYear();
+    const classReport = className;
+    const teachCreate = user.teacherId;
+    let check = true;
+
+    try {
+      for (const [date, subjects] of Object.entries(dataManyDay)) {
+        for (const subject of subjects) {
+          try {
+            await checkBaoBaiisExsit(academicYear, classReport, teachCreate, date, subject.subjectName);
+          } catch (error) {
+            check = false;
+            console.error('Error checking Bao Bai:', error);
+            return;
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+    }
+
+    return check;
+  };
+
   return (
     <div>
       <div className="flex flex-wrap items-end gap-2 py-2">
         <div className="flex flex-col justify-end gap-2 py-2">
           <span>
-            Ngày bắt đầu:<span className="text-red-500">*</span>
+            Ngày bắt báo bài<span className="text-red-500">*</span>
           </span>
           <div>
             <DatePicker
@@ -223,11 +258,13 @@ export default function TeachingReportManyDay() {
             />
           </div>
         </div>
-
+        <div className="flex items-center justify-center">
+          <i class="fa-solid fa-link pb-5 text-blue-500"></i>
+        </div>
         <div className="flex flex-col justify-end gap-2 py-2">
-          <span>
+          {/* <span>
             Ngày kết thúc:<span className="text-red-500">*</span>
-          </span>
+          </span> */}
           <div>
             <DatePicker
               selected={dateEnd}
