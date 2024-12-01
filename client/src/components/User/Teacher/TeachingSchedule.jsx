@@ -5,12 +5,14 @@ import { UserContext } from '../../../UserContext';
 
 import Menu from './Menu';
 
-import { getScheduleOfTeacher } from '../../../api/Schedules';
+import { getScheduleOfTeacher, getScheduleOfHomroomTeacher } from '../../../api/Schedules';
+import { checkHomeRoomTeacher } from '../../../api/Class';
 
 export default function TeachingSchedule() {
   const { user } = useContext(UserContext);
   const [weekDates, setWeekDates] = useState([]);
   const [listSchedule, setListSchedule] = useState([]);
+  const [role, setRole] = useState(false);
 
   useEffect(() => {
     // Get current week's dates
@@ -35,14 +37,26 @@ export default function TeachingSchedule() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await getScheduleOfTeacher(user.teacherId, getCurrentSchoolYear());
-        setListSchedule(response.schedules);
+        const phoneTeacher = sessionStorage.getItem('phoneNumberTeacher');
+        checkHomeRoomTeacher(phoneTeacher, getCurrentSchoolYear(), user.className)
+          .then((res) => {
+            setRole(true);
+            getScheduleOfHomroomTeacher(user.className, getCurrentSchoolYear()).then((response) => {
+              setListSchedule(response.schedules);
+            });
+          })
+          .catch((error) => {
+            setRole(false);
+            getScheduleOfTeacher(user.teacherId, getCurrentSchoolYear()).then((response) => {
+              setListSchedule(response.schedules);
+            });
+          });
       } catch (error) {
         console.error('Get schedule of teacher error:', error);
       }
     };
     fetchData();
-  }, [user.teacherId]);
+  }, [user.teacherId, user.className]);
 
   const getCurrentSchoolYear = () => {
     const now = new Date();
@@ -55,6 +69,10 @@ export default function TeachingSchedule() {
       return `${currentYear - 1}-${currentYear}`;
     }
   };
+
+  function removeNumberFromString(str) {
+    return str.replace(/\d+/g, '').trim();
+  }
 
   const createTableData = () => {
     const tableData = [];
@@ -81,8 +99,35 @@ export default function TeachingSchedule() {
           default:
             break;
         }
-        const schedule = listSchedule.find((item) => item.day === strDay && item.period === period.toString());
-        row.push(schedule ? schedule.subject + ' - ' + schedule.className : '');
+
+        if (role) {
+          const schedule = listSchedule.find((item) => item.day === strDay && item.period === period.toString());
+          let strTeacher = '';
+          if (schedule) {
+            strTeacher = `Gv.${schedule.teacherName}`;
+            if (user.userName === schedule.teacherName) {
+              strTeacher = '';
+            }
+          }
+          row.push(
+            schedule
+              ? {
+                  subject: removeNumberFromString(schedule.subject),
+                  teacherName: strTeacher,
+                }
+              : ''
+          );
+        } else {
+          const schedule = listSchedule.find((item) => item.day === strDay && item.period === period.toString());
+          row.push(
+            schedule
+              ? {
+                  subject: removeNumberFromString(schedule.subject),
+                  teacherName: `Lớp: ${schedule.className}`,
+                }
+              : ''
+          );
+        }
       }
       tableData.push(row);
     }
@@ -137,8 +182,11 @@ export default function TeachingSchedule() {
                   <tr key={index}>
                     <th className="border border-gray-400 bg-gray-100 min-w-16">{index + 1}</th>
                     {row.map((subject, idx) => (
-                      <td key={idx} className="border border-gray-300 text-left px-10">
-                        {subject}
+                      <td key={idx} className="border border-gray-300 text-left px-2">
+                        <div className="grid grid-rows-2 items-start justify-start">
+                          <p className="font-semibold">{subject.subject}</p>
+                          <p className="text-base text-gray-600"> {subject.teacherName}</p>
+                        </div>
                       </td>
                     ))}
                   </tr>

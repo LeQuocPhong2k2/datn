@@ -1,6 +1,6 @@
 import React from 'react';
 import * as XLSX from 'xlsx';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 
 const ImportSubject = () => {
   const [pageLoading, setPageLoading] = useState(true);

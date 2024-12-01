@@ -24,27 +24,25 @@ const ViewReport = ({ studentInfor }) => {
     yesterday.setDate(today.getDate() + 1);
     return yesterday;
   });
-  function getNgayBaoBai(currentDate) {
-    const ngayHienTai = new Date(currentDate);
+  function getNgayBaoBai() {
+    const ngayHienTai = new Date();
     const ngayBaoBai = new Date(ngayHienTai);
     const thuTrongTuan = ngayHienTai.getDay();
-    if (thuTrongTuan === 5) {
-      const daysToNextMonday = 8 - thuTrongTuan;
+    if (thuTrongTuan === 6) {
+      const daysToNextMonday = 2;
+      ngayBaoBai.setDate(ngayHienTai.getDate() + daysToNextMonday);
+    } else if (thuTrongTuan === 0) {
+      const daysToNextMonday = 1;
       ngayBaoBai.setDate(ngayHienTai.getDate() + daysToNextMonday);
     } else {
       ngayBaoBai.setDate(ngayHienTai.getDate() + 1);
     }
     return ngayBaoBai;
   }
-  function getNgayBaoBaiTiepTheo() {
-    const ngayHienTai = getNgayBaoBai(new Date());
-    const ngayTiepTheo = new Date(ngayHienTai);
-    ngayTiepTheo.setDate(ngayHienTai.getDate() + 1); // Tăng thêm 1 ngày
-    return ngayTiepTheo;
-  }
+
   const dayOfWeek = isValid(selectedDate) ? getDay(selectedDate) : '';
   const formattedDate = isValid(selectedDate) ? format(selectedDate, 'dd/MM/yyyy') : '';
-  const maxDate = getNgayBaoBaiTiepTheo();
+  const maxDate = getNgayBaoBai();
 
   const getCurrentSchoolYear = () => {
     const now = new Date();
@@ -90,7 +88,7 @@ const ViewReport = ({ studentInfor }) => {
 
   return (
     <div>
-      <div className="grid grid-cols-2 items-end justify-start gap-1 pb-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 items-end justify-start gap-1 pb-5">
         <div className="flex items-end justify-start gap-1">
           <div>
             <div className="flex items-center justify-start gap-1 text-lg">

@@ -219,12 +219,68 @@ const ScheduleController = {
           $unwind: "$timesSlot",
         },
         {
+          $lookup: {
+            from: "Subject",
+            localField: "subject",
+            foreignField: "_id",
+            as: "subjectDetail",
+          },
+        },
+        {
           $project: {
             _id: 1,
             subject: "$scheduleTitle",
+            subjectCode: { $arrayElemAt: ["$subjectDetail.subjectCode", 0] },
             day: "$timesSlot.scheduleDay",
             period: "$timesSlot.lessonNumber",
             className: 1,
+          },
+        },
+      ]);
+      return res.status(200).json({ schedules });
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  },
+
+  async getScheduleOfHomroomTeacher(req, res) {
+    const { className, schoolYear } = req.body;
+    try {
+      const schedules = await Schedule.aggregate([
+        {
+          $match: {
+            schoolYear: schoolYear,
+            className: className,
+          },
+        },
+        {
+          $unwind: "$timesSlot",
+        },
+        {
+          $lookup: {
+            from: "Subject",
+            localField: "subject",
+            foreignField: "_id",
+            as: "subjectDetail",
+          },
+        },
+        {
+          $lookup: {
+            from: "Teacher",
+            localField: "scheduleTeacher",
+            foreignField: "_id",
+            as: "teacherDetail",
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            subject: "$scheduleTitle",
+            subjectCode: { $arrayElemAt: ["$subjectDetail.subjectCode", 0] },
+            day: "$timesSlot.scheduleDay",
+            period: "$timesSlot.lessonNumber",
+            className: 1,
+            teacherName: { $arrayElemAt: ["$teacherDetail.userName", 0] },
           },
         },
       ]);
@@ -373,6 +429,51 @@ const ScheduleController = {
         },
       ]);
       return res.status(200).json({ classNames });
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  },
+
+  async getSubjectOfTeacher(req, res) {
+    const { teacherId, schoolYear, className } = req.body;
+    try {
+      const subjects = await Schedule.aggregate([
+        {
+          $match: {
+            schoolYear: schoolYear,
+            className: className,
+            scheduleTeacher: new ObjectId(teacherId),
+          },
+        },
+        {
+          $unwind: "$subject",
+        },
+        {
+          $lookup: {
+            from: "Subject",
+            localField: "subject",
+            foreignField: "_id",
+            as: "subjectDetail",
+          },
+        },
+        {
+          $unwind: "$subjectDetail",
+        },
+        {
+          $group: {
+            _id: "$subjectDetail.subjectName",
+            subjectCode: { $first: "$subjectDetail.subjectCode" },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            subjectName: "$_id",
+            subjectCode: 1,
+          },
+        },
+      ]);
+      return res.status(200).json({ subjects });
     } catch (error) {
       return res.status(500).json({ error: error.message });
     }

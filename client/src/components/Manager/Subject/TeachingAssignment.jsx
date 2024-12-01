@@ -789,10 +789,10 @@ export default function TeachingAssignment() {
                 <option value="2A3">2A3</option>
                 <option value="2A4">2A4</option>
                 <option value="2A5">2A5</option>
-                <option value="3A1">1A1</option>
-                <option value="3A2">1A2</option>
-                <option value="3A3">1A3</option>
-                <option value="3A4">1A4</option>
+                <option value="3A1">3A1</option>
+                <option value="3A2">3A2</option>
+                <option value="3A3">3A3</option>
+                <option value="3A4">3A4</option>
                 <option value="3A5">3A5</option>
                 <option value="4A1">4A1</option>
                 <option value="4A2">4A2</option>

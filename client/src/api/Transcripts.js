@@ -67,4 +67,30 @@ async function updateTranscript(dataRow) {
   }
 }
 
-export { getTranscriptBySubjectAndClassAndSchoolYear, updateTranscript };
+async function getTranscriptByStudentCodeAndClassAndSchoolYear(studentCode, className, schoolYear) {
+  try {
+    const response = await axios.post(
+      API_URL + '/transcripts/getTranscriptByStudentCodeAndClassAndSchoolYear',
+      {
+        studentCode: studentCode,
+        className: className,
+        schoolYear: schoolYear,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response;
+  } catch (error) {
+    console.error('Get transcript error:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+}
+
+export {
+  getTranscriptBySubjectAndClassAndSchoolYear,
+  updateTranscript,
+  getTranscriptByStudentCodeAndClassAndSchoolYear,
+};
