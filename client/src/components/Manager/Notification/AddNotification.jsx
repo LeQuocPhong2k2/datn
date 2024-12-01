@@ -10,6 +10,7 @@ import { createNotification } from '../../../api/Notifications';
 import { useEffect } from 'react';
 import { getAdministratorsbyAccountId } from '../../../api/Administrator';
 import { getStudentListByClassNameAndAcademicYear } from '../../../api/Class';
+import { getHomeRoomTeacherByClassNameAndAcademicYear } from '../../../api/Class';
 Modal.setAppElement('#root');
 export default function AddNotification() {
   // tạo 1 biến quản lý thông tin Admin
@@ -41,25 +42,74 @@ export default function AddNotification() {
   const [listIdReceivers, setListIdReceivers] = useState([]);
   const [academicYear, setAcademicYear] = useState('2024-2025');
   // khi mà selectedReceiver thay đổi, thì cập nhật listIdReceivers gọi tới hàm getStudentListByClassNameAndAcademicYear
+  // useEffect(() => {
+  //   if (selectedReceiver && academicYear) {
+  //     getStudentListByClassNameAndAcademicYear(selectedReceiver, academicYear)
+  //       .then((res) => {
+  //         console.log('Kết quả khi chạy là ', res.data);
+  //         if (res.data.students && Array.isArray(res.data.students)) {
+  //           setListIdReceivers(res.data.students.map((student) => student._id));
+  //         } else {
+  //           console.error('students not found in response data');
+  //         }
+  //       })
+  //       .catch((error) => {
+  //         console.error('Error fetching students:', error.response ? error.response.data : error.message);
+  //       });
+  //     // gọi toiws api getHomeRoomTeacherByClassNameAndAcademicYear để lấy _id của giáo viên chủ nhiệm sau đó push vào listIdReceivers
+  //     getHomeRoomTeacherByClassNameAndAcademicYear(selectedReceiver, academicYear)
+  //       .then((res) => {
+  //         console.log('Kết quả khi chạy là ', res.data);
+  //         if (res.data && res.data._id) {
+  //           console.log('Home room teacher:', res.data._id);
+  //           setListIdReceivers((prev) => [...prev, res.data._id]);
+  //           alert('Đã thêm giáo viên chủ nhiệm vào danh sách nhận thông báo');
+  //         } else {
+  //           console.error('home room teacher not found in response data');
+  //         }
+  //       })
+  //       .catch((error) => {
+  //         console.error('Error fetching home room teacher:', error.response ? error.response.data : error.message);
+  //       });
+  //   }
+  // }, [selectedReceiver, academicYear]);
   useEffect(() => {
-    if (selectedReceiver && academicYear) {
-      getStudentListByClassNameAndAcademicYear(selectedReceiver, academicYear)
-        .then((res) => {
-          console.log('Kết quả khi chạy là ', res.data);
-          if (res.data.students && Array.isArray(res.data.students)) {
-            setListIdReceivers(res.data.students.map((student) => student._id));
-          } else {
-            console.error('students not found in response data');
-          }
-        })
-        .catch((error) => {
-          console.error('Error fetching students:', error.response ? error.response.data : error.message);
-        });
-    }
+    const fetchReceiversList = async () => {
+      if (!selectedReceiver || !academicYear) return;
+
+      try {
+        // Lấy danh sách sinh viên
+        const studentsResponse = await getStudentListByClassNameAndAcademicYear(selectedReceiver, academicYear);
+        const studentIds = studentsResponse.data.students?.map((student) => student._id) || [];
+        // console.log('Danh sách selectedReceiver:', selectedReceiver);
+        // Lấy thông tin giáo viên chủ nhiệm
+        const homeRoomTeacherResponse = await getHomeRoomTeacherByClassNameAndAcademicYear(
+          selectedReceiver,
+          academicYear
+        );
+        // trả về kết quả full của getHomeRoomTeacherByClassNameAndAcademicYear
+        // console.log('Kết quả khi chạy getHomeRoomTeacherByClassNameAndAcademicYear ', homeRoomTeacherResponse._id);
+        const homeRoomTeacherId = homeRoomTeacherResponse._id || null;
+
+        // Tạo danh sách người nhận
+        const receiverIds = homeRoomTeacherId ? [...studentIds, homeRoomTeacherId] : studentIds;
+
+        setListIdReceivers(receiverIds);
+
+        // Thông báo nếu có giáo viên chủ nhiệm
+        if (homeRoomTeacherId) {
+          console.log('Đã thêm giáo viên chủ nhiệm vào danh sách nhận thông báo');
+        }
+      } catch (error) {
+        console.error('Lỗi khi tìm nạp danh sách người nhận:', error.response?.data || error.message);
+      }
+    };
+
+    fetchReceiversList();
   }, [selectedReceiver, academicYear]);
 
   useEffect(() => {
-    console.log('List Id Receivers:', listIdReceivers);
+    console.log('List Id Receivers 123:', listIdReceivers);
   }, [listIdReceivers]);
 
   const [subject, setSubject] = useState(''); // Thêm state cho subject
@@ -88,7 +138,8 @@ export default function AddNotification() {
           reader.readAsDataURL(blob);
         });
       }
-
+      // set dateTime qua giờ việt nam
+      dateTime.setHours(dateTime.getHours() + 7);
       const response = await createNotification(
         admin_id,
         listIdReceivers,
@@ -100,6 +151,7 @@ export default function AddNotification() {
         },
         dateTime
       );
+      console.log('kết quả của tạo thông báo là:', response);
 
       toast.success('Tạo thông báo thành công', {
         icon: <IoMdCheckboxOutline />,

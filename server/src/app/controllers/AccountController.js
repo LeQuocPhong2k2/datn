@@ -9,7 +9,7 @@ const AccountController = {
     try {
       console.log("Đang truy vấn tất cả tài khoản...");
       const accounts = await Account.find();
-      console.log("Kết quả truy vấn:", accounts);
+      // console.log("Kết quả truy vấn:", accounts);
       res.status(200).json(accounts);
     } catch (error) {
       console.error("Lỗi khi truy vấn tài khoản:", error);

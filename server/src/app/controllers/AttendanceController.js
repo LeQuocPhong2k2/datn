@@ -64,6 +64,13 @@ const AttendanceController = {
       const { class_id } = req.body;
       // const currentDate = new Date();
       // currentDate.setHours(currentDate.getHours() + 7);
+      // Kiểm tra class_id
+      if (!class_id) {
+        return res.status(400).json({
+          success: false,
+          message: "class_id chưa được cung cấp",
+        });
+      }
 
       const dataDiemDanh = await Attendance.find({
         class_id: class_id,

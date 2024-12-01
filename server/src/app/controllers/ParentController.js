@@ -29,7 +29,7 @@ const ParentController = {
         students.map(async (student) => {
           const studentClass = await Class.findOne(
             { studentList: student._id },
-            '_id className homeRoomTeacher'
+            '_id className homeRoomTeacher academicYear'
           )
           return {
             student_id: student._id,
@@ -39,6 +39,8 @@ const ParentController = {
                   class_id: studentClass._id,
                   className: studentClass.className,
                   homeRoomTeacher: studentClass.homeRoomTeacher,
+                  // lấy thêm năm học
+                  academicYear: studentClass.academicYear,
                 }
               : null,
           }

@@ -10,10 +10,10 @@ import { getStudentListByClassNameAndAcademicYear } from '../../../api/Class';
 import { createAttendance } from '../../../api/Attendance';
 import { getAttendanceByClassAndDateNow } from '../../../api/Attendance';
 import { getGiaoVienByPhoneNumber } from '../../../api/Teacher';
+import { Select } from 'antd';
 
 export default function StudentAttendance() {
   const phoneNumber = sessionStorage.getItem('phoneNumberTeacher');
-  const [selectedClass, setSelectedClass] = useState('1A1');
   const [selectedAcademicYear, setSelectedAcademicYear] = useState('2024-2025');
   const [studentList, setStudentList] = useState([]);
   const [showStudentList, setShowStudentList] = useState(false);
@@ -41,12 +41,15 @@ export default function StudentAttendance() {
       return date;
     });
   };
+  const [selectedClass, setSelectedClass] = useState('');
+  // set selected class là teacherInfo.lopChuNhiem[0].className
 
   useEffect(() => {
-    if (selectedClass === '1A1') {
-      handleSelectClass(selectedClass);
+    if (teacherInfo.lopChuNhiem) {
+      setSelectedClass(teacherInfo.lopChuNhiem[0].className);
+      handleSelectClass(teacherInfo.lopChuNhiem[0].className);
     }
-  }, [selectedClass]);
+  }, [teacherInfo, teacherInfo.lopChuNhiem, setSelectedClass]);
 
   useEffect(() => {
     const fetchTeacherInfo = async () => {
@@ -247,8 +250,15 @@ export default function StudentAttendance() {
             </p>
             <div className="flex flex-col md:flex-row justify-center p-4 space-y-4 md:space-y-0 md:space-x-4">
               <div className="flex items-center">
-                <label className="mr-2">Lớp:</label>
-                <select
+                <label className="mr-2">
+                  Năm học :
+                  {teacherInfo.lopChuNhiem?.map((lop) => (
+                    <span key={lop._id}>{lop.academicYear}</span>
+                  ))}
+                </label>
+
+                <label className="mr-2">Lớp :</label>
+                {/* <select
                   className="border border-gray-300 p-1 rounded"
                   value={selectedClass}
                   onChange={(e) => {
@@ -264,7 +274,10 @@ export default function StudentAttendance() {
                       </option>
                     ))
                   )}
-                </select>
+                </select> */}
+                {teacherInfo.lopChuNhiem?.map((lop) => (
+                  <span key={lop._id}>{lop.className}</span>
+                ))}
               </div>
               <div className="flex items-center">
                 <label className="mr-2">Ngày:</label>

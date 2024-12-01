@@ -21,7 +21,10 @@ import TeachingAssignment from './Manager/Subject/TeachingAssignment';
 
 import { getAccountById } from '../api/Login';
 import AddNotification from './Manager/Notification/AddNotification';
+import ListNotification from './Manager/Notification/ListNoTification';
+
 import { getAdministratorsbyAccountId } from '../api/Administrator';
+
 export default function Admin() {
   const [accounts, setAccounts] = useState({});
 
@@ -333,16 +336,16 @@ export default function Admin() {
                       <a href="#add-notification">Thêm mới thông báo</a>
                     </li>
                     <li
-                      className={`py-1 px-2 border-l-4 border-l-slate-300 hover:border-l-blue-700 hover:text-blue-700 ${selectedFunction === 'import-subject' ? 'bg-gray-300' : ''}`}
+                      className={`py-1 px-2 border-l-4 border-l-slate-300 hover:border-l-blue-700 hover:text-blue-700 ${selectedFunction === 'list-noti' ? 'bg-gray-300' : ''}`}
                       onClick={() => {
-                        handleFunctionSelect('read-notification');
+                        handleFunctionSelect('list-noti');
                         setActiveMenus({ hocSinh: false, monHoc: false, giaoVien: false, thongBao: true });
                       }}
                     >
                       <div className="absolute top-2 -left-[0.9rem] font-medium text-2xl text-slate-300">
                         <FaCaretLeft />
                       </div>
-                      <a href="#import-subject">Xem thông báo đã gửi</a>
+                      <a href="#list-noti">Xem thông báo đã gửi</a>
                     </li>
                   </ul>
                 )}
@@ -372,6 +375,7 @@ export default function Admin() {
             {selectedFunction === 'add-subject' && <AddSubject />}
             {selectedFunction === 'teaching-assignment' && <TeachingAssignment />}
             {selectedFunction === 'add-notification' && <AddNotification />}
+            {selectedFunction === 'list-noti' && <ListNotification />}
           </>
         )}
       </div>

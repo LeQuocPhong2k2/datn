@@ -1,5 +1,5 @@
 import 'flowbite';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import Cookies from 'js-cookie'; // Thêm import để sử dụng Cookies
 // import { jwtDecode } from 'jwt-decode';
 import { useState } from 'react'; // Thêm import useState
@@ -10,11 +10,12 @@ import { Toaster, toast } from 'react-hot-toast';
 import { createLeaveRequest, getLeaveRequestsByStudentId, getLeaveRequestsByParentId } from '../../api/LeaveRequest';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { getAllNotifications } from '../../api/Notifications';
+import { getAllNotifications, getNotificationsByReceiverId } from '../../api/Notifications';
 import { getFullParentInfo } from '../../api/Parents';
 import { getTeachingReports } from '../../api/TeachingReport';
 
 import Schedule from './Schedule';
+import io from 'socket.io-client';
 import ViewReport from './ViewReport';
 
 export default function Student() {
@@ -29,9 +30,9 @@ export default function Student() {
       return `${currentYear - 1}-${currentYear}`;
     }
   };
-
   const [accounts, setAccounts] = useState([]);
   const [studentInfo, setStudentInfo] = useState({});
+  // useEffect ra studentInfo
 
   // gọi tới apiu getFullInfoStudentByCode đựa trên studentCode ở trong cookie
   // const [studentInfo, setStudentInfo] = useState({});
@@ -75,34 +76,79 @@ export default function Student() {
 
   // chỗ sự kiện cho tab thông báo
 
-  const [showContent, setShowContent] = useState(false);
   const [showContent1, setShowContent1] = useState(false);
-  const senderName = 'Admin01'; // Thay thế bằng tên người gửi thực tế
-  const createdAt = '2024-09-07T00:00:00.000Z'; // Thay thế bằng thời gian gửi thực tế
-  const createdAt1 = '2023-12-24T00:00:00.000Z'; // Thay thế bằng thời gian gửi thực tế
-  const content = {
-    subject: 'Chúc Mừng Lễ giáng sinh 2023 ',
-    text: 'Nhân dịp Lễ Giáng Sinh 2023 Chúc các thầy cô và các em học sinh có một kỳ nghỉ lễ vui vẻ và hạnh phúc bên gia đình và người thân. Chúc các em học sinh sẽ có một kỳ học mới đầy nhiệt huyết và hứng khởi. Merry Christmas and Happy New Year 2024!',
-    link: 'https://www.youtube.com/watch?v=4YBGRGBj7_w',
-    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRVLAlmZuyO7OQx5a9lyBLhl_t1gwimPhrMhw&s',
-  };
-  const content1 = {
-    // hãy viết text về họp phụ huynh
-    subject: 'Họp phụ huynh học sinh',
-    text: ' Kính mời quý phụ huynh tham dự buổi họp phụ huynh học sinh vào lúc 7h30 ngày 10/10/2024 tại trường Tiểu học Nguyễn Bỉnh Khiêm. Đây là cơ hội để quý phụ huynh gặp gỡ và trò chuyện với giáo viên, cũng như nhận thông tin về quá trình học tập của con em mình. Hẹn gặp lại quý phụ huynh!',
-    link: 'https://www.youtube.com/watch?v=4YBGRGBj7_w',
-    image:
-      'https://www.canva.com/design/DAGTWH_JYfw/_ZLoUqEYAJgTzgSi6WQ3wQ/view?utm_content=DAGTWH_JYfw&utm_campaign=designshare&utm_medium=link&utm_source=editor',
-  };
 
   // gọi tới api get all notifications
+
   const [notifications, setNotifications] = useState([]);
+  const socket = useRef(null);
+  const URL = process.env.REACT_APP_SOCKET_URL;
   useEffect(() => {
-    getAllNotifications().then((res) => {
+    getNotificationsByReceiverId(studentInfo._id).then((res) => {
       console.log('Notifications:', res.data);
       setNotifications(res.data);
     });
-  }, []);
+    console.log('socket:', URL);
+
+    const connectSocket = () => {
+      socket.current = io(URL, {
+        // Đảm bảo địa chỉ chính xác
+        withCredentials: true,
+        transports: ['websocket', 'polling'],
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
+      });
+
+      socket.current.on('connect', () => {
+        console.log('Client kết nối socket thành công:', socket.current.id);
+        // alert('Kết nối socket thành công');
+      });
+
+      socket.current.on('connect_error', (err) => {
+        console.error('Socket connection error:', err);
+        // alert('Kết nối socket thất bại');
+      });
+
+      socket.current.on('newNotification', (notification) => {
+        console.log(' newNotification ở socket kết nối thành công:', notification);
+        // const delay = new Date(notification.notification_time) - new Date();
+        // if (delay > 0) {
+        //   setTimeout(() => {
+        //     setNotifications((prev) => [notification, ...prev]);
+        //   }, delay);
+        // } else {
+        //   setNotifications((prev) => [notification, ...prev]);
+        // }
+        setNotifications((prev) => [notification, ...prev]);
+      });
+      // lắng nghe sự kiện getAllNotifications ở phía server socket
+      socket.current.on('getAllNotifications', (notifications) => {
+        console.log('getAllNotifications ở socket kết nối thành công:', notifications);
+        setNotifications(notifications);
+      });
+    };
+
+    connectSocket();
+
+    return () => {
+      if (socket.current) {
+        socket.current.disconnect();
+      }
+    };
+  }, [studentInfo]);
+  // Thêm hàm format date
+  const formatDateTime = (dateString) => {
+    // Tách thời gian UTC thành các thành phần
+    const date = new Date(dateString);
+    const utcDay = date.getUTCDate().toString().padStart(2, '0');
+    const utcMonth = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+    const utcYear = date.getUTCFullYear();
+    const utcHour = date.getUTCHours().toString().padStart(2, '0');
+    const utcMinute = date.getUTCMinutes().toString().padStart(2, '0');
+
+    return `${utcHour}:${utcMinute} ${utcDay}/${utcMonth}/${utcYear}`;
+  };
 
   const [parentInfo, setParentInfo] = useState({ students: [] });
   const [selectedStudents, setSelectedStudents] = useState([]);
@@ -305,43 +351,10 @@ export default function Student() {
   // tạo biến lưu lý do nghỉ học
   const [leaveReason, setLeaveReason] = useState('');
 
-  // const handleSubmitLeaveRequest = () => {
-  //   const formattedSessions = generateDateRange(startDate, endDate).map((date) => {
-  //     const dateString = new Date(date).toISOString().split('T')[0];
-  //     return {
-  //       date: new Date(date).toISOString(),
-  //       morning: selectedSessions.includes(`${dateString}-morning`) ? true : false,
-  //       afternoon: selectedSessions.includes(`${dateString}-afternoon`) ? true : false,
-  //     };
-  //   });
-
-  //   // Tạo mảng promises cho mỗi học sinh được chọn
-  //   const createRequestPromises = selectedStudents.map((student) =>
-  //     createLeaveRequest(
-  //       student.student_id,
-  //       studentInfo.parents[0]._id,
-  //       student.class.homeRoomTeacher, // Use student-specific homeRoomTeacher
-  //       student.class.class_id, // Use student-specific class_id
-  //       startDate,
-  //       endDate,
-  //       leaveReason,
-  //       formattedSessions
-  //     )
-  //   );
-
-  //   // Thực thi tất cả các promises
-  //   Promise.all(createRequestPromises)
-  //     .then((responses) => {
-  //       console.log('Leave requests created successfully:', responses);
-  //       alert(`Đã gửi ${selectedStudents.length} đơn nghỉ học thành công`);
-  //       setShowFullInfoLeaveRequest(false);
-  //       setShowInfoLeaveRequest(true);
-  //     })
-  //     .catch((error) => {
-  //       console.error('Error creating leave requests:', error);
-  //       alert('Đã xảy ra lỗi khi gửi đơn nghỉ học. Vui lòng thử lại sau.' + error);
-  //     });
-  // };
+  // console.log selectedStudents để xem thông tin
+  useEffect(() => {
+    console.log('Selected students:', selectedStudents);
+  }, [selectedStudents]);
 
   const handleSubmitLeaveRequest = () => {
     // Helper function to convert to Vietnam timezone
@@ -388,8 +401,21 @@ export default function Student() {
         setShowInfoLeaveRequest(true);
       })
       .catch((error) => {
-        console.error('Error creating leave requests:', error);
-        alert('Đã xảy ra lỗi khi gửi đơn nghỉ học. Vui lòng thử lại sau.' + error);
+        // console.error('Error creating leave requests:', error);
+        // alert('Đã xảy ra lỗi khi gửi đơn nghỉ học. Vui lòng thử lại sau.' + error);
+        console.error('Lỗi khi tạo đơn xin nghỉ học:', error);
+
+        // Kiểm tra nếu là lỗi trùng đơn nghỉ học
+        if (error.response?.status === 400 && error.response?.data?.message) {
+          alert(error.response.data.message);
+          // Reset form or specific fields if needed
+          // về lại trang  trước
+          setShowFullInfoLeaveRequest(false);
+          setShowInfoLeaveRequest(true);
+        } else {
+          // Các lỗi khác
+          alert('Đã xảy ra lỗi khi gửi đơn nghỉ học. Vui lòng thử lại sau.', +error);
+        }
       });
   };
 
@@ -1391,7 +1417,8 @@ export default function Student() {
                       </div>
                       <div>
                         <strong>Thời gian: </strong>
-                        {new Date(notification.created_at).toLocaleString()}
+                        {/* {new Date(notification.created_at).toLocaleString()} */}
+                        {formatDateTime(notification.notification_time)}
                       </div>
                     </div>
                     <h3
@@ -1442,6 +1469,8 @@ export default function Student() {
                   onClick={() => {
                     setShowInfoLeaveRequest(false);
                     setShowLeaveRequestSent(true);
+                    // setShowInfoLeaveRequest(!showInfoLeaveRequest);
+                    // setShowLeaveRequestSent(!showLeaveRequestSent);
                     handleShowInfoLeaveRequestSent();
                   }}
                 >
@@ -1452,6 +1481,7 @@ export default function Student() {
                   onClick={() => {
                     setShowInfoLeaveRequest(true);
                     setShowLeaveRequestSent(false);
+                    setShowFullInfoLeaveRequestSent(false);
                   }}
                 >
                   Tạo mới đơn nghỉ học

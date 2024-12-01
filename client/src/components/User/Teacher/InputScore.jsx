@@ -112,6 +112,11 @@ export default function InputScore() {
    */
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
+
+    if (!file) {
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (e) => {
       const data = new Uint8Array(e.target.result);
@@ -119,6 +124,9 @@ export default function InputScore() {
       const sheetName = workbook.SheetNames[0];
       const worksheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
       setTranscriptFileUpload(worksheet);
+    };
+    reader.onerror = (error) => {
+      console.error('Error reading file:', error);
     };
     reader.readAsArrayBuffer(file);
   };

@@ -4,5 +4,11 @@ const NotificationController = require('../app/controllers/NotificationControlle
 
 router.post('/createNotification', NotificationController.createNotification)
 router.post('/getAllNotifications', NotificationController.getAllNotifications)
+router.post(
+  '/getNotificationsByReceiverId',
+  NotificationController.getNotificationsByReceiverId
+)
+router.post('/updateNotification', NotificationController.updateNotification)
+router.post('/deleteNotification', NotificationController.deleteNotification)
 
 module.exports = router
