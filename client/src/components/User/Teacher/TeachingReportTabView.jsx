@@ -30,13 +30,13 @@ export default function TeachingPlans() {
     const day = date.getDay();
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    return day !== 0 && day !== 6 && date > today;
+    return day !== 0 && day !== 6;
   };
 
   const [selectedDate, setSelectedDate] = useState(() => {
     const today = new Date();
     const yesterday = new Date(today);
-    yesterday.setDate(today.getDate() + 1);
+    yesterday.setDate(today.getDate() + 0);
     return yesterday;
   });
 
@@ -99,6 +99,8 @@ export default function TeachingPlans() {
       .then((data) => {
         if (data.teachingReports.length === 0) {
           toast.error('Không tìm thấy báo bài!');
+          setDataManyDay({});
+          setDataManyBk({});
           return;
         }
 
@@ -126,6 +128,18 @@ export default function TeachingPlans() {
             }
           });
         });
+
+        dataMany = Object.keys(dataMany)
+          .sort((a, b) => {
+            const dateA = parse(a, 'dd/MM/yyyy', new Date());
+            const dateB = parse(b, 'dd/MM/yyyy', new Date());
+            return dateA - dateB;
+          })
+          .reduce((acc, key) => {
+            acc[key] = dataMany[key].sort((a, b) => a.subjectName.localeCompare(b.subjectName));
+            return acc;
+          }, {});
+
         setDataManyDay(dataMany);
         setDataManyBk(dataMany);
       })
@@ -211,6 +225,15 @@ export default function TeachingPlans() {
   const totalPages = Math.ceil(Object.keys(dataManyDay).length / 5);
 
   const handleSave = () => {
+    for (const date in dataManyDay) {
+      for (const subject of dataManyDay[date]) {
+        if (subject.content === '') {
+          toast.error('Vui lòng nhập nội dung cho môn học');
+          return;
+        }
+      }
+    }
+
     const academicYear = getCurrentSchoolYear();
     const classReport = className;
     const teachCreate = user.teacherId;
@@ -351,7 +374,9 @@ export default function TeachingPlans() {
                 <tr>
                   <th className="border border-gray-400 px-4 py-2 bg-gray-100 w-32 min-w-32 text-left">Ngày</th>
                   <th className="border border-gray-400 px-4 py-2 bg-gray-100 w-44 min-w-44 text-left">Môn học</th>
-                  <th className="border border-gray-400 px-4 py-2 bg-gray-100 w-72 min-w-72 text-left">Nội dung</th>
+                  <th className="border border-gray-400 px-4 py-2 bg-gray-100 w-72 min-w-72 text-left">
+                    Nội dung<span className="text-red-500">*</span>
+                  </th>
                   <th className="border border-gray-400 px-4 py-2 bg-gray-100 w-72 min-w-72 text-left">Ghi chú</th>
                   <th className="border border-gray-400 px-4 py-2 bg-gray-100" colSpan={2}></th>
                 </tr>

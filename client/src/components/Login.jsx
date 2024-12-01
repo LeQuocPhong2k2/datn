@@ -52,7 +52,7 @@ export default function Login() {
       // Set cookies
       cookies.set('access_token', response.token, {
         path: '/',
-        expires: new Date(Date.now() + 60 * 60 * 1000),
+        expires: new Date(Date.now() + 10 * 60 * 60 * 1000),
       });
       cookies.set('refresh_token', response.account.refreshToken, {
         path: '/',

@@ -183,6 +183,15 @@ export default function TeachingReportManyDay() {
   };
 
   const handleSaveReport = () => {
+    for (const date in dataManyDay) {
+      for (const subject of dataManyDay[date]) {
+        if (subject.content === '') {
+          toast.error('Vui lòng nhập nội dung cho môn học');
+          return;
+        }
+      }
+    }
+
     const academicYear = getCurrentSchoolYear();
     const classReport = className;
     const teachCreate = user.teacherId;
@@ -309,7 +318,9 @@ export default function TeachingReportManyDay() {
             <tr>
               <th className="border border-gray-400 px-4 py-2 bg-gray-100 w-36 min-w-36 text-left">Ngày</th>
               <th className="border border-gray-400 px-4 py-2 bg-gray-100 w-44 min-w-44 text-left">Môn học</th>
-              <th className="border border-gray-400 px-4 py-2 bg-gray-100 w-72 min-w-72 text-left">Nội dung</th>
+              <th className="border border-gray-400 px-4 py-2 bg-gray-100 w-72 min-w-72 text-left">
+                Nội dung<span className="text-red-500">*</span>
+              </th>
               <th className="border border-gray-400 px-4 py-2 bg-gray-100 w-72 min-w-72 text-left">Ghi chú</th>
               <th className="border border-gray-400 px-4 py-2 bg-gray-100 w-14 min-w-14"></th>
             </tr>

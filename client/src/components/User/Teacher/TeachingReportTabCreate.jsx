@@ -2,9 +2,11 @@ import React from 'react';
 import 'flowbite';
 import { useState } from 'react';
 import 'react-datepicker/dist/react-datepicker.css';
+import { CiImport } from 'react-icons/ci';
 
 import TeachingReportManyDay from './TeachingReportManyDay';
 import TeachingReportDay from './TeachingReportDay';
+import TeachingReportImport from './TeachingReportImport';
 
 export default function TeachingPlans() {
   const [optionCreate, setOptionCreate] = useState('one-day');
@@ -29,15 +31,24 @@ export default function TeachingPlans() {
             <input onChange={(e) => setOptionCreate(e.target.value)} value={'many-day'} type="radio" name="opBaoBai" />
             <label htmlFor="">Tạo báo bài nhiều ngày</label>
           </div>
-          <div className="flex items-center justify-start gap-1">
+          {/* <div className="flex items-center justify-start gap-1">
             <input onChange={(e) => setOptionCreate(e.target.value)} value={'many-week'} type="radio" name="opBaoBai" />
             <label htmlFor="">Tạo báo bài nhiều tuần</label>
+          </div> */}
+          <div className="flex items-center justify-start gap-1">
+            <input onChange={(e) => setOptionCreate(e.target.value)} value={'import'} type="radio" name="opBaoBai" />
+            <label className="flex items-center justify-start gap-1" htmlFor="">
+              Import Excel
+              <CiImport className="text-yellow-500" />
+            </label>
           </div>
         </div>
 
         {optionCreate === 'one-day' && <TeachingReportDay />}
 
         {optionCreate === 'many-day' && <TeachingReportManyDay />}
+
+        {optionCreate === 'import' && <TeachingReportImport />}
 
         {optionCreate === 'many-week' && (
           <>

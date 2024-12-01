@@ -227,6 +227,18 @@ const TeachingReportController = {
       res.status(500).json({ message: error.message });
     }
   },
+
+  async getReportByClassAndDay(req, res) {
+    const { academicYear, className, date } = req.body;
+
+    try {
+      const teachingReports = await TeachingReport.find({ academicYear, className, dateCreate: date });
+
+      res.status(200).json({ teachingReports });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  },
 };
 
 module.exports = TeachingReportController;

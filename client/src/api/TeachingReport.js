@@ -79,4 +79,28 @@ async function getReportDetailByDayOrClassOrSubject(academicYear, className, dat
   return response.data;
 }
 
-export { saveTeachingReport, getTeachingReports, getReportDetailByDayOrClassOrSubject, updateTeachingReport };
+async function getReportByClassAndDay(academicYear, className, date) {
+  const response = await axios.post(
+    `${API_URL}/teachingReport/getReportByClassAndDay`,
+    {
+      academicYear,
+      className,
+      date,
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  return response.data;
+}
+
+export {
+  saveTeachingReport,
+  getTeachingReports,
+  getReportDetailByDayOrClassOrSubject,
+  updateTeachingReport,
+  getReportByClassAndDay,
+};

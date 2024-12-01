@@ -163,6 +163,16 @@ export default function TeachingReportDay() {
   };
 
   const handleSaveReport = () => {
+    // kiểm tra nếu content hoặc note rỗng thì thông báo
+    for (const date in data) {
+      for (const subject of data[date]) {
+        if (subject.content === '') {
+          toast.error('Vui lòng nhập nội dung cho môn học');
+          return;
+        }
+      }
+    }
+
     const academicYear = getCurrentSchoolYear();
     const classReport = className;
     const teachCreate = user.teacherId;
@@ -179,7 +189,7 @@ export default function TeachingReportDay() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-end gap-2">
+      <div className="flex flex-wrap items-end gap-2 py-2">
         <div className="flex flex-col justify-end gap-2 py-2">
           <span>
             Ngày báo bài<span className="text-red-500">*</span>
@@ -242,7 +252,9 @@ export default function TeachingReportDay() {
             <tr>
               <th className="border border-gray-400 px-4 py-2 bg-gray-100 w-36 min-w-36">Ngày</th>
               <th className="border border-gray-400 px-4 py-2 bg-gray-100 w-44 min-w-44">Môn học</th>
-              <th className="border border-gray-400 px-4 py-2 bg-gray-100 w-72 min-w-72">Nội dung</th>
+              <th className="border border-gray-400 px-4 py-2 bg-gray-100 w-72 min-w-72">
+                Nội dung<span className="text-red-500">*</span>
+              </th>
               <th className="border border-gray-400 px-4 py-2 bg-gray-100 w-72 min-w-72">Ghi chú</th>
               <th className="border border-gray-400 px-4 py-2 bg-gray-100 w-14 min-w-14"></th>
             </tr>
