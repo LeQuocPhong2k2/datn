@@ -3,7 +3,6 @@ const Notification = require('../models/Notification')
 const socket = require('../../socket')
 const socketInit = require('../../socket')
 const AWS = require('aws-sdk')
-require('dotenv').config()
 
 // Cấu hình AWS S3
 const s3 = new AWS.S3({
@@ -129,7 +128,6 @@ const NotificationController = {
   // viết lại hàm updateNotification từ req.body
   updateNotification: async (req, res) => {
     try {
-      console.log('req.body ở updateNotification', req.body)
       const { _id } = req.body
       const notification = await Notification.findById(_id)
       if (!notification) {
@@ -171,6 +169,18 @@ const NotificationController = {
       })
     } catch (error) {
       console.error('Error deleting notification:', error)
+      res.status(500).json({ message: 'Internal server error' })
+    }
+  },
+  getNotificationsBySenderId: async (req, res) => {
+    try {
+      const { sender_id } = req.body
+      const notifications = await Notification.find({
+        sender_id: sender_id,
+      })
+      res.json(notifications)
+    } catch (error) {
+      console.error('Error fetching notifications:', error)
       res.status(500).json({ message: 'Internal server error' })
     }
   },

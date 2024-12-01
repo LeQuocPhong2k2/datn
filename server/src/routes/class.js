@@ -33,5 +33,6 @@ router.post(
   '/getHomeRoomTeacherByClassNameAndAcademicYear',
   ClassController.getHomeRoomTeacherByClassNameAndAcademicYear
 )
+router.post('/getClassByTeacherId', ClassController.getClassByTeacherId)
 
 module.exports = router

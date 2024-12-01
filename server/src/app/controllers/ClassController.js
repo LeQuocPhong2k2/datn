@@ -811,6 +811,34 @@ const ClassController = {
       res.status(500).json({ error: error.message })
     }
   },
+  getClassByTeacherId: async (req, res) => {
+    const { teacher_id } = req.body
+    try {
+      const classes = await Class.find({ homeRoomTeacher: teacher_id })
+
+      const classesWithStudentDetails = await Promise.all(
+        classes.map(async (classItem) => {
+          const studentDetails = await Student.find({
+            _id: { $in: classItem.studentList },
+          }).select('userName')
+
+          // Convert to plain object and exclude studentList
+          const classObj = classItem.toObject()
+          delete classObj.studentList
+
+          return {
+            ...classObj,
+            studentList: studentDetails,
+          }
+        })
+      )
+
+      res.status(200).json(classesWithStudentDetails)
+    } catch (error) {
+      console.error('Lỗi khi lấy danh sách lớp học:', error)
+      res.status(500).json({ error: error.message })
+    }
+  },
 }
 
 /**

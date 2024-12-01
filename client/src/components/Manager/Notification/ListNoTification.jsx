@@ -57,8 +57,11 @@ export default function ListNotification() {
   const handleUpdateNotification = async () => {
     try {
       await updateNotification(selectedNotification._id, selectedNotification);
+
       setModalIsOpen(false);
       fetchNotifications();
+      // thêm toast thành công
+      toast.success('Cập nhật thông báo thành công!');
     } catch (error) {
       console.error('Error updating notification:', error);
     }
@@ -87,7 +90,9 @@ export default function ListNotification() {
               <td className="py-2 px-4 border-b">{new Date(notification.notification_time).toLocaleString()}</td>
               <td className="py-2 px-4 border-b">
                 <b className="text-blue-500">
-                  <a href="{notification.content.link}"> Link</a>
+                  <a href={notification.content.link} target="_blank" rel="noopener noreferrer">
+                    Link
+                  </a>
                 </b>
               </td>
               <td className="py-2 px-4 border-b flex justify-center space-x-2">
@@ -99,7 +104,7 @@ export default function ListNotification() {
                 </button>
                 <button
                   onClick={() => handleDeleteClick(notification)}
-                  className="bg-red-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                  className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
                 >
                   Xóa
                 </button>
@@ -115,7 +120,7 @@ export default function ListNotification() {
             className="grid grid-flow-row gap-4 p-4 px-10 max-h-full relative mx-auto"
             style={{ marginLeft: '200px' }}
           >
-            <h4 className="text-2xl font-bold mb-4">Chỉnh sửa thông báo</h4>
+            <h4 className="text-2xl font-bold mb-4  text-green-800">Chỉnh sửa thông báo</h4>
             <div className="mb-4">
               <label className="block text-gray-700 text-sm font-bold mb-2">Tiêu đề</label>
               <input
@@ -148,6 +153,8 @@ export default function ListNotification() {
               <label className="block text-gray-700 text-sm font-bold mb-2">Thời gian</label>
               <DatePicker
                 selected={new Date(selectedNotification.notification_time)}
+                // mindate là thời gian hiện tại không thể chọn thời gian đã qua
+                minDate={new Date()}
                 onChange={(date) => setSelectedNotification({ ...selectedNotification, notification_time: date })}
                 showTimeSelect
                 dateFormat="Pp"

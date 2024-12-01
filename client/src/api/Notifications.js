@@ -62,6 +62,7 @@ async function getNotificationsByReceiverId(receiver_id) {
 }
 // thêm 2 hàm updateNotification và deleteNotification
 async function updateNotification(_id, notification) {
+  console.log('updateNotification ở bên server là', _id, notification);
   try {
     const response = await axios.post(
       `${API_URL}/notification/updateNotification`,
@@ -95,6 +96,23 @@ async function deleteNotification(_id) {
     throw error;
   }
 }
+async function getNotificationsBySenderId(sender_id) {
+  try {
+    const response = await axios.post(
+      `${API_URL}/notification/getNotificationsBySenderId`,
+      { sender_id },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response;
+  } catch (error) {
+    console.error('Error fetching notifications:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+}
 
 export {
   createNotification,
@@ -102,4 +120,5 @@ export {
   getNotificationsByReceiverId,
   updateNotification,
   deleteNotification,
+  getNotificationsBySenderId,
 };
