@@ -9,8 +9,28 @@ import { getScheduleOfTeacher } from '../../../api/Schedules';
 
 export default function TeachingSchedule() {
   const { user } = useContext(UserContext);
-
+  const [weekDates, setWeekDates] = useState([]);
   const [listSchedule, setListSchedule] = useState([]);
+
+  useEffect(() => {
+    // Get current week's dates
+    const getWeekDates = () => {
+      const today = new Date();
+      const monday = new Date(today);
+      monday.setDate(monday.getDate() - monday.getDay() + 1); // Get Monday
+
+      const dates = [];
+      for (let i = 0; i < 5; i++) {
+        // Mon to Fri
+        const date = new Date(monday);
+        date.setDate(monday.getDate() + i);
+        dates.push(date.toLocaleDateString('vi-VN')); // Vietnamese date format
+      }
+      return dates;
+    };
+
+    setWeekDates(getWeekDates());
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -93,11 +113,21 @@ export default function TeachingSchedule() {
                   </th>
                 </tr>
                 <tr>
-                  <th className="border border-gray-400 bg-gray-100 min-w-32">2</th>
-                  <th className="border border-gray-400 bg-gray-100 min-w-32">3</th>
-                  <th className="border border-gray-400 bg-gray-100 min-w-32">4</th>
-                  <th className="border border-gray-400 bg-gray-100 min-w-32">5</th>
-                  <th className="border border-gray-400 bg-gray-100 min-w-32">6</th>
+                  <th className="border border-gray-400 bg-gray-100 min-w-32">
+                    2<div className="text-sm text-gray-600">{weekDates[0]}</div>
+                  </th>
+                  <th className="border border-gray-400 bg-gray-100 min-w-32">
+                    3<div className="text-sm text-gray-600">{weekDates[1]}</div>
+                  </th>
+                  <th className="border border-gray-400 bg-gray-100 min-w-32">
+                    4<div className="text-sm text-gray-600">{weekDates[2]}</div>
+                  </th>
+                  <th className="border border-gray-400 bg-gray-100 min-w-32">
+                    5<div className="text-sm text-gray-600">{weekDates[3]}</div>
+                  </th>
+                  <th className="border border-gray-400 bg-gray-100 min-w-32">
+                    6<div className="text-sm text-gray-600">{weekDates[4]}</div>
+                  </th>
                 </tr>
               </thead>
 

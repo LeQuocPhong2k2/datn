@@ -7,7 +7,7 @@ import Menu from './Menu';
 import { getGiaoVienByPhoneNumber } from '../../../api/Teacher';
 
 function PersonalInformation() {
-  const phoneNumber = localStorage.getItem('phoneNumberTeacher');
+  const phoneNumber = sessionStorage.getItem('phoneNumberTeacher');
   const [teacherInfo, setTeacherInfo] = useState({});
 
   useEffect(() => {
@@ -17,7 +17,7 @@ function PersonalInformation() {
         setTeacherInfo(response);
         console.log('Thông tin giáo viên:', response);
         // trong thông tin giáo viên có array LopChuNhiem trong đó có _id của class mà giáo viên đó chủ nhiệm hãy lưu vào cookie để dùng cho việc điểm danh
-        localStorage.setItem('classId', response.lopChuNhiem[0]._id);
+        sessionStorage.setItem('classId', response.lopChuNhiem[0]._id);
       } catch (error) {
         console.error('Lỗi lấy thông tin giáo viên:', error);
       }

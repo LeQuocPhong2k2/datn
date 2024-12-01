@@ -2,15 +2,33 @@ import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_API_URL;
 
-async function saveTeachingReport(academicYear, className, teacherNumber, date, reports) {
+async function saveTeachingReport(academicYear, className, teachCreate, dataSave) {
   const response = await axios.post(
     `${API_URL}/teachingReport/saveTeachingReport`,
     {
       academicYear,
       className,
-      teacherNumber,
-      date,
-      reports,
+      teachCreate,
+      dataSave,
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  return response.data;
+}
+
+async function updateTeachingReport(academicYear, className, teachCreate, dataSave) {
+  const response = await axios.post(
+    `${API_URL}/teachingReport/updateTeachingReport`,
+    {
+      academicYear,
+      className,
+      teachCreate,
+      dataSave,
     },
     {
       headers: {
@@ -41,4 +59,48 @@ async function getTeachingReports(teacherNumber, academicYear, className, date) 
   return response.data;
 }
 
-export { saveTeachingReport, getTeachingReports };
+async function getReportDetailByDayOrClassOrSubject(academicYear, className, date, subjectName, teacherId) {
+  const response = await axios.post(
+    `${API_URL}/teachingReport/getReportDetailByDayOrClassOrSubject`,
+    {
+      academicYear,
+      className,
+      date,
+      subjectName,
+      teacherId,
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  return response.data;
+}
+
+async function getReportByClassAndDay(academicYear, className, date) {
+  const response = await axios.post(
+    `${API_URL}/teachingReport/getReportByClassAndDay`,
+    {
+      academicYear,
+      className,
+      date,
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  return response.data;
+}
+
+export {
+  saveTeachingReport,
+  getTeachingReports,
+  getReportDetailByDayOrClassOrSubject,
+  updateTeachingReport,
+  getReportByClassAndDay,
+};

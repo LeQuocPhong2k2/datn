@@ -234,7 +234,71 @@ const ScheduleController = {
     }
   },
 
-  async getClassByDayAndTeacher(req, res) {
+  async getScheduleByWeekDays(req, res) {
+    const { teacherId, weekDays, schoolYear } = req.body;
+
+    try {
+      const schedules = await Schedule.aggregate([
+        {
+          $match: {
+            schoolYear: schoolYear,
+            scheduleTeacher: new ObjectId(teacherId),
+          },
+        },
+        {
+          $unwind: "$timesSlot",
+        },
+        {
+          $match: {
+            "timesSlot.scheduleDay": { $in: weekDays },
+          },
+        },
+        {
+          $group: {
+            _id: "$timesSlot.scheduleDay",
+            arrSubject: {
+              $addToSet: {
+                subjectName: "$scheduleTitle",
+                className: "$className",
+              },
+            },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            day: "$_id",
+            arrSubject: 1,
+          },
+        },
+        {
+          $sort: {
+            day: 1,
+          },
+        },
+        // {
+        //   $unwind: "$subjectDetail",
+        // },
+        // {
+        //   $group: {
+        //     _id: "$className",
+        //     subjects: { $push: "$subjectDetail" },
+        //   },
+        // },
+        // {
+        //   $project: {
+        //     className: "$_id",
+        //     subjectNames: "$subjects.subjectName",
+        //   },
+        // },
+      ]);
+      return res.status(200).json({ schedules });
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  },
+
+  async getScheduleByDay(req, res) {
     const { teacherId, day, schoolYear } = req.body;
 
     try {
@@ -243,41 +307,72 @@ const ScheduleController = {
           $match: {
             schoolYear: schoolYear,
             scheduleTeacher: new ObjectId(teacherId),
-            timesSlot: {
-              $elemMatch: {
-                scheduleDay: day,
+          },
+        },
+        {
+          $unwind: "$timesSlot",
+        },
+        {
+          $match: {
+            "timesSlot.scheduleDay": day,
+          },
+        },
+        {
+          $group: {
+            _id: "$timesSlot.scheduleDay",
+            arrSubject: {
+              $addToSet: {
+                subjectName: "$scheduleTitle",
+                className: "$className",
               },
             },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            day: "$_id",
+            arrSubject: 1,
+          },
+        },
+        {
+          $sort: {
+            day: 1,
+          },
+        },
+      ]);
+      return res.status(200).json({ schedules });
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  },
+
+  async getClassTeacherBySchoolYear(req, res) {
+    const { teacherId, schoolYear } = req.body;
+    try {
+      const classNames = await Schedule.aggregate([
+        {
+          $match: {
+            schoolYear: schoolYear,
+            scheduleTeacher: new ObjectId(teacherId),
           },
         },
         {
           $unwind: "$className",
         },
         {
-          $lookup: {
-            from: "Subject",
-            localField: "subject",
-            foreignField: "_id",
-            as: "subjectDetail",
-          },
-        },
-        {
-          $unwind: "$subjectDetail",
-        },
-        {
           $group: {
             _id: "$className",
-            subjects: { $push: "$subjectDetail" }, // Changed to $push to keep all subjects
           },
         },
         {
           $project: {
+            _id: 0,
             className: "$_id",
-            subjectNames: "$subjects.subjectName",
           },
         },
       ]);
-      return res.status(200).json({ schedules });
+      return res.status(200).json({ classNames });
     } catch (error) {
       return res.status(500).json({ error: error.message });
     }

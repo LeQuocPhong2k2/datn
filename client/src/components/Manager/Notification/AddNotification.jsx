@@ -16,7 +16,7 @@ export default function AddNotification() {
   // tạo 1 biến quản lý thông tin Admin
   const [admin, setAdmin] = useState({});
   // hàm lấy thông tin Admin
-  const accountId = localStorage.getItem('_id');
+  const accountId = sessionStorage.getItem('_id');
   useEffect(() => {
     getAdministratorsbyAccountId(accountId)
       .then((res) => {
@@ -33,7 +33,7 @@ export default function AddNotification() {
 
   const [sender, setSender] = useState(''); // Thêm state cho người gửi
   // setSender là admin_id được lưu trong localStorage
-  const admin_id = localStorage.getItem('admin_id');
+  const admin_id = sessionStorage.getItem('admin_id');
   useEffect(() => {
     setSender(admin_id);
   }, [admin_id]);

@@ -17,7 +17,6 @@ import { Toaster, toast } from 'react-hot-toast';
 export default function Notification() {
   const [showContent1, setShowContent1] = useState(false);
   const [activeTab, setActiveTab] = useState('view'); // 'view' or 'send'
-
   // gọi tới api get all notifications
   const [notifications, setNotifications] = useState([]);
   const socket = useRef(null);
@@ -234,6 +233,15 @@ export default function Notification() {
     setIsEditing(true);
     setEditNotificationId(notification._id);
   };
+
+  // gọi tới api get all notifications
+
+  useEffect(() => {
+    getAllNotifications().then((res) => {
+      console.log('Notifications:', res.data);
+      setNotifications(res.data);
+    });
+  }, []);
 
   return (
     <Menu active="notification">

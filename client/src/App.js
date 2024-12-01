@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import Login from './components/Login';
 import Admin from './components/Admin';
 import Student from './components/User/index';
-import Teacher from './components/User/Teacher';
+// import Teacher from './components/User/Teacher';
 import ForgotPassword from './components/User/ForgotPassword';
 import Error from './components/Error';
 import ProtectedRoute from './middleware/ProtectedRoute';
@@ -11,7 +11,6 @@ import Cookies from 'cookie-universal';
 import Message from './components/User/Teacher/Message';
 import TeachingPlans from './components/User/Teacher/TeachingPlans';
 import TeachingReport from './components/User/Teacher/TeachingReport';
-import TeachingReport2 from './components/User/Teacher/TeachingReport2';
 import InputScore from './components/User/Teacher/InputScore';
 import PersonalInformation from './components/User/Teacher/PersonalInformation';
 import TeachingSchedule from './components/User/Teacher/TeachingSchedule';
@@ -45,14 +44,14 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route
+        {/* <Route
           path="/admin"
           element={
             <ProtectedRoute allowedRole="Admin">
               <Teacher />
             </ProtectedRoute>
           }
-        />
+        /> */}
         <Route
           path="/student"
           element={
@@ -61,16 +60,16 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route
+        {/* <Route
           path="/teacher"
           element={
             <ProtectedRoute allowedRole="Teacher">
               <Teacher />
             </ProtectedRoute>
           }
-        />
+        /> */}
 
-        <Route path="/teacher2" element={<Navigate to="/teacher2/teaching-schedule" replace />} />
+        <Route path="/teacher" element={<Navigate to="/teacher/teaching-schedule" replace />} />
         <Route
           path="/teacher/menu"
           element={
@@ -80,7 +79,7 @@ function App() {
           }
         />
         <Route
-          path="/teacher2/teaching-plans"
+          path="/teacher/teaching-plans"
           element={
             <ProtectedRoute allowedRole="Teacher">
               <TeachingPlans />
@@ -88,7 +87,7 @@ function App() {
           }
         />
         <Route
-          path="/teacher2/teaching-report"
+          path="/teacher/teaching-report"
           element={
             <ProtectedRoute allowedRole="Teacher">
               <TeachingReport />
@@ -96,15 +95,7 @@ function App() {
           }
         />
         <Route
-          path="/teacher2/teaching-report2"
-          element={
-            <ProtectedRoute allowedRole="Teacher">
-              <TeachingReport2 />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/teacher2/input-score"
+          path="/teacher/input-score"
           element={
             <ProtectedRoute allowedRole="Teacher">
               <InputScore />
@@ -112,7 +103,7 @@ function App() {
           }
         />
         <Route
-          path="/teacher2/personal-information"
+          path="/teacher/personal-information"
           element={
             <ProtectedRoute allowedRole="Teacher">
               <PersonalInformation />
@@ -121,7 +112,7 @@ function App() {
         />
 
         <Route
-          path="/teacher2/teaching-schedule"
+          path="/teacher/teaching-schedule"
           element={
             <ProtectedRoute allowedRole="Teacher">
               <TeachingSchedule />
@@ -130,7 +121,7 @@ function App() {
         />
 
         <Route
-          path="/teacher2/student-attendance"
+          path="/teacher/student-attendance"
           element={
             <ProtectedRoute allowedRole="Teacher">
               <StudentAttendance />
@@ -139,7 +130,7 @@ function App() {
         />
 
         <Route
-          path="/teacher2/notification"
+          path="/teacher/notification"
           element={
             <ProtectedRoute allowedRole="Teacher">
               <Notification />
@@ -148,7 +139,7 @@ function App() {
         />
 
         <Route
-          path="/teacher2/leave-request"
+          path="/teacher/leave-request"
           element={
             <ProtectedRoute allowedRole="Teacher">
               <LeaveRequest />
@@ -157,7 +148,7 @@ function App() {
         />
 
         <Route
-          path="/teacher2/report"
+          path="/teacher/report"
           element={
             <ProtectedRoute allowedRole="Teacher">
               <Report />

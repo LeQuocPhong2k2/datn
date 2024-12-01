@@ -9,7 +9,7 @@ const apiClient = axios.create({
 
 // Thêm interceptor để đính kèm access token vào mỗi request
 apiClient.interceptors.request.use(async (config) => {
-  const accessToken = localStorage.getItem('accessToken');
+  const accessToken = sessionStorage.getItem('accessToken');
   config.headers.Authorization = `Bearer ${accessToken}`;
   return config;
 });
