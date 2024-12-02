@@ -81,7 +81,7 @@ function PersonalInformation() {
                 </div>
 
                 <div>
-                  <strong>Môn giảng dạy: </strong>
+                  <strong>Bộ môn giảng dạy: </strong>
                   {teacherInfo.department}
                 </div>
                 <div>

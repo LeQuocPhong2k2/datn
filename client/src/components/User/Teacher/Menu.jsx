@@ -149,7 +149,7 @@ export default function Menu({ children, active }) {
                   <Link to="/teacher/teaching-report">
                     <span className="w-full flex justify-start items-center">
                       <i style={{ color: '#d55557' }} class="fa-solid fa-briefcase mr-2"></i>
-                      Báo bài
+                      Quản Lý Báo bài
                     </span>
                   </Link>
                 </li>
