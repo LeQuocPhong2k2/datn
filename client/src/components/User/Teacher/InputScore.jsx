@@ -540,7 +540,7 @@ export default function InputScore() {
                     </button>
                     {activeImport && (
                       <div className="grid grid-flow-col gap-5 w-96 min-w-96">
-                        <span>Process: {importProgress}%</span>
+                        <span>Tiến trình: {importProgress}%</span>
                         <span>Thành công: {success}</span>
                         <span>Thất bại: {failed}</span>
                       </div>
