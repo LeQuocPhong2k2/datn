@@ -1,4 +1,3 @@
-require("dotenv").config({ path: "../../../../.env" });
 const Subject = require("../models/Subject");
 const Schedule = require("../models/Schedule");
 

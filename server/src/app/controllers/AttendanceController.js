@@ -1,4 +1,3 @@
-require("dotenv").config({ path: "../../../../.env" });
 const Student = require("../models/Student");
 const Class = require("../models/Class");
 const Teacher = require("../models/Teacher");

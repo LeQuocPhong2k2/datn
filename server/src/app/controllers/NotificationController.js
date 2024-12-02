@@ -1,4 +1,3 @@
-require("dotenv").config({ path: "../../../../.env" });
 const Notification = require("../models/Notification");
 const socket = require("../../socket");
 const socketInit = require("../../socket");
