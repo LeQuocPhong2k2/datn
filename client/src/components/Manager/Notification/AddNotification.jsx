@@ -127,6 +127,15 @@ export default function AddNotification() {
   //update hàm mới
 
   const handleAddNotification = async () => {
+    // kiểm tra rỗng của các trường
+    if (!subject || !text || !selectedReceiver || !dateTime) {
+      toast.dismiss();
+      toast.error('Vui lòng điền đầy đủ thông tin', {
+        icon: <IoWarningOutline />,
+      });
+      return;
+    }
+
     try {
       let imageBase64 = null;
 
@@ -161,6 +170,7 @@ export default function AddNotification() {
       handleReset();
     } catch (error) {
       console.error('Error:', error);
+      toast.dismiss();
       toast.error('Tạo thông báo thất bại', {
         icon: <IoWarningOutline />,
       });

@@ -25,26 +25,6 @@ import ViewClassDetail from './ViewClassDetail';
 Modal.setAppElement('#root');
 
 export default function ListClass({ filterClass, action }) {
-  const [pageLoading, setPageLoading] = useState(true);
-  const fileExtension = '.xlsx';
-  const fileType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
-  const [filter, setFilter] = useState({
-    namHoc: '',
-    khoiLop: '',
-    tenLop: '',
-    buoiHoc: '',
-  });
-  const [classUpdate, setClassUpdate] = useState({
-    id: '',
-    namHoc: '',
-    khoiLop: '',
-    tenLop: '',
-    giaoVienChuNhiem: '',
-    idGiaoVienChuNhiem: '',
-    ngayBatDau: '',
-    buoiHoc: '',
-  });
-
   const getCurrentSchoolYear = () => {
     const now = new Date();
     const currentYear = now.getFullYear();
@@ -56,6 +36,26 @@ export default function ListClass({ filterClass, action }) {
       return `${currentYear - 1}-${currentYear}`;
     }
   };
+  const [pageLoading, setPageLoading] = useState(true);
+  const fileExtension = '.xlsx';
+  const fileType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
+  const [filter, setFilter] = useState({
+    namHoc: getCurrentSchoolYear(),
+    khoiLop: '',
+    tenLop: '',
+    buoiHoc: '',
+  });
+  const [classUpdate, setClassUpdate] = useState({
+    id: '',
+    namHoc: getCurrentSchoolYear(),
+    khoiLop: '',
+    tenLop: '',
+    giaoVienChuNhiem: '',
+    idGiaoVienChuNhiem: '',
+    ngayBatDau: '',
+    buoiHoc: '',
+  });
+
   /**
    * handle page loading
    */

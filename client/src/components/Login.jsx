@@ -90,6 +90,8 @@ export default function Login() {
         }
       }, 100);
     } catch (error) {
+      toast.error('Tên tài khoản hoặc mật khẩu không đúng');
+      return;
       // Error handling remains the same
     }
   };

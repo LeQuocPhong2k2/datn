@@ -1,15 +1,23 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
 import 'flowbite';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 
 import Menu from './Menu';
-
+import { UserContext } from '../../../UserContext';
 import { getGiaoVienByPhoneNumber } from '../../../api/Teacher';
 
 function PersonalInformation() {
+  const { user } = useContext(UserContext);
+  useEffect(() => {
+    console.log('user context là ', user);
+  }, [user]);
+
   const phoneNumber = sessionStorage.getItem('phoneNumberTeacher');
   const [teacherInfo, setTeacherInfo] = useState({});
+  useEffect(() => {
+    console.log(teacherInfo);
+  }, [teacherInfo]);
 
   useEffect(() => {
     const fetchTeacherInfo = async () => {
@@ -81,14 +89,15 @@ function PersonalInformation() {
                 </div>
 
                 <div>
-                  <strong>Môn giảng dạy: </strong>
+                  <strong>Bộ môn giảng dạy: </strong>
                   {teacherInfo.department}
                 </div>
                 <div>
                   <strong>Lớp Chủ Nhiệm: </strong>
-                  {teacherInfo.lopChuNhiem && teacherInfo.lopChuNhiem.length > 0
+                  {/* {teacherInfo.lopChuNhiem && teacherInfo.lopChuNhiem.length > 0
                     ? teacherInfo.lopChuNhiem[0].className
-                    : 'Chưa có lớp chủ nhiệm'}
+                    : 'Chưa có lớp chủ nhiệm'} */}
+                  {user.className}
                 </div>
               </div>
             </div>
