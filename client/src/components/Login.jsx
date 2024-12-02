@@ -136,11 +136,11 @@ export default function Login() {
               <button onClick={handleLogin} className="w-3/4 h-12 btn-login rounded-lg mt-4">
                 Đăng nhập
               </button>
-              <div className="w-3/4 flex justify-start items-center gap-2 mt-4">
+              {/* <div className="w-3/4 flex justify-start items-center gap-2 mt-4">
                 <a className="text-blue-500" href="/forgot-password">
                   Quên mật khẩu?
                 </a>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>

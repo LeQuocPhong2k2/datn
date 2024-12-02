@@ -23,7 +23,7 @@ export default function AttendanceReport() {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [outerRadius, setOuterRadius] = useState(window.innerWidth < 800 ? 100 : 160);
 
-  const phoneNumber = localStorage.getItem('phoneNumberTeacher');
+  const phoneNumber = sessionStorage.getItem('phoneNumberTeacher');
   const [teacherInfo, setTeacherInfo] = useState({});
 
   useEffect(() => {
@@ -33,7 +33,7 @@ export default function AttendanceReport() {
         setTeacherInfo(response);
         // console.log('Thông tin giáo viên:', response);
         // trong thông tin giáo viên có array LopChuNhiem trong đó có _id của class mà giáo viên đó chủ nhiệm hãy lưu vào cookie để dùng cho việc điểm danh
-        localStorage.setItem('class_id', response.lopChuNhiem[0]._id);
+        sessionStorage.setItem('class_id', response.lopChuNhiem[0]._id);
       } catch (error) {
         console.error('Lỗi lấy thông tin giáo viên:', error);
       }
@@ -42,7 +42,7 @@ export default function AttendanceReport() {
   }, [phoneNumber]);
 
   //  lấy ra class_id từ localStorage
-  const class_id = localStorage.getItem('class_id');
+  const class_id = sessionStorage.getItem('class_id');
 
   const [studentAttendanceData, setStudentAttendanceData] = useState({});
   useEffect(() => {
