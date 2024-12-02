@@ -1,12 +1,13 @@
-import React from 'react';
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable no-unused-vars */
 import 'flowbite';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import 'react-datepicker/dist/react-datepicker.css';
 import { CiImport } from 'react-icons/ci';
 
-import TeachingReportManyDay from './TeachingReportManyDay';
 import TeachingReportDay from './TeachingReportDay';
 import TeachingReportImport from './TeachingReportImport';
+import TeachingReportManyDay from './TeachingReportManyDay';
 
 export default function TeachingPlans() {
   const [optionCreate, setOptionCreate] = useState('one-day');

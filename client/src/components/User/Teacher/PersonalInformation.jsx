@@ -1,6 +1,7 @@
-import React from 'react';
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable no-unused-vars */
 import 'flowbite';
-import { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import Menu from './Menu';
 
@@ -37,7 +38,7 @@ function PersonalInformation() {
             <div className="w-1/3 text-center">
               <img
                 src="https://cdn-icons-png.flaticon.com/512/4537/4537074.png"
-                alt="Student Profile Picture"
+                alt="Student Profile"
                 className="rounded-full mx-auto"
                 style={{ width: '200px', height: '200px' }}
               />

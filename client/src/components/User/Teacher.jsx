@@ -1,16 +1,17 @@
+/* eslint-disable jsx-a11y/anchor-is-valid */
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable no-unused-vars */
 // gen ui thêm học sinh
 import React, { useEffect, useState } from 'react';
-import { Toaster, toast } from 'react-hot-toast';
-import Schedule from './Schedule';
-import Cookies from 'js-cookie';
-import { getGiaoVienByPhoneNumber } from '../../api/Teacher';
-import { getLeaveRequestsByTeacherId, updateLeaveRequest } from '../../api/LeaveRequest';
-import { changePassword } from '../../api/Accounts';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import { Toaster, toast } from 'react-hot-toast';
+import { changePassword } from '../../api/Accounts';
+import { createAttendance, getAttendanceByClassAndDateNow } from '../../api/Attendance';
 import { getStudentListByClassNameAndAcademicYear } from '../../api/Class';
-import { createAttendance } from '../../api/Attendance';
-import { getAttendanceByClassAndDateNow } from '../../api/Attendance';
+import { getLeaveRequestsByTeacherId, updateLeaveRequest } from '../../api/LeaveRequest';
+import { getGiaoVienByPhoneNumber } from '../../api/Teacher';
+import Schedule from './Schedule';
 
 export default function Teacher() {
   useEffect(() => {
@@ -676,7 +677,7 @@ export default function Teacher() {
                     //   ? 'https://cdn-icons-png.flaticon.com/512/4537/4537074.png'
                     //   : 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTfjUNC6tqBRQQZonwx0-vsJuTeDLetRoi-fp5Yee6shI1zXVumCeuE4mKye97fxwLgrj0&usqp=CAU'
                   }
-                  alt="Student Profile Picture"
+                  alt="Student Profile"
                   className="rounded-full w-24 h-24 mx-auto"
                 />
 
@@ -1043,7 +1044,7 @@ export default function Teacher() {
                         //   ? 'https://cdn-icons-png.flaticon.com/512/4537/4537074.png'
                         //   : 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTfjUNC6tqBRQQZonwx0-vsJuTeDLetRoi-fp5Yee6shI1zXVumCeuE4mKye97fxwLgrj0&usqp=CAU'
                       }
-                      alt="Student Profile Picture"
+                      alt="Student Profile"
                       className="rounded-full mx-auto"
                       style={{ width: '200px', height: '200px' }}
                     />

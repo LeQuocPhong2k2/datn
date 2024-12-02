@@ -1,15 +1,16 @@
-import React from 'react';
-import 'flowbite';
-import { useEffect, useState, useContext } from 'react';
-import { UserContext } from '../../../UserContext';
-import 'react-datepicker/dist/react-datepicker.css';
-import DatePicker from 'react-datepicker';
-import toast from 'react-hot-toast';
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable no-unused-vars */
 import { format, parse } from 'date-fns';
+import 'flowbite';
+import React, { useContext, useEffect, useState } from 'react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import toast from 'react-hot-toast';
+import { UserContext } from '../../../UserContext';
 
-import { getReportDetailByDayOrClassOrSubject, updateTeachingReport } from '../../../api/TeachingReport';
 import { getClassTeacherBySchoolYear } from '../../../api/Schedules';
 import { getSubjectByGrade } from '../../../api/Subject';
+import { getReportDetailByDayOrClassOrSubject, updateTeachingReport } from '../../../api/TeachingReport';
 
 export default function TeachingPlans() {
   const { user } = useContext(UserContext);

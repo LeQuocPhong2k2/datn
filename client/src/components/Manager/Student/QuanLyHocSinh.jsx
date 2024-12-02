@@ -1,20 +1,14 @@
-import React from 'react';
-import 'react-toastify/dist/ReactToastify.css';
-import { Toaster, toast } from 'react-hot-toast';
-import { useEffect, useState } from 'react';
 import 'flowbite';
+import React, { useEffect, useState } from 'react';
+import { Toaster, toast } from 'react-hot-toast';
 import { FiSearch } from 'react-icons/fi';
 import Modal from 'react-modal';
-import * as XLSX from 'xlsx';
+import 'react-toastify/dist/ReactToastify.css';
 
-import ImportStudent from './ImportStudent';
-import { addStudent } from '../../../api/Student';
 import { getLopHocByNamHocVaKhoi } from '../../../api/Class';
-import { searchStudents } from '../../../api/Student';
-import { BsEthernet } from 'react-icons/bs';
+import { addStudent, deleteStudent, getFullInfoStudentByCode, searchStudents } from '../../../api/Student';
+import ImportStudent from './ImportStudent';
 import UpdateStudent from './UpdateStudent';
-import { getFullInfoStudentByCode } from '../../../api/Student';
-import { deleteStudent } from '../../../api/Student';
 Modal.setAppElement('#root');
 
 export default function QuanLyHocSinh({ functionType }) {

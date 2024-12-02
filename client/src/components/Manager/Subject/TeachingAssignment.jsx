@@ -1,21 +1,21 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import 'flowbite';
-import React from 'react';
-import { useEffect, useState } from 'react';
-import { IoWarningOutline } from 'react-icons/io5';
+import React, { useEffect, useState } from 'react';
 import { Toaster, toast } from 'react-hot-toast';
 import { IoMdCheckboxOutline } from 'react-icons/io';
+import { IoWarningOutline } from 'react-icons/io5';
 
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 
 import {
   createSchedule,
+  deleteSchedule,
   getSchedulesByClass,
   getSubjectNotInSchedule,
-  deleteSchedule,
-  updateSchedule,
   getTeacherSchedule,
+  updateSchedule,
 } from '../../../api/Schedules';
-import { getGiaoVienByDepartment, getGiaoVienByClassNameAndSchoolYear } from '../../../api/Teacher';
+import { getGiaoVienByClassNameAndSchoolYear, getGiaoVienByDepartment } from '../../../api/Teacher';
 
 import Modal from 'react-modal';
 Modal.setAppElement('#root');

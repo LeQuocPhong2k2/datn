@@ -1,23 +1,24 @@
+/* eslint-disable jsx-a11y/anchor-is-valid */
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable no-unused-vars */
 import 'flowbite';
 import { useEffect, useRef } from 'react';
-import Cookies from 'js-cookie'; // Thêm import để sử dụng Cookies
 // import { jwtDecode } from 'jwt-decode';
 import { useState } from 'react'; // Thêm import useState
-import { getFullInfoStudentByCode, getStudentByAccountId } from '../../api/Student';
-import { changePassword } from '../../api/Accounts';
-import 'react-toastify/dist/ReactToastify.css';
-import { Toaster, toast } from 'react-hot-toast';
-import { createLeaveRequest, getLeaveRequestsByStudentId, getLeaveRequestsByParentId } from '../../api/LeaveRequest';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { getAllNotifications, getNotificationsByReceiverId } from '../../api/Notifications';
+import { Toaster, toast } from 'react-hot-toast';
+import 'react-toastify/dist/ReactToastify.css';
+import { changePassword } from '../../api/Accounts';
+import { createLeaveRequest, getLeaveRequestsByParentId } from '../../api/LeaveRequest';
+import { getNotificationsByReceiverId } from '../../api/Notifications';
 import { getFullParentInfo } from '../../api/Parents';
-import { getTeachingReports } from '../../api/TeachingReport';
+import { getFullInfoStudentByCode, getStudentByAccountId } from '../../api/Student';
 
-import Schedule from './Schedule';
 import io from 'socket.io-client';
-import ViewReport from './ViewReport';
+import Schedule from './Schedule';
 import StudyResult from './StudyResult';
+import ViewReport from './ViewReport';
 
 export default function Student() {
   const getCurrentSchoolYear = () => {
@@ -317,36 +318,6 @@ export default function Student() {
   const [endDate, setEndDate] = useState('');
   const [selectedSessions, setSelectedSessions] = useState([]);
   // hàm xử lý tạo ngày nghĩ dựa trên ngày bắt đầu và ngày kết thúc
-  function generateDateRange(start, end) {
-    const dates = [];
-    let currentDate = new Date(start);
-    const endDate = new Date(end);
-
-    while (currentDate <= endDate) {
-      dates.push(new Date(currentDate));
-      currentDate.setDate(currentDate.getDate() + 1);
-    }
-
-    return dates;
-  }
-  // format ngày tháng theo việt nam
-  function formatDate(date) {
-    return new Date(date).toLocaleDateString('vi-VN', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    });
-  }
-  function handleSessionChange(e) {
-    const { value, checked } = e.target;
-
-    setSelectedSessions(
-      (prev) =>
-        checked
-          ? [...prev, value] // Thêm session vào mảng khi được chọn
-          : prev.filter((session) => session !== value) // Loại bỏ session khỏi mảng khi bỏ chọn
-    );
-  }
 
   // tạo biến lưu lý do nghỉ học
   const [leaveReason, setLeaveReason] = useState('');
@@ -633,7 +604,7 @@ export default function Student() {
                       ? 'https://cdn-icons-png.flaticon.com/512/4537/4537074.png'
                       : 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTfjUNC6tqBRQQZonwx0-vsJuTeDLetRoi-fp5Yee6shI1zXVumCeuE4mKye97fxwLgrj0&usqp=CAU'
                   }
-                  alt="Student Profile Picture"
+                  alt="Student Profile"
                   className="rounded-full w-24 h-24 mx-auto"
                 />
 
@@ -944,7 +915,7 @@ export default function Student() {
                   <div className="w-1/3 text-center">
                     {/* <img
                       src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTfjUNC6tqBRQQZonwx0-vsJuTeDLetRoi-fp5Yee6shI1zXVumCeuE4mKye97fxwLgrj0&usqp=CAU"
-                      alt="Student Profile Picture"
+                      alt="Student Profile"
                       className="rounded-full w-50 h-50 mx-auto"
                     /> */}
 
@@ -954,7 +925,7 @@ export default function Student() {
                           ? 'https://cdn-icons-png.flaticon.com/512/4537/4537074.png'
                           : 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTfjUNC6tqBRQQZonwx0-vsJuTeDLetRoi-fp5Yee6shI1zXVumCeuE4mKye97fxwLgrj0&usqp=CAU'
                       }
-                      alt="Student Profile Picture"
+                      alt="Student Profile"
                       className="rounded-full mx-auto"
                       style={{ width: '200px', height: '200px' }}
                     />

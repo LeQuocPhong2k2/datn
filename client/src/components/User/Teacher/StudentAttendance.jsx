@@ -1,16 +1,15 @@
-import React from 'react';
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable no-unused-vars */
 import 'flowbite';
-import { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import DatePicker from 'react-datepicker';
 import { Toaster, toast } from 'react-hot-toast';
 
 import Menu from './Menu';
 
+import { createAttendance, getAttendanceByClassAndDateNow } from '../../../api/Attendance';
 import { getStudentListByClassNameAndAcademicYear } from '../../../api/Class';
-import { createAttendance } from '../../../api/Attendance';
-import { getAttendanceByClassAndDateNow } from '../../../api/Attendance';
 import { getGiaoVienByPhoneNumber } from '../../../api/Teacher';
-import { Select } from 'antd';
 
 export default function StudentAttendance() {
   const phoneNumber = sessionStorage.getItem('phoneNumberTeacher');

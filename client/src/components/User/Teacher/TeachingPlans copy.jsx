@@ -1,9 +1,10 @@
-import React from 'react';
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable no-unused-vars */
 import 'flowbite';
+import React from 'react';
 
-import { useEffect, useState, useRef } from 'react';
+import { useState } from 'react';
 
-import { IoIosAdd } from 'react-icons/io';
 import { RiSubtractFill } from 'react-icons/ri';
 
 import Menu from './Menu';

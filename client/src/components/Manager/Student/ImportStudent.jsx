@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React from 'react';
 import * as XLSX from 'xlsx';
 import { useState } from 'react';

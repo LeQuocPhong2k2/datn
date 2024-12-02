@@ -1,13 +1,15 @@
-import React from 'react';
+/* eslint-disable jsx-a11y/anchor-is-valid */
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable no-unused-vars */
+import { format, isValid } from 'date-fns';
 import 'flowbite';
-import { useEffect, useState } from 'react';
-import { format, getDay, isValid } from 'date-fns';
+import React, { useEffect, useState } from 'react';
 
 import DatePicker from 'react-datepicker';
 import { BiUser } from 'react-icons/bi';
 
 import { getReportByClassAndDay } from '../../api/TeachingReport';
-import { get } from 'mongoose';
+// import { get } from 'mongoose';
 import toast from 'react-hot-toast';
 
 const ViewReport = ({ studentInfor }) => {

@@ -1,6 +1,6 @@
-import React from 'react';
+/* eslint-disable no-unused-vars */
+import React, { useEffect, useState } from 'react';
 import * as XLSX from 'xlsx';
-import { useState, useEffect } from 'react';
 
 const ImportSubject = () => {
   const [pageLoading, setPageLoading] = useState(true);
@@ -10,7 +10,6 @@ const ImportSubject = () => {
     success: 0,
     failed: 0,
   });
-  const [subjectImportFailed, setsubjectImportFailed] = useState([]);
 
   useEffect(() => {
     handlePageLoading();

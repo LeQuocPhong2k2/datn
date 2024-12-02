@@ -1,16 +1,18 @@
+/* eslint-disable no-unused-vars */
 import 'flowbite';
-import React, { useState } from 'react';
-import { IoWarningOutline } from 'react-icons/io5';
-import { Toaster, toast } from 'react-hot-toast';
-import { IoMdCheckboxOutline } from 'react-icons/io';
-import Modal from 'react-modal';
+import React, { useEffect, useState } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { createNotification } from '../../../api/Notifications';
-import { useEffect } from 'react';
+import { Toaster, toast } from 'react-hot-toast';
+import { IoMdCheckboxOutline } from 'react-icons/io';
+import { IoWarningOutline } from 'react-icons/io5';
+import Modal from 'react-modal';
 import { getAdministratorsbyAccountId } from '../../../api/Administrator';
-import { getStudentListByClassNameAndAcademicYear } from '../../../api/Class';
-import { getHomeRoomTeacherByClassNameAndAcademicYear } from '../../../api/Class';
+import {
+  getHomeRoomTeacherByClassNameAndAcademicYear,
+  getStudentListByClassNameAndAcademicYear,
+} from '../../../api/Class';
+import { createNotification } from '../../../api/Notifications';
 Modal.setAppElement('#root');
 export default function AddNotification() {
   // tạo 1 biến quản lý thông tin Admin

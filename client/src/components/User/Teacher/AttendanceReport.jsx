@@ -1,21 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Select, Row, Col, Statistic, Table, Tabs, Alert, Collapse } from 'antd';
-import { getAttendanceStatsByClassAndMonth } from '../../../api/Attendance';
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable no-unused-vars */
+import { Alert, Card, Col, Collapse, Row, Select, Statistic, Table } from 'antd';
+import React, { useEffect, useState } from 'react';
 import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  Legend,
-  Tooltip,
-  BarChart,
   Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Legend,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
 } from 'recharts';
-import './AttendanceReport.css'; // Import file CSS
+import { getAttendanceStatsByClassAndMonth } from '../../../api/Attendance';
 import { getGiaoVienByPhoneNumber } from '../../../api/Teacher';
+import './AttendanceReport.css'; // Import file CSS
 export default function AttendanceReport() {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());

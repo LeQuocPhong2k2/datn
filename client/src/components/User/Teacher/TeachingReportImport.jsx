@@ -1,7 +1,5 @@
-import React from 'react';
 import 'flowbite';
-import { useEffect, useState, useContext } from 'react';
-import { UserContext } from '../../../UserContext';
+import React from 'react';
 
 export default function TeachingReportImport() {
   return (

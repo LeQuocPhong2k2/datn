@@ -1,7 +1,7 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+import { useEffect, useRef, useState } from 'react';
 import { RiExpandLeftRightFill } from 'react-icons/ri';
-import { useState, useEffect, useRef } from 'react';
 
-import { FiSearch } from 'react-icons/fi';
 import { Toaster, toast } from 'react-hot-toast';
 import { IoSettingsSharp } from 'react-icons/io5';
 import Modal from 'react-modal';
@@ -13,14 +13,14 @@ import * as FileSaver from 'file-saver';
 import * as XLSX from 'xlsx';
 
 import {
-  getLopHocByNamHocOrKhoiOrTenLopOrBuoiHoc,
-  getDsHocSinhByLopHoc,
   autoUpClass,
   deleteClass,
+  getDsHocSinhByLopHoc,
+  getLopHocByNamHocOrKhoiOrTenLopOrBuoiHoc,
 } from '../../../api/Class';
 
-import ViewClassDetail from './ViewClassDetail';
 import UpdateClass from './UpdateClass';
+import ViewClassDetail from './ViewClassDetail';
 
 Modal.setAppElement('#root');
 
@@ -96,8 +96,6 @@ export default function ListClass({ filterClass, action }) {
    * get class list
    */
   useEffect(() => {
-    const date = new Date();
-    const year = date.getFullYear();
     setFilter({ ...filter, namHoc: getCurrentSchoolYear() });
 
     const fetchClasses = async () => {

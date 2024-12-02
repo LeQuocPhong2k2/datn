@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import 'flowbite';
 import React from 'react';
 import Modal from 'react-modal';

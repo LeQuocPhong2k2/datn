@@ -1,17 +1,8 @@
-import React from 'react';
-import * as XLSX from 'xlsx';
-import Modal from 'react-modal';
-import { FiEdit } from 'react-icons/fi';
-import { FiTrash } from 'react-icons/fi';
-import { FiSearch } from 'react-icons/fi';
-import { PiExport } from 'react-icons/pi';
-import { CiImport } from 'react-icons/ci';
-import { useEffect, useState, useRef } from 'react';
+/* eslint-disable react-hooks/exhaustive-deps */
+import React, { useEffect, useState } from 'react';
 import { IoMdArrowRoundBack } from 'react-icons/io';
-import { IoPersonAddOutline } from 'react-icons/io5';
+import Modal from 'react-modal';
 
-import { getStudentByCode } from '../../../api/Student';
-import { getGiaoVienChuaPhanCongChuNhiem } from '../../../api/Teacher';
 import { editStudent } from '../../../api/Student';
 Modal.setAppElement('#root');
 

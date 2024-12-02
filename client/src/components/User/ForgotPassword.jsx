@@ -1,11 +1,11 @@
-import 'flowbite';
-import { useState } from 'react';
-import { useEffect } from 'react';
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable no-unused-vars */
 import '@fortawesome/fontawesome-free/css/all.min.css';
-import Cookies from 'js-cookie'; // Thêm import để sử dụng Cookies
+import 'flowbite';
+import { useEffect, useState } from 'react';
 // import { jwtDecode } from 'jwt-decode';
-import 'react-toastify/dist/ReactToastify.css';
 import { Toaster, toast } from 'react-hot-toast';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function ForgotPassword() {
   const [isMenuOpen, setMenuOpen] = useState(false);
@@ -25,7 +25,7 @@ export default function ForgotPassword() {
   useEffect(() => {}, []);
   return (
     <div>
-      <header className="bg-white p-4 border-b border-gray-300 flex justify-between items-center mb-16 md: mb-4">
+      <header className="bg-white p-4 border-b border-gray-300 flex justify-between items-center mb-16 md:mb-4">
         <Toaster toastOptions={{ duration: 2200 }} />
         <a href="/login">
           <img

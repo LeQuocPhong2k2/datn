@@ -1,15 +1,15 @@
-import React from 'react';
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable no-unused-vars */
+import { format, getDay, parse } from 'date-fns';
 import 'flowbite';
-import { useEffect, useState, useContext } from 'react';
-import { UserContext } from '../../../UserContext';
-import { format, getDay, parse, set } from 'date-fns';
+import React, { useContext, useEffect, useState } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import { UserContext } from '../../../UserContext';
 
-import { getClassTeacherBySchoolYear } from '../../../api/Schedules';
-import { getScheduleByWeekDays } from '../../../api/Schedules';
-import { saveTeachingReport, checkBaoBaiisExsit } from '../../../api/TeachingReport';
 import toast from 'react-hot-toast';
+import { getClassTeacherBySchoolYear, getScheduleByWeekDays } from '../../../api/Schedules';
+import { checkBaoBaiisExsit, saveTeachingReport } from '../../../api/TeachingReport';
 
 export default function TeachingReportManyDay() {
   const { user } = useContext(UserContext);

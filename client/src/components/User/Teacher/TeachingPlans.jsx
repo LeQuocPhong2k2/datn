@@ -1,18 +1,19 @@
-import React from 'react';
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable no-unused-vars */
 import 'flowbite';
-import { useEffect, useState, useRef } from 'react';
-import { RiSubtractFill } from 'react-icons/ri';
+import React, { useEffect, useState } from 'react';
 import { BiExport } from 'react-icons/bi';
+import { RiSubtractFill } from 'react-icons/ri';
 
 import Menu from './Menu';
 
-import {
-  saveTeachingPlans,
-  getTeachingPlanByTeacherAndByGradeAndBySchoolYear,
-  updateTeachingPlan,
-} from '../../../api/TeachingPlan';
 import { getHomRoomTeacherCurrent } from '../../../api/Class';
 import { getSubjectByGrade } from '../../../api/Subject';
+import {
+  getTeachingPlanByTeacherAndByGradeAndBySchoolYear,
+  saveTeachingPlans,
+  updateTeachingPlan,
+} from '../../../api/TeachingPlan';
 
 import { Toaster, toast } from 'react-hot-toast';
 
