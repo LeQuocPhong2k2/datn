@@ -90,6 +90,8 @@ export default function Login() {
         }
       }, 100);
     } catch (error) {
+      toast.error('Tên tài khoản hoặc mật khẩu không đúng');
+      return;
       // Error handling remains the same
     }
   };
@@ -107,7 +109,7 @@ export default function Login() {
         <div className="flex-col">
           <div className="w-full flex justify-start items-center mt-40">
             <div className="w-full flex flex-col items-center">
-              <span className="text-title-login w-3/4 font-medium text-4xl">Đăng nhập</span>
+              <span className="text-title-login w-3/4 font-medium text-4xl">Đăng nhập12312312</span>
             </div>
           </div>
           <div className="w-full flex justify-start items-center mt-10">

@@ -326,7 +326,7 @@ export default function Notification() {
                             </b>
                           </div>
                         )}
-                        <div className="mt-2 flex justify-end space-x-2">
+                        {/* <div className="mt-2 flex justify-end space-x-2">
                           <button
                             onClick={() => handleEditClick(notification)}
                             className="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600"
@@ -339,7 +339,7 @@ export default function Notification() {
                           >
                             Xóa
                           </button>
-                        </div>
+                        </div> */}
                       </div>
                     )}
                   </div>

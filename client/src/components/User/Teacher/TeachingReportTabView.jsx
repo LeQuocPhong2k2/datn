@@ -404,7 +404,7 @@ export default function TeachingPlans() {
             </button>
           </div>
 
-          <div className="grid grid-flow-row gap-2 py-2">
+          <div className="grid grid-flow-row gap-2 py-2 overflow-x-auto overflow-y-auto">
             <table className="w-full border-collapse border border-gray-400">
               <thead>
                 <tr>
