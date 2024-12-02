@@ -337,6 +337,7 @@ export default function InputScore() {
   };
 
   const refreshTranscript = () => {
+    document.getElementById('inputFile').value = '';
     const schoolYear = getCurrentSchoolYear();
     const grade = className[0];
     getTranscriptBySubjectAndClassAndSchoolYear(subjectCode, className, schoolYear, grade)
@@ -528,7 +529,7 @@ export default function InputScore() {
                 <div className="col-span-2 grid grid-cols-2 items-end justify-start gap-4">
                   <div className="">
                     <label className="block mb-2">Nhập điểm từ file Excel</label>
-                    <input type="file" onChange={handleFileUpload} className="w-full border rounded" />
+                    <input id="inputFile" type="file" onChange={handleFileUpload} className="w-full border rounded" />
                   </div>
                   <div className="flex items-end justify-start gap-2">
                     <button
