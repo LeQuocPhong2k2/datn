@@ -70,7 +70,8 @@ export default function LeaveRequest() {
           {
             student_id: leaveRequest.student_id,
             status: status === 'approved' ? 'VCP' : 'VKP', // VCP: Vắng có phép, VKP: Vắng không phép
-            reason: status === 'approved' ? 'Học sinh vắng có phép' : 'Học sinh vắng không phép',
+            student_name: leaveRequest.student_name,
+            reason: status === 'approved' ? leaveRequest.reason : 'Học sinh vắng không phép',
             leaveRequest_id: leaveRequest._id,
           },
         ];

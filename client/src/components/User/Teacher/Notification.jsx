@@ -142,7 +142,7 @@ export default function Notification() {
   const handleAddNotification = async () => {
     try {
       if (!selectedReceiver) {
-        alert('Vui lòng chọn ng��ời nhận');
+        toast.error('Vui lòng chọn người nhận');
         return;
       }
 

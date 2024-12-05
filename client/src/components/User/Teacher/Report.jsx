@@ -3,7 +3,7 @@ import React from 'react';
 import 'flowbite';
 import { useState } from 'react';
 import Menu from './Menu';
-import AttendanceReport from './AttendanceReport'; // Fixed this import
+import AttendanceReport2 from './AttendanceReport2';
 import AcademicReport from './AcademicReport';
 
 export default function Report() {
@@ -32,13 +32,13 @@ export default function Report() {
                 <a
                   href="#"
                   className={`inline-block p-4 border-b-2 rounded-t-lg ${
-                    activeTab === 'attendance'
+                    activeTab === 'attendance2'
                       ? 'text-blue-600 border-blue-600'
                       : 'hover:text-gray-600 hover:border-gray-300'
                   }`}
-                  onClick={() => handleTabChange('attendance')}
+                  onClick={() => handleTabChange('attendance2')}
                 >
-                  Điểm Danh
+                  Điểm Danh 2 (Fixed)
                 </a>
               </li>
               <li className="mr-2">
@@ -59,7 +59,7 @@ export default function Report() {
 
           {/* Tab Content */}
           <div className="p-4">
-            {activeTab === 'attendance' && <AttendanceReport />}
+            {activeTab === 'attendance2' && <AttendanceReport2 />}
             {activeTab === 'academic' && <AcademicReport />}
           </div>
         </div>

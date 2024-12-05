@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { IoMdArrowRoundBack } from 'react-icons/io';
 import Modal from 'react-modal';
-
+import { Toaster, toast } from 'react-hot-toast';
 import { editStudent } from '../../../api/Student';
 Modal.setAppElement('#root');
 
@@ -69,14 +69,16 @@ const UpdateStudent = ({ handleBackSearchStudent, studentInfoUpdate }) => {
     const response = await editStudent(studentInfo);
     console.log('Kết quả cập nhật là ', response);
     if (response) {
-      alert('Cập nhật hồ sơ học sinh thành công');
+      toast.success('Cập nhật hồ sơ học sinh thành công');
     } else {
-      alert('Cập nhật hồ sơ học sinh thất bại');
+      // alert('Cập nhật hồ sơ học sinh thất bại');
+      toast.error('Cập nhật hồ sơ học sinh thất bại');
     }
   };
 
   return (
     <div id="root" className="grid grid-flow-row gap-4 p-4 max-h-full relative w-full">
+      <Toaster toastOptions={{ duration: 2200 }} />
       <div className="flex items-center justify-start gap-2">
         <span
           onClick={handleBackSearchStudent}

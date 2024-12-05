@@ -301,7 +301,9 @@ export default function Student() {
           setShowChangePassword(false);
         })
         .catch((error) => {
-          alert(error);
+          // alert(error);
+          toast.dismiss();
+          toast.error(error);
         });
     }
   };
@@ -367,7 +369,8 @@ export default function Student() {
     Promise.all(createRequestPromises)
       .then((responses) => {
         console.log('Leave requests created successfully:', responses);
-        alert(`Đã gửi ${selectedStudents.length} đơn nghỉ học thành công`);
+        // alert(`Đã gửi ${selectedStudents.length} đơn nghỉ học thành công`);
+        toast.success(`Đã gửi ${selectedStudents.length} đơn nghỉ học thành công`);
         setShowFullInfoLeaveRequest(false);
         setShowInfoLeaveRequest(true);
       })
@@ -385,7 +388,9 @@ export default function Student() {
           setShowInfoLeaveRequest(true);
         } else {
           // Các lỗi khác
-          alert('Đã xảy ra lỗi khi gửi đơn nghỉ học. Vui lòng thử lại sau.', +error);
+          // alert('Đã xảy ra lỗi khi gửi đơn nghỉ học. Vui lòng thử lại sau.', +error);
+          toast.error('Đã xảy ra lỗi khi gửi đơn nghỉ học. Vui lòng thử lại sau.');
+          console.error('Lỗi khi gửi đơn xin nghỉ học:', error);
         }
       });
   };
@@ -1433,10 +1438,14 @@ export default function Student() {
                       onClick={() => {
                         // thêm điều kiện cần chọn con ở selectedStudents
                         if (selectedStudents.length === 0) {
-                          alert('Vui lòng chọn con');
+                          toast.dismiss();
+                          toast.error('Vui lòng chọn con');
+
                           return;
                         } else if (selectedSessions.length === 0 || !leaveReason) {
-                          alert('Vui lòng chọn ngày nghỉ và ghi lý do');
+                          // alert('Vui lòng chọn ngày nghỉ và ghi lý do');
+                          toast.dismiss();
+                          toast.error('Vui lòng chọn ngày nghỉ và ghi lý do');
                           return;
                         }
                         // alert ra selectedSessions

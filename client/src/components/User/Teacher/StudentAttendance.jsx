@@ -22,16 +22,29 @@ export default function StudentAttendance() {
   const vietnamDate = new Date(selectedDate);
   const formattedDate = vietnamDate.toISOString().split('T')[0];
   const [attendanceData, setAttendanceData] = useState({});
+  // mỗi khi attendanceData thay đổi thì gọi lại console.log để xem dữ liệu điểm danh
+  useEffect(() => {
+    console.log('attendanceData:', attendanceData);
+  }, [attendanceData]);
+
   const [recentDays, setRecentDays] = useState([]);
   const [attendanceMap, setAttendanceMap] = useState({});
   const [studentAttendanceStats, setStudentAttendanceStats] = useState({});
   const [teacherInfo, setTeacherInfo] = useState({});
   const [dataDiemDanh, setdataDiemDanh] = useState([]);
   const [tongSoNgayDiemDanh, setTongSoNgayDiemDanh] = useState(0);
+  // state lấy month và year từ selectedDate
+  const month = selectedDate.getMonth() + 1;
+  const year = selectedDate.getFullYear();
+  // mỗi khi month và year thay đổi thì gọi lại console.log để xem tháng và năm
+  // useEffect(() => {
+  //   console.log('Tháng:', month);
+  //   console.log('Năm:', year);
+  // }, [month, year]);
 
   const calculateRecentDays = (baseDate, isMobile) => {
     const currentDate = new Date(baseDate);
-    console.log('currentDate:', currentDate);
+    // console.log('currentDate:', currentDate);
     const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
     const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
     return Array.from({ length: daysInMonth }, (_, i) => {
@@ -45,8 +58,15 @@ export default function StudentAttendance() {
 
   useEffect(() => {
     if (teacherInfo.lopChuNhiem) {
-      setSelectedClass(teacherInfo.lopChuNhiem[0].className);
-      handleSelectClass(teacherInfo.lopChuNhiem[0].className);
+      // setSelectedClass(teacherInfo.lopChuNhiem[0].className);
+      // handleSelectClass(teacherInfo.lopChuNhiem[0].className);
+      // chọn về lớp có năm học 2024-2025
+      teacherInfo.lopChuNhiem.forEach((lop) => {
+        if (lop.academicYear === '2024-2025') {
+          setSelectedClass(lop.className);
+          handleSelectClass(lop.className);
+        }
+      });
     }
   }, [teacherInfo, teacherInfo.lopChuNhiem, setSelectedClass]);
 
@@ -94,7 +114,7 @@ export default function StudentAttendance() {
       } else {
         setStudentList(response.data.students); //
         setSelectedClass_id(response.data.class_id);
-        console.log(`Danh sách học sinh lớp ${selectedClass} :`, response.data.students); // Cập nhật log để hiển thị danh sách học sinh
+        // console.log(`Danh sách học sinh lớp ${selectedClass} :`, response.data.students); // Cập nhật log để hiển thị danh sách học sinh
         setShowStudentList(true);
       }
     } catch (error) {
@@ -107,7 +127,7 @@ export default function StudentAttendance() {
   useEffect(() => {
     const fetchAttendanceData = async () => {
       try {
-        const response = await getAttendanceByClassAndDateNow(selectedClass_id);
+        const response = await getAttendanceByClassAndDateNow(selectedClass_id, month, year);
         setdataDiemDanh(response.data.dataDiemDanh);
         // console.log('data điểm danh:', response.data.dataDiemDanh);
         setTongSoNgayDiemDanh(response.data.tongSoNgayDiemDanh);
@@ -123,7 +143,7 @@ export default function StudentAttendance() {
   const handleCoMatChoTatCa = () => {
     const dayOfWeek = vietnamDate.getDay(); // Lấy ngày trong tuần
 
-    // kiểm tra n���u không phải ngày hiện tại thì không cho điểm danh
+    // kiểm tra nếu không phải ngày hiện tại thì không cho điểm danh
     // if (vietnamDate.toDateString() !== new Date().toDateString()) {
     //   toast.error('Không thể chọn ngày không phải hôm nay.');
     //   return;
@@ -145,7 +165,8 @@ export default function StudentAttendance() {
         });
       }
     } else {
-      alert('Không thể chọn ngày thứ Bảy hoặc Chủ Nhật.');
+      // alert('Không thể chọn ngày thứ Bảy hoặc Chủ Nhật.');
+      toast.error('Không thể chọn ngày thứ Bảy hoặc Chủ Nhật.');
     }
   };
 
@@ -240,43 +261,30 @@ export default function StudentAttendance() {
         <div className="rounded shadow bg-white ">
           <div className="container mx-auto mt-4 p-4 overflow-x-auto">
             <h1 className="text-center text-xl font-bold">BẢNG ĐIỂM DANH LỚP {selectedClass}</h1>
-            <p className="text-center mb-4">
+            <p className="text-center mb-4 mt-2">
               <span className="text-blue-700">Có Mặt (CM)</span>,{' '}
               <span className="text-green-700"> Vắng có phép (VCP)</span>,{' '}
               <span className="text-red-700">Vắng không phép(VKP)</span>,{' '}
-              <span className="text-yellow-700">Màu vàng nhạt: Thứ bảy</span>,{' '}
-              <span className="text-green-700">Màu xanh nhạt: Chủ Nhật</span>
+              <span className="text-yellow-700">Màu vàng nhạt: Thứ bảy,Chủ Nhật</span>,{' '}
             </p>
             <div className="flex flex-col md:flex-row justify-center p-4 space-y-4 md:space-y-0 md:space-x-4">
               <div className="flex items-center">
                 <label className="mr-2">
                   Năm học :
-                  {teacherInfo.lopChuNhiem?.map((lop) => (
-                    <span key={lop._id}>{lop.academicYear}</span>
-                  ))}
+                  {teacherInfo.lopChuNhiem
+                    ?.filter((lop) => lop.academicYear === '2024-2025')
+                    .map((lop) => (
+                      <span key={lop._id}>{lop.academicYear}</span>
+                    ))}
                 </label>
 
                 <label className="mr-2">Lớp :</label>
-                {/* <select
-                  className="border border-gray-300 p-1 rounded"
-                  value={selectedClass}
-                  onChange={(e) => {
-                    const newClass = e.target.value; // Lưu giá trị mới vào biến
-                    setSelectedClass(newClass); // Cập nhật selectedClass
-                    handleSelectClass(newClass); // Gọi hàm với giá trị mới
-                  }}
-                >
-                  {Array.from({ length: 5 }, (_, i) =>
-                    Array.from({ length: 5 }, (_, j) => `A${j + 1}`).map((className) => (
-                      <option key={`${i}${className}`} value={`${i + 1}${className}`}>
-                        {`${i + 1}${className}`}
-                      </option>
-                    ))
-                  )}
-                </select> */}
-                {teacherInfo.lopChuNhiem?.map((lop) => (
-                  <span key={lop._id}>{lop.className}</span>
-                ))}
+
+                {teacherInfo.lopChuNhiem
+                  ?.filter((lop) => lop.academicYear === '2024-2025')
+                  .map((lop) => (
+                    <span key={lop._id}>{lop.className}</span>
+                  ))}
               </div>
               <div className="flex items-center">
                 <label className="mr-2">Ngày:</label>
@@ -391,7 +399,7 @@ export default function StudentAttendance() {
                                     key={index}
                                     className={`border border-gray-400 px-2 py-1 text-center ${formattedDate.replace(/\//g, '-')}`}
                                     style={{
-                                      backgroundColor: dayOfWeek === 6 ? '#FEF3C7' : dayOfWeek === 0 ? '#ccffcc' : '',
+                                      backgroundColor: dayOfWeek === 6 ? '#FEF3C7' : dayOfWeek === 0 ? '#FEF3C7' : '',
                                     }}
                                   >
                                     {dayOfWeek !== 6 && dayOfWeek !== 0 ? (
@@ -455,11 +463,6 @@ export default function StudentAttendance() {
                 className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 mb-2 md:mb-0"
                 onClick={async () => {
                   handleUpdateAttendance();
-                  // thêm thông báo xác nhận cập nhật điểm danh cho ngày hôm đó
-                  // const confirm = window.confirm('Bạn có chắc chắn muốn cập nhật điểm danh ?');
-                  // if (confirm) {
-                  //   await handleUpdateAttendance();
-                  // }
                 }}
               >
                 Lưu

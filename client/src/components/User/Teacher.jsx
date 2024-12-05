@@ -64,7 +64,8 @@ export default function Teacher() {
           setShowChangePassword(false);
         })
         .catch((error) => {
-          alert(error);
+          // alert(error);
+          toast.error(error.error);
         });
     }
   };
