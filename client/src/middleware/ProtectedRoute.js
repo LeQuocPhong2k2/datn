@@ -5,7 +5,7 @@ const ProtectedRoute = ({ allowedRole, children }) => {
   const role = sessionStorage.getItem('role');
 
   if (role !== allowedRole) {
-    return <Navigate to="/error" />;
+    return <Navigate to="/login" />;
   }
 
   return children;
