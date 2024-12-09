@@ -88,9 +88,31 @@ async function getTranscriptByStudentCodeAndClassAndSchoolYear(studentCode, clas
     throw error;
   }
 }
+// hàm tôhống kê
+async function getClassStatistics(className, schoolYear) {
+  try {
+    const response = await axios.post(
+      API_URL + '/transcripts/getClassStatistics',
+      {
+        className: className,
+        schoolYear: schoolYear,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response;
+  } catch (error) {
+    console.error('Get class statistics error:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+}
 
 export {
   getTranscriptBySubjectAndClassAndSchoolYear,
   updateTranscript,
   getTranscriptByStudentCodeAndClassAndSchoolYear,
+  getClassStatistics,
 };
