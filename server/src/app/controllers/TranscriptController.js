@@ -377,6 +377,114 @@ const TranscriptController = {
       return res.status(500).json({ error: error.message })
     }
   },
+
+  async getStudentStatistics(req, res) {
+    const { studentCode, className, schoolYear } = req.body
+    console.log('Params:', studentCode, className, schoolYear)
+
+    try {
+      const transcripts = await Transcript.aggregate([
+        {
+          $match: {
+            studentCode: studentCode,
+            className: className,
+            schoolYear: schoolYear,
+          },
+        },
+        {
+          $lookup: {
+            from: 'Subject',
+            localField: 'subjectCode',
+            foreignField: 'subjectCode',
+            as: 'subjectInfo',
+          },
+        },
+        {
+          $unwind: '$subjectInfo',
+        },
+        {
+          $project: {
+            studentCode: 1,
+            userName: 1,
+            subjectCode: 1,
+            hk1Gk: 1,
+            hk1Ck: 1,
+            hk1Tb: 1,
+            hk2Gk: 1,
+            hk2Ck: 1,
+            hk2Tb: 1,
+            allYear: 1,
+            subjectName: '$subjectInfo.subjectName',
+          },
+        },
+      ])
+
+      // Tính toán thống kê chi tiết cho học sinh
+      const studentStats = {
+        studentInfo: {
+          studentCode: transcripts[0]?.studentCode,
+          userName: transcripts[0]?.userName,
+        },
+        subjects: transcripts.map((transcript) => ({
+          subjectCode: transcript.subjectCode,
+          subjectName: transcript.subjectName,
+          scores: {
+            hk1: {
+              giuaKy: transcript.hk1Gk,
+              cuoiKy: transcript.hk1Ck,
+              trungBinh: transcript.hk1Tb,
+            },
+            hk2: {
+              giuaKy: transcript.hk2Gk,
+              cuoiKy: transcript.hk2Ck,
+              trungBinh: transcript.hk2Tb,
+            },
+            canam: transcript.allYear,
+          },
+        })),
+        statistics: {
+          totalSubjects: transcripts.length,
+          averageScore:
+            Math.round(
+              (transcripts.reduce((sum, t) => sum + t.allYear, 0) /
+                transcripts.length) *
+                100
+            ) / 100,
+          scoreRanges: {
+            excellent: transcripts.filter((t) => t.allYear >= 9).length,
+            good: transcripts.filter((t) => t.allYear >= 7 && t.allYear < 9)
+              .length,
+            average: transcripts.filter((t) => t.allYear >= 5 && t.allYear < 7)
+              .length,
+            belowAverage: transcripts.filter((t) => t.allYear < 5).length,
+          },
+          subjectPerformance: {
+            improved: transcripts.filter((t) => t.hk2Tb > t.hk1Tb).length,
+            declined: transcripts.filter((t) => t.hk2Tb < t.hk1Tb).length,
+            stable: transcripts.filter((t) => t.hk2Tb === t.hk1Tb).length,
+          },
+          semesterComparison: {
+            hk1Average:
+              Math.round(
+                (transcripts.reduce((sum, t) => sum + t.hk1Tb, 0) /
+                  transcripts.length) *
+                  100
+              ) / 100,
+            hk2Average:
+              Math.round(
+                (transcripts.reduce((sum, t) => sum + t.hk2Tb, 0) /
+                  transcripts.length) *
+                  100
+              ) / 100,
+          },
+        },
+      }
+
+      return res.status(200).json(studentStats)
+    } catch (error) {
+      return res.status(500).json({ error: error.message })
+    }
+  },
 }
 
 function tinhDiemTrungBinh(gk1, ck1) {

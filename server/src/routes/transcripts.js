@@ -13,5 +13,6 @@ router.post(
   TranscriptController.getTranscriptByStudentCodeAndClassAndSchoolYear
 )
 router.post('/getClassStatistics', TranscriptController.getClassStatistics)
+router.post('/getStudentStatistics', TranscriptController.getStudentStatistics)
 
 module.exports = router
