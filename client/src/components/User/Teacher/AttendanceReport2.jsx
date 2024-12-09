@@ -75,10 +75,10 @@ export default function AttendanceReport() {
   }, [phoneNumber]);
 
   // console ra selectedMonth vaf selectedYear khi thay đổi
-  useEffect(() => {
-    console.log('Selected month:', selectedMonth);
-    console.log('Selected year:', selectedYear);
-  }, [selectedMonth, selectedYear]);
+  // useEffect(() => {
+  //   console.log('Selected month:', selectedMonth);
+  //   console.log('Selected year:', selectedYear);
+  // }, [selectedMonth, selectedYear]);
 
   // tính độ dài màn hình để resize biểu đồ tròn
   useEffect(() => {
