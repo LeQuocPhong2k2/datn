@@ -5,14 +5,39 @@
 import React from 'react';
 import 'flowbite';
 import { useEffect, useState } from 'react';
+import { Bar } from 'react-chartjs-2';
+import { Card, Row, Col, Button, Statistic } from 'antd';
+import * as XLSX from 'xlsx';
 
 import { getTranscriptByStudentCodeAndClassAndSchoolYear } from '../../api/Transcripts';
+import { getStudentStatistics } from '../../api/Transcripts';
 
 const StudyResult = ({ studentInfor }) => {
   const [activeTabAcademic, setactiveTabAcademic] = useState('tongket');
   const [transcript, setTranscript] = useState({});
   const [avgScore, setAvgScore] = useState(0);
   const [danhHieu, setDanhHieu] = useState('');
+  const [chartData, setChartData] = useState({});
+  const [scoreRangeData, setScoreRangeData] = useState({});
+  const [stats, setStats] = useState({
+    totalSubjects: 0,
+    averageScore: 0,
+    scoreRanges: {
+      excellent: 0,
+      good: 0,
+      average: 0,
+      belowAverage: 0,
+    },
+    subjectPerformance: {
+      improved: 0,
+      declined: 0,
+      stable: 0,
+    },
+    semesterComparison: {
+      hk1Average: 0,
+      hk2Average: 0,
+    },
+  });
 
   const getCurrentSchoolYear = () => {
     const now = new Date();
@@ -28,36 +53,32 @@ const StudyResult = ({ studentInfor }) => {
 
   const fetchData = async () => {
     try {
-      const response = await getTranscriptByStudentCodeAndClassAndSchoolYear(
+      const transcriptResponse = await getTranscriptByStudentCodeAndClassAndSchoolYear(
         studentInfor.studentCode,
         studentInfor.className,
         getCurrentSchoolYear()
       );
-      console.log('Get transcript response:', response);
-      setTranscript(response.data.transcript);
-      setAvgScore(response.data.average);
-      handleDanhHieu(response.data.average);
+      console.log('Get transcript response:', transcriptResponse);
+      setTranscript(transcriptResponse.data.transcript);
+      setAvgScore(transcriptResponse.data.average);
+      handleDanhHieu(transcriptResponse.data.average);
+
+      const statsResponse = await getStudentStatistics(
+        studentInfor.studentCode,
+        studentInfor.className,
+        getCurrentSchoolYear()
+      );
+      console.log('Get stats response:', statsResponse);
+      setStats(statsResponse.data.statistics);
+
+      generateChartData(statsResponse.data.statistics);
+      generateScoreRangeData(statsResponse.data.statistics);
     } catch (error) {
-      console.error('Get transcript error:', error.response ? error.response.data : error.message);
+      console.error('Error:', error.response ? error.response.data : error.message);
     }
   };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await getTranscriptByStudentCodeAndClassAndSchoolYear(
-          studentInfor.studentCode,
-          studentInfor.className,
-          getCurrentSchoolYear()
-        );
-        console.log('Get transcript response:', response);
-        setTranscript(response.data.transcript);
-        setAvgScore(response.data.average);
-        handleDanhHieu(response.data.average);
-      } catch (error) {
-        console.error('Get transcript error:', error.response ? error.response.data : error.message);
-      }
-    };
     fetchData();
   }, []);
 
@@ -78,6 +99,79 @@ const StudyResult = ({ studentInfor }) => {
     }
   };
 
+  const generateChartData = (stats) => {
+    const labels = ['Xuất sắc', 'HT tốt', 'HT', 'Chưa HT'];
+    const data = [
+      stats.scoreRanges.excellent,
+      stats.scoreRanges.good,
+      stats.scoreRanges.average,
+      stats.scoreRanges.belowAverage,
+    ];
+
+    setChartData({
+      labels: labels,
+      datasets: [
+        {
+          label: 'Số môn học',
+          data: data,
+          backgroundColor: ['#4caf50', '#2196f3', '#ffeb3b', '#f44336'],
+        },
+      ],
+    });
+  };
+
+  const generateScoreRangeData = (stats) => {
+    setScoreRangeData({
+      labels: ['Học kỳ I', 'Học kỳ II', 'Cả năm'],
+      datasets: [
+        {
+          label: 'Điểm trung bình',
+          data: [stats.semesterComparison.hk1Average, stats.semesterComparison.hk2Average, stats.averageScore],
+          backgroundColor: ['#2196f3', '#FFEB3B', '#4caf50'],
+        },
+      ],
+    });
+  };
+
+  const handleExportExcel = () => {
+    // Sheet 1: Điểm chi tiết từng môn
+    const subjectDetails = transcript.map((subject) => ({
+      'Môn học': removeNumberFromString(subject.subjectName),
+      'Điểm GK HK1': subject.hk1Gk,
+      'Điểm CK HK1': subject.hk1Ck,
+      'TB HK1': subject.hk1Tb,
+      'Điểm GK HK2': subject.hk2Gk,
+      'Điểm CK HK2': subject.hk2Ck,
+      'TB HK2': subject.hk2Tb,
+      'Điểm cả năm': subject.allYear,
+    }));
+    const worksheetSubjects = XLSX.utils.json_to_sheet(subjectDetails);
+
+    // Sheet 2: Thống kê phân loại điểm
+    const scoreStats = [
+      { 'Phân loại': 'Xuất sắc (>= 9.0)', 'Số môn': stats.scoreRanges.excellent },
+      { 'Phân loại': 'Giỏi (7.0-8.9)', 'Số môn': stats.scoreRanges.good },
+      { 'Phân loại': 'Trung bình (5.0-6.9)', 'Số môn': stats.scoreRanges.average },
+      { 'Phân loại': 'Yếu (< 5.0)', 'Số môn': stats.scoreRanges.belowAverage },
+    ];
+    const worksheetStats = XLSX.utils.json_to_sheet(scoreStats);
+
+    // Sheet 3: So sánh học kỳ
+    const semesterComparison = [
+      { 'Học kỳ': 'Học kỳ I', 'Điểm TB': stats.semesterComparison.hk1Average },
+      { 'Học kỳ': 'Học k��� II', 'Điểm TB': stats.semesterComparison.hk2Average },
+      { 'Học kỳ': 'Cả năm', 'Điểm TB': stats.averageScore },
+    ];
+    const worksheetComparison = XLSX.utils.json_to_sheet(semesterComparison);
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheetSubjects, 'Điểm chi tiết');
+    XLSX.utils.book_append_sheet(workbook, worksheetStats, 'Thống kê phân loại');
+    XLSX.utils.book_append_sheet(workbook, worksheetComparison, 'So sánh học kỳ');
+
+    XLSX.writeFile(workbook, `KetQuaHocTap_${studentInfor.studentCode}.xlsx`);
+  };
+
   return (
     <div>
       <div>
@@ -89,7 +183,8 @@ const StudyResult = ({ studentInfor }) => {
                 setactiveTabAcademic('hocky1');
                 fetchData();
               }}
-              className={`px-4 py-2 ${activeTabAcademic === 'hocky1' ? 'bg-blue-500 text-white' : 'bg-white text-gray-800'}`}
+              className={`px-4 py-2 ${activeTabAcademic === 'hocky1' ? 'bg-blue-500 text-white' : 'bg-white text-gray-800 hover:bg-gray-200'}`}
+              style={{ cursor: 'pointer' }}
             >
               Học kỳ I
             </div>
@@ -98,7 +193,8 @@ const StudyResult = ({ studentInfor }) => {
                 setactiveTabAcademic('hocky2');
                 fetchData();
               }}
-              className={`px-4 py-2 ${activeTabAcademic === 'hocky2' ? 'bg-blue-500 text-white' : 'bg-white text-gray-800'}`}
+              className={`px-4 py-2 ${activeTabAcademic === 'hocky2' ? 'bg-blue-500 text-white' : 'bg-white text-gray-800 hover:bg-gray-200'}`}
+              style={{ cursor: 'pointer' }}
             >
               Học kỳ II
             </div>
@@ -107,7 +203,8 @@ const StudyResult = ({ studentInfor }) => {
                 setactiveTabAcademic('tongket');
                 fetchData();
               }}
-              className={`px-4 py-2 ${activeTabAcademic === 'tongket' ? 'bg-blue-500 text-white' : 'bg-white text-gray-800'}`}
+              className={`px-4 py-2 ${activeTabAcademic === 'tongket' ? 'bg-blue-500 text-white' : 'bg-white text-gray-800 hover:bg-gray-200'}`}
+              style={{ cursor: 'pointer' }}
             >
               Tổng kết
             </div>
@@ -240,6 +337,69 @@ const StudyResult = ({ studentInfor }) => {
                   </table>
                 </div>
               </div>
+
+              {stats && stats.totalSubjects > 0 && (
+                <div className="mt-8">
+                  <h3 className="text-xl font-bold mb-4">Thống kê kết quả học tập</h3>
+                  <Row gutter={16}>
+                    <Col span={12}>
+                      <Card title="Biểu đồ phân loại điểm theo môn">
+                        {chartData && chartData.datasets && chartData.datasets.length > 0 ? (
+                          <Bar data={chartData} />
+                        ) : (
+                          <div className="text-center text-gray-500">Không có dữ liệu</div>
+                        )}
+                        <div className="mt-4 text-gray-500">Note: HT : Hoàn thành</div>
+                      </Card>
+                    </Col>
+                    <Col span={12}>
+                      <Card title="So sánh điểm trung bình học kỳ">
+                        {scoreRangeData && scoreRangeData.datasets && scoreRangeData.datasets.length > 0 ? (
+                          <Bar data={scoreRangeData} />
+                        ) : (
+                          <div className="text-center text-gray-500">Không có dữ liệu</div>
+                        )}
+                      </Card>
+                    </Col>
+                  </Row>
+
+                  <Card title="Thống kê chi tiết" className="mt-4">
+                    <Row gutter={24}>
+                      <Col span={12}>
+                        <Card>
+                          <b>
+                            <Statistic
+                              title="Tổng số môn học"
+                              value={stats.totalSubjects}
+                              valueStyle={{ color: stats.totalSubjects > 0 ? '#3f8600' : '#cf1322' }}
+                            />
+                          </b>
+                        </Card>
+                      </Col>
+                      <Col span={12}>
+                        <Card>
+                          <b>
+                            <Statistic
+                              title="Điểm trung bình cả năm"
+                              value={stats.averageScore}
+                              precision={2}
+                              valueStyle={{ color: stats.averageScore >= 5 ? '#3f8600' : '#cf1322' }}
+                            />
+                          </b>
+                        </Card>
+                      </Col>
+                    </Row>
+
+                    <Button
+                      onClick={handleExportExcel}
+                      style={{ backgroundColor: '#1890ff', color: 'white' }}
+                      className="mt-4"
+                    >
+                      Xuất báo cáo Excel
+                    </Button>
+                  </Card>
+                </div>
+              )}
             </div>
           )}
           <div className="mt-8">

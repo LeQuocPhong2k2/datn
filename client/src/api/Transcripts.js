@@ -109,10 +109,32 @@ async function getClassStatistics(className, schoolYear) {
     throw error;
   }
 }
+async function getStudentStatistics(studentCode, className, schoolYear) {
+  try {
+    const response = await axios.post(
+      API_URL + '/transcripts/getStudentStatistics',
+      {
+        studentCode: studentCode,
+        className: className,
+        schoolYear: schoolYear,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response;
+  } catch (error) {
+    console.error('Get student statistics error:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+}
 
 export {
   getTranscriptBySubjectAndClassAndSchoolYear,
   updateTranscript,
   getTranscriptByStudentCodeAndClassAndSchoolYear,
   getClassStatistics,
+  getStudentStatistics,
 };
