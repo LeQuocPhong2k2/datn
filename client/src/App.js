@@ -14,6 +14,7 @@ import TeachingReport from './components/User/Teacher/TeachingReport';
 import InputScore from './components/User/Teacher/InputScore';
 import PersonalInformation from './components/User/Teacher/PersonalInformation';
 import TeachingSchedule from './components/User/Teacher/TeachingSchedule';
+import TBKSchedule from './components/User/Teacher/TkbSchedule';
 import StudentAttendance from './components/User/Teacher/StudentAttendance';
 import Notification from './components/User/Teacher/Notification';
 import LeaveRequest from './components/User/Teacher/LeaveRequest';
@@ -116,6 +117,15 @@ function App() {
           element={
             <ProtectedRoute allowedRole="Teacher">
               <TeachingSchedule />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/teacher/tkb-schedule"
+          element={
+            <ProtectedRoute allowedRole="Teacher">
+              <TBKSchedule />
             </ProtectedRoute>
           }
         />
