@@ -986,39 +986,6 @@ export default function Student() {
                   </div>
                 </div>
               </div>
-              {/* <div className="border-b-2 border-gray-300 py-4">
-                <div className="flex items-center">
-                  <h2 className="text-xl font-bold mb-4" style={{ color: '#0B6FA1' }}>
-                    <i className="fas fa-user mr-2" style={{ color: '#0B6FA1' }}></i> THÔNG TIN CÁ NHÂN
-                  </h2>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <strong>Dân tộc:</strong> Kinh
-                  </div>
-                  <div>
-                    <strong>Tôn giáo:</strong> Không
-                  </div>
-                  <div>
-                    <strong>Đối tượng chính sách:</strong>
-                  </div>
-                  <div>
-                    <strong>Chế độ chính sách:</strong>
-                  </div>
-                  <div>
-                    <strong>Đối tượng ưu tiên:</strong>
-                  </div>
-                  <div>
-                    <strong>Khu vực:</strong> Đồng bằng
-                  </div>
-                  <div>
-                    <strong>Thành phần gia đình:</strong> Thành phần khác
-                  </div>
-                  <div>
-                    <strong>Nhóm máu:</strong> Nhóm AB
-                  </div>
-                </div>
-              </div> */}
 
               <div className="border-b-2 border-gray-300 py-4">
                 <h2 className="text-xl font-bold mb-4 flex items-center" style={{ color: '#0B6FA1' }}>
