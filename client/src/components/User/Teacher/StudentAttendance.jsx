@@ -58,15 +58,8 @@ export default function StudentAttendance() {
 
   useEffect(() => {
     if (teacherInfo.lopChuNhiem) {
-      // setSelectedClass(teacherInfo.lopChuNhiem[0].className);
-      // handleSelectClass(teacherInfo.lopChuNhiem[0].className);
-      // chọn về lớp có năm học 2024-2025
-      teacherInfo.lopChuNhiem.forEach((lop) => {
-        if (lop.academicYear === '2024-2025') {
-          setSelectedClass(lop.className);
-          handleSelectClass(lop.className);
-        }
-      });
+      setSelectedClass(teacherInfo.lopChuNhiem[0].className);
+      handleSelectClass(teacherInfo.lopChuNhiem[0].className);
     }
   }, [teacherInfo, teacherInfo.lopChuNhiem, setSelectedClass]);
 
@@ -143,7 +136,7 @@ export default function StudentAttendance() {
   const handleCoMatChoTatCa = () => {
     const dayOfWeek = vietnamDate.getDay(); // Lấy ngày trong tuần
 
-    // kiểm tra nếu không phải ngày hiện tại thì không cho điểm danh
+    // kiểm tra n���u không phải ngày hiện tại thì không cho điểm danh
     // if (vietnamDate.toDateString() !== new Date().toDateString()) {
     //   toast.error('Không thể chọn ngày không phải hôm nay.');
     //   return;
@@ -271,20 +264,16 @@ export default function StudentAttendance() {
               <div className="flex items-center">
                 <label className="mr-2">
                   Năm học :
-                  {teacherInfo.lopChuNhiem
-                    ?.filter((lop) => lop.academicYear === '2024-2025')
-                    .map((lop) => (
-                      <span key={lop._id}>{lop.academicYear}</span>
-                    ))}
+                  {teacherInfo.lopChuNhiem?.map((lop) => (
+                    <span key={lop._id}>{lop.academicYear}</span>
+                  ))}
                 </label>
 
                 <label className="mr-2">Lớp :</label>
 
-                {teacherInfo.lopChuNhiem
-                  ?.filter((lop) => lop.academicYear === '2024-2025')
-                  .map((lop) => (
-                    <span key={lop._id}>{lop.className}</span>
-                  ))}
+                {teacherInfo.lopChuNhiem?.map((lop) => (
+                  <span key={lop._id}>{lop.className}</span>
+                ))}
               </div>
               <div className="flex items-center">
                 <label className="mr-2">Ngày:</label>

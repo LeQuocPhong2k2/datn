@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
-import React from 'react';
+import React, { useEffect } from 'react';
 import 'flowbite';
 import { useState } from 'react';
 import Menu from './Menu';
@@ -7,7 +7,12 @@ import AttendanceReport2 from './AttendanceReport2';
 import AcademicReport from './AcademicReport';
 
 export default function Report() {
-  const [activeTab, setActiveTab] = useState('attendance');
+  const [activeTab, setActiveTab] = useState('attendance2'); // Set default tab to 'attendance2'
+
+  useEffect(() => {
+    // This effect will run once when the component mounts, setting the default tab
+    setActiveTab('attendance2');
+  }, []);
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
@@ -38,7 +43,7 @@ export default function Report() {
                   }`}
                   onClick={() => handleTabChange('attendance2')}
                 >
-                  Điểm Danh 2 (Fixed)
+                  Điểm Danh
                 </a>
               </li>
               <li className="mr-2">
