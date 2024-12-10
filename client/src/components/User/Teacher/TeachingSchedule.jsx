@@ -42,7 +42,7 @@ export default function TeachingSchedule() {
         checkHomeRoomTeacher(phoneTeacher, getCurrentSchoolYear(), user.className)
           .then((res) => {
             setRole(true);
-            getScheduleOfHomroomTeacher(user.className, getCurrentSchoolYear()).then((response) => {
+            getScheduleOfTeacher(user.teacherId, getCurrentSchoolYear()).then((response) => {
               setListSchedule(response.schedules);
             });
           })

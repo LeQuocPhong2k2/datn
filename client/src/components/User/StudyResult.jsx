@@ -402,30 +402,32 @@ const StudyResult = ({ studentInfor }) => {
               )}
             </div>
           )}
-          <div className="mt-8">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="summary-header">
-                  <th className="summary-cell" style={{ textAlign: 'left' }}>
-                    Danh mục
-                  </th>
-                  <th className="summary-cell">Học kỳ I</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  { category: 'Xếp loại', value: danhHieu },
-                  { category: 'TBM Cả năm', value: avgScore },
-                  { category: 'Hạnh kiểm', value: 'Tốt' },
-                ].map((row, index) => (
-                  <tr key={index}>
-                    <td className="summary-cell">{row.category}</td>
-                    <td className="summary-cell summary-cell-value">{row.value}</td>
+          {activeTabAcademic === 'tongket' && (
+            <div className="mt-8">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="summary-header">
+                    <th className="summary-cell" style={{ textAlign: 'left' }}>
+                      Danh mục
+                    </th>
+                    <th className="summary-cell">Học kỳ I</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {[
+                    { category: 'Xếp loại', value: danhHieu },
+                    { category: 'TBM Cả năm', value: avgScore },
+                    { category: 'Hạnh kiểm', value: 'Tốt' },
+                  ].map((row, index) => (
+                    <tr key={index}>
+                      <td className="summary-cell">{row.category}</td>
+                      <td className="summary-cell summary-cell-value">{row.value}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </div>

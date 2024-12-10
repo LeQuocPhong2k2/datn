@@ -635,7 +635,7 @@ export default function Student() {
                     setShowStudentProfile(true);
                     setShowAllMenu(false);
                   }}
-                  className="flex items-center"
+                  className="flex items-center cursor-pointer"
                   onMouseEnter={(e) => e.currentTarget.querySelector('div').classList.add('font-bold')}
                   onMouseLeave={(e) => e.currentTarget.querySelector('div').classList.remove('font-bold')}
                 >
@@ -650,7 +650,7 @@ export default function Student() {
                     setActiveTab('academic');
                     setShowAllMenu(false);
                   }}
-                  className="flex items-center"
+                  className="flex items-center cursor-pointer"
                   onMouseEnter={(e) => e.currentTarget.querySelector('div').classList.add('font-bold')}
                   onMouseLeave={(e) => e.currentTarget.querySelector('div').classList.remove('font-bold')}
                 >
@@ -664,7 +664,7 @@ export default function Student() {
                     setActiveTab('lesson');
                     setShowAllMenu(false);
                   }}
-                  className="flex items-center"
+                  className="flex items-center cursor-pointer"
                   onMouseEnter={(e) => e.currentTarget.querySelector('div').classList.add('font-bold')}
                   onMouseLeave={(e) => e.currentTarget.querySelector('div').classList.remove('font-bold')}
                 >
@@ -679,7 +679,7 @@ export default function Student() {
                     setActiveTab('leaveRequest');
                     setShowAllMenu(false);
                   }}
-                  className="flex items-center"
+                  className="flex items-center cursor-pointer"
                   onMouseEnter={(e) => e.currentTarget.querySelector('div').classList.add('font-bold')}
                   onMouseLeave={(e) => e.currentTarget.querySelector('div').classList.remove('font-bold')}
                 >
@@ -817,7 +817,7 @@ export default function Student() {
         <div className={`max-w-4xl mx-auto bg-white p-6 rounded shadow ${window.innerWidth > 768 ? 'mt-4' : 'mt-0'}`}>
           <div className="flex space-x-2 mb-4 md:space-x-4 ">
             <div
-              className={`tab ${activeTab === 'profile' ? 'active' : ''} ${window.innerWidth <= 768 ? 'text-sm p-2' : ' p-3'}`}
+              className={`tab cursor-pointer ${activeTab === 'profile' ? 'active' : ''} ${window.innerWidth <= 768 ? 'text-sm p-2' : ' p-3'}`}
               onClick={() => setActiveTab('profile')}
               style={{
                 backgroundColor: activeTab === 'profile' ? '#0B6FA1' : '#929498',
@@ -834,8 +834,7 @@ export default function Student() {
               Thông tin hồ sơ
             </div>
             <div
-              // className={`tab ${activeTab === 'academic' ? 'active' : ''}`}
-              className={`tab ${activeTab === 'academic' ? 'active' : ''} ${window.innerWidth <= 768 ? 'text-sm p-2' : ' p-3'}`}
+              className={`tab cursor-pointer ${activeTab === 'academic' ? 'active' : ''} ${window.innerWidth <= 768 ? 'text-sm p-2' : ' p-3'}`}
               onClick={() => setActiveTab('academic')}
               style={{
                 backgroundColor: activeTab === 'academic' ? '#0B6FA1' : '#929498',
@@ -852,8 +851,7 @@ export default function Student() {
               Quá trình học tập
             </div>
             <div
-              // className={`tab ${activeTab === 'lesson' ? 'active' : ''}`}
-              className={`tab ${activeTab === 'lesson' ? 'active' : ''} ${window.innerWidth <= 768 ? 'text-sm p-2' : ' p-3'}`}
+              className={`tab cursor-pointer ${activeTab === 'lesson' ? 'active' : ''} ${window.innerWidth <= 768 ? 'text-sm p-2' : ' p-3'}`}
               onClick={() => {
                 setActiveTab('lesson');
               }}
@@ -872,8 +870,7 @@ export default function Student() {
               Bài học trên lớp
             </div>
             <div
-              // className={`tab ${activeTab === 'notice' ? 'active' : ''}`}
-              className={`tab ${activeTab === 'notice' ? 'active' : ''} ${window.innerWidth <= 768 ? 'text-sm p-2' : ' p-3'}`}
+              className={`tab cursor-pointer ${activeTab === 'notice' ? 'active' : ''} ${window.innerWidth <= 768 ? 'text-sm p-2' : ' p-3'}`}
               onClick={() => setActiveTab('notice')}
               style={{
                 backgroundColor: activeTab === 'notice' ? '#0B6FA1' : '#929498',
@@ -890,7 +887,7 @@ export default function Student() {
               Thông Báo
             </div>
             <div
-              className={`tab ${activeTab === 'leaveRequest' ? 'active' : ''} ${window.innerWidth <= 768 ? 'text-sm p-2' : ' p-3'}`}
+              className={`tab cursor-pointer ${activeTab === 'leaveRequest' ? 'active' : ''} ${window.innerWidth <= 768 ? 'text-sm p-2' : ' p-3'}`}
               onClick={() => setActiveTab('leaveRequest')}
               style={{
                 backgroundColor: activeTab === 'leaveRequest' ? '#0B6FA1' : '#929498',
