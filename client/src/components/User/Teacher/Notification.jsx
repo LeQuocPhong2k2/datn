@@ -25,7 +25,8 @@ export default function Notification() {
   // lấy_id của teacherId từ local storage
   const teacherId = sessionStorage.getItem('teacherId');
   console.log('teacherId:', teacherId);
-
+  const teacherName = localStorage.getItem('teacherName');
+  console.log('teacherName:', teacherName);
   const [subject, setSubject] = useState('');
   const [text, setText] = useState('');
   const [link, setLink] = useState('');
@@ -291,8 +292,7 @@ export default function Notification() {
                     <div className="flex justify-between items-center">
                       <div>
                         <strong>Người gửi: </strong>
-                        {/* {notification.sender_id}  */}
-                        Admin
+                        {notification.sender_id === teacherId ? teacherName : 'Admin'}
                       </div>
                       <div>
                         <strong>Thời gian: </strong>
