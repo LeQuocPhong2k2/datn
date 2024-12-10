@@ -363,83 +363,85 @@ export default function StudentAttendance() {
                           </td>
                         </tr>
                       ) : (
-                        studentList.map((student) => {
-                          const studentAttendanceMap = attendanceMap || {};
-                          return (
-                            <tr key={student._id} className="hover:bg-[#E5E7EB]">
-                              {recentDays.map((date, index) => {
-                                const vietnamDate = new Date(date);
-                                vietnamDate.setHours(vietnamDate.getHours() + 7);
-                                const formattedDate = date.toLocaleDateString('en-CA', {
-                                  timeZone: 'Asia/Ho_Chi_Minh',
-                                });
-                                const dayOfWeek = vietnamDate.getDay();
+                        studentList
+                          .sort((a, b) => a.userName.split(' ').pop().localeCompare(b.userName.split(' ').pop()))
+                          .map((student) => {
+                            const studentAttendanceMap = attendanceMap || {};
+                            return (
+                              <tr key={student._id} className="hover:bg-[#E5E7EB]">
+                                {recentDays.map((date, index) => {
+                                  const vietnamDate = new Date(date);
+                                  vietnamDate.setHours(vietnamDate.getHours() + 7);
+                                  const formattedDate = date.toLocaleDateString('en-CA', {
+                                    timeZone: 'Asia/Ho_Chi_Minh',
+                                  });
+                                  const dayOfWeek = vietnamDate.getDay();
 
-                                const status =
-                                  studentAttendanceMap[student._id]?.[formattedDate] ||
-                                  attendanceData[student._id]?.[vietnamDate.toISOString().split('T')[0]] ||
-                                  '';
+                                  const status =
+                                    studentAttendanceMap[student._id]?.[formattedDate] ||
+                                    attendanceData[student._id]?.[vietnamDate.toISOString().split('T')[0]] ||
+                                    '';
 
-                                // Kiểm tra xem status có phải từ attendanceMap không
-                                const isStatusFromMap = !!studentAttendanceMap[student._id]?.[formattedDate];
+                                  // Kiểm tra xem status có phải từ attendanceMap không
+                                  const isStatusFromMap = !!studentAttendanceMap[student._id]?.[formattedDate];
 
-                                return (
-                                  <td
-                                    key={index}
-                                    className={`border border-gray-400 px-2 py-1 text-center ${formattedDate.replace(/\//g, '-')}`}
-                                    style={{
-                                      backgroundColor: dayOfWeek === 6 ? '#FEF3C7' : dayOfWeek === 0 ? '#FEF3C7' : '',
-                                    }}
-                                  >
-                                    {dayOfWeek !== 6 && dayOfWeek !== 0 ? (
-                                      isStatusFromMap ? (
-                                        // Nếu status từ attendanceMap, hiển thị như text không thể sửa
-                                        <span className="text-center block">{status}</span>
-                                      ) : (
-                                        // Nếu không phải từ attendanceMap, hiển thị dropdown như cũ
-                                        <select
-                                          value={status}
-                                          onChange={(e) =>
-                                            handleAttendanceChange(student._id, vietnamDate, e.target.value)
-                                          }
-                                          className="border-none bg-transparent text-center
+                                  return (
+                                    <td
+                                      key={index}
+                                      className={`border border-gray-400 px-2 py-1 text-center ${formattedDate.replace(/\//g, '-')}`}
+                                      style={{
+                                        backgroundColor: dayOfWeek === 6 ? '#FEF3C7' : dayOfWeek === 0 ? '#FEF3C7' : '',
+                                      }}
+                                    >
+                                      {dayOfWeek !== 6 && dayOfWeek !== 0 ? (
+                                        isStatusFromMap ? (
+                                          // Nếu status từ attendanceMap, hiển thị như text không thể sửa
+                                          <span className="text-center block">{status}</span>
+                                        ) : (
+                                          // Nếu không phải từ attendanceMap, hiển thị dropdown như cũ
+                                          <select
+                                            value={status}
+                                            onChange={(e) =>
+                                              handleAttendanceChange(student._id, vietnamDate, e.target.value)
+                                            }
+                                            className="border-none bg-transparent text-center
                                             "
-                                          style={{
-                                            width: 'auto',
-                                            height: 'auto',
-                                            padding: 0,
-                                            fontSize: 'inherit',
-                                            WebkitAppearance: 'none',
-                                            MozAppearance: 'none',
-                                            appearance: 'none',
-                                            background: 'none',
-                                          }}
-                                          onFocus={(e) => (e.target.style.minWidth = '40px')}
-                                          onBlur={(e) => (e.target.style.minWidth = 'auto')}
-                                        >
-                                          <option value=""></option>
-                                          <option value="CM">CM</option>
-                                          <option value="VCP">VCP</option>
-                                          <option value="VKP">VKP</option>
-                                        </select>
-                                      )
-                                    ) : null}
-                                  </td>
-                                );
-                              })}
+                                            style={{
+                                              width: 'auto',
+                                              height: 'auto',
+                                              padding: 0,
+                                              fontSize: 'inherit',
+                                              WebkitAppearance: 'none',
+                                              MozAppearance: 'none',
+                                              appearance: 'none',
+                                              background: 'none',
+                                            }}
+                                            onFocus={(e) => (e.target.style.minWidth = '40px')}
+                                            onBlur={(e) => (e.target.style.minWidth = 'auto')}
+                                          >
+                                            <option value=""></option>
+                                            <option value="CM">CM</option>
+                                            <option value="VCP">VCP</option>
+                                            <option value="VKP">VKP</option>
+                                          </select>
+                                        )
+                                      ) : null}
+                                    </td>
+                                  );
+                                })}
 
-                              <td className="border border-gray-400 px-2 py-1 text-center">
-                                {studentAttendanceStats[student._id]?.statusCounts.CM || 0}
-                              </td>
-                              <td className="border border-gray-400 px-2 py-1 text-center">
-                                {studentAttendanceStats[student._id]?.statusCounts.VCP || 0}
-                              </td>
-                              <td className="border border-gray-400 px-2 py-1 text-center">
-                                {studentAttendanceStats[student._id]?.statusCounts.VKP || 0}
-                              </td>
-                            </tr>
-                          );
-                        })
+                                <td className="border border-gray-400 px-2 py-1 text-center">
+                                  {studentAttendanceStats[student._id]?.statusCounts.CM || 0}
+                                </td>
+                                <td className="border border-gray-400 px-2 py-1 text-center">
+                                  {studentAttendanceStats[student._id]?.statusCounts.VCP || 0}
+                                </td>
+                                <td className="border border-gray-400 px-2 py-1 text-center">
+                                  {studentAttendanceStats[student._id]?.statusCounts.VKP || 0}
+                                </td>
+                              </tr>
+                            );
+                          })
                       )}
                     </tbody>
                   </table>

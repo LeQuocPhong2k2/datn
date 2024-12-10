@@ -57,6 +57,7 @@ export default function ListNotification() {
   const handleUpdateNotification = async () => {
     try {
       await updateNotification(selectedNotification._id, selectedNotification);
+      console.log('selectedNotification là', selectedNotification);
 
       setModalIsOpen(false);
       fetchNotifications();

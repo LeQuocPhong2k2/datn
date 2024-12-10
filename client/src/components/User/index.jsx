@@ -62,8 +62,8 @@ export default function Student() {
         console.log(error);
       });
   }, []);
-  // // hiện console.log để xem thông tin học sinh
-  // console.log('studentInfo là:', studentInfo);
+  // hiện console.log để xem thông tin học sinh
+  console.log('studentInfo là:', studentInfo);
 
   // gọi tới apiu getFullInfoStudentByCode đựa trên studentCode ở trong cookie
 
@@ -1083,8 +1083,9 @@ export default function Student() {
                     <div className="flex justify-between items-center">
                       <div>
                         <strong>Người gửi: </strong>
-                        {/* {notification.sender_id}  */}
-                        Admin
+                        {notification.sender_id === studentInfo.homeRoomTeacher_id
+                          ? studentInfo.homeRoomTeacherName
+                          : 'Admin'}
                       </div>
                       <div>
                         <strong>Thời gian: </strong>
