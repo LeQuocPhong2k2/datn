@@ -9,6 +9,7 @@ import {
   updateNotification,
   deleteNotification,
   getNotificationsBySenderId,
+  editNotification2,
 } from '../../../api/Notifications';
 import Menu from './Menu';
 import io from 'socket.io-client';
@@ -181,13 +182,16 @@ export default function Notification() {
   const handleEditNotification = async () => {
     try {
       const updatedNotification = {
+        _id: editNotificationId,
         subject,
         text,
         link,
         image: imageUrl,
         notification_time: dateTime,
       };
-      const response = await updateNotification(editNotificationId, updatedNotification);
+      console.log('update đang có mới nhất là', updatedNotification);
+      console.log('editNotificationId là:', editNotificationId);
+      const response = await editNotification2(editNotificationId, updatedNotification);
       setNotifications((prev) =>
         prev.map((notification) => (notification._id === editNotificationId ? response.data : notification))
       );
@@ -278,7 +282,9 @@ export default function Notification() {
           {activeTab === 'view' ? (
             // Xem Thông Báo content
             <div>
-              {notifications
+              {Array.from(new Set(notifications.map((notification) => notification._id)))
+                .map((uniqueId) => notifications.find((notification) => notification._id === uniqueId))
+                .filter(Boolean)
                 .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
                 .map((notification, index) => (
                   <div key={notification._id} className="bg-white p-4 rounded-lg shadow-md mb-4">

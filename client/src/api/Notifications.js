@@ -114,6 +114,25 @@ async function getNotificationsBySenderId(sender_id) {
   }
 }
 
+async function editNotification2(_id, notification) {
+  console.log('editNotification2 ở bên server là', _id, notification);
+  try {
+    const response = await axios.post(
+      `${API_URL}/notification/editNotification2`,
+      { _id, ...notification },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error updating notification:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+}
+
 export {
   createNotification,
   getAllNotifications,
@@ -121,4 +140,5 @@ export {
   updateNotification,
   deleteNotification,
   getNotificationsBySenderId,
+  editNotification2,
 };
