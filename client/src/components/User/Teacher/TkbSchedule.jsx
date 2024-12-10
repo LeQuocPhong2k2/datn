@@ -7,7 +7,7 @@ import { UserContext } from '../../../UserContext';
 import Menu from './Menu';
 
 import { checkHomeRoomTeacher } from '../../../api/Class';
-import { getScheduleOfTeacher } from '../../../api/Schedules';
+import { getScheduleOfHomroomTeacher } from '../../../api/Schedules';
 
 export default function TeachingSchedule() {
   const { user } = useContext(UserContext);
@@ -38,7 +38,7 @@ export default function TeachingSchedule() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        getScheduleOfTeacher(user.teacherId, getCurrentSchoolYear()).then((response) => {
+        getScheduleOfHomroomTeacher(user.className, getCurrentSchoolYear()).then((response) => {
           setListSchedule(response.schedules);
         });
       } catch (error) {
@@ -124,13 +124,13 @@ export default function TeachingSchedule() {
 
   const tableData = createTableData();
   return (
-    <Menu active="teaching-schedule">
+    <Menu active="tkb-schedule">
       <div className="p-4">
         <div className="rounded shadow bg-white">
           <div className="px-4 py-2 border-b">
             <h2 className="text-xl font-bold" style={{ color: '#0B6FA1' }}>
               <i className="fa-regular fa-calendar pr-2"></i>
-              LỊCH GIẢNG DẠY
+              THỜI KHÓA BIỂU LỚP {user.className}
             </h2>
           </div>
           <div className="flex-1 px-4 py-4 flex items-center justify-start text-lg overflow-x-auto overflow-y-auto ">
@@ -170,28 +170,22 @@ export default function TeachingSchedule() {
                   <tr key={index}>
                     <th className="border border-gray-400 bg-gray-100 min-w-16">{index + 1}</th>
                     {row.map((subject, idx) => {
-                      let bgcolor = '';
-                      let color = 'text-gray-100';
+                      let color = '';
                       if (subject.type === 'Homeroom class') {
-                        bgcolor = 'bg-white';
+                        color = 'bg-white';
                       }
                       if (subject.type === 'Orther class') {
-                        bgcolor = 'bg-sky-400';
+                        color = 'bg-sky-400';
                       }
                       if (subject.type === 'Orther teacher') {
-                        bgcolor = 'bg-yellow-400';
-                      }
-
-                      if (user.className === '' && subject.type === 'Orther class') {
-                        bgcolor = 'bg-white';
-                        color = 'text-gray-600';
+                        color = 'bg-yellow-400';
                       }
 
                       return (
-                        <td key={idx} className={`border border-gray-300 text-left px-2 ${bgcolor}`}>
+                        <td key={idx} className={`border border-gray-300 text-left px-2 ${color}`}>
                           <div className="grid grid-rows-2 items-start justify-start">
                             <p className="font-semibold">{subject.subject}</p>
-                            <p className={`text-base ${color} `}> {subject.teacherName}</p>
+                            <p className={`text-base text-gray-100`}> {subject.teacherName}</p>
                           </div>
                         </td>
                       );
@@ -201,18 +195,16 @@ export default function TeachingSchedule() {
               </tbody>
             </table>
           </div>
-          {user.className !== '' && (
-            <div className="px-4 py-2 grid grid-flow-row gap-2">
-              <div className="flex items-center justify-start gap-2">
-                <div className="h-5 w-5 bg-white border border-black"></div>
-                <p className="text-base text-gray-600">Màu trắng: Lớp chủ nhiệm </p>
-              </div>
-              <div className="flex items-center justify-start gap-2">
-                <div className="h-5 w-5 bg-sky-400"></div>
-                <p className="text-base text-gray-600">Màu xanh: Lớp khác </p>
-              </div>
+          <div className="px-4 py-2 grid grid-flow-row gap-2">
+            <div className="flex items-center justify-start gap-2">
+              <div className="h-5 w-5 bg-white border border-black"></div>
+              <p className="text-base text-gray-600">Màu trắng: Giáo viên chủ nhiệm </p>
             </div>
-          )}
+            <div className="flex items-center justify-start gap-2">
+              <div className="h-5 w-5 bg-yellow-400"></div>
+              <p className="text-base text-gray-600">Màu cam: Giáo viên bộ môn </p>
+            </div>
+          </div>
         </div>
       </div>
     </Menu>

@@ -254,6 +254,24 @@ async function getScheduleOfHomroomTeacher(className, schoolYear) {
   }
 }
 
+async function getSchedulesByClassOfHomroomTeacher(teacherId, className, schoolYear) {
+  try {
+    const response = await axios.post(
+      API_URL + '/schedules/getSchedulesByClassOfHomroomTeacher',
+      { teacherId, className, schoolYear },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Get schedule of homeroom teacher error:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+}
+
 export {
   createSchedule,
   getSchedulesByClass,
@@ -267,4 +285,5 @@ export {
   getClassTeacherBySchoolYear,
   getSubjectOfTeacher,
   getScheduleOfHomroomTeacher,
+  getSchedulesByClassOfHomroomTeacher,
 };
