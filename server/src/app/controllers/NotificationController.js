@@ -26,6 +26,7 @@ const NotificationController = {
   // createNotification: async (req, res) => {
 
   createNotification: async (req, res) => {
+    console.log('S3 bucket', process.env.S3_BUCKET)
     try {
       const {
         sender_id,
