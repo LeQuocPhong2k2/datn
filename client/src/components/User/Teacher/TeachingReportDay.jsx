@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
-import { format, parse } from 'date-fns';
+import { format, parse, set } from 'date-fns';
 import 'flowbite';
 import React, { useContext, useEffect, useState } from 'react';
 import DatePicker from 'react-datepicker';
@@ -13,6 +13,7 @@ import { checkBaoBaiisExsit, saveTeachingReport } from '../../../api/TeachingRep
 
 export default function TeachingReportDay() {
   const { user } = useContext(UserContext);
+  const [isSaved, setIsSaved] = useState(true);
   const [data, setData] = useState({});
   const [className, setClassName] = useState('');
   const [listClassNames, setListClassNames] = useState([]);
@@ -70,17 +71,21 @@ export default function TeachingReportDay() {
   }
 
   const handleCreateFromTimetableDay = () => {
+    const dateBefore = selectedDate;
+    const classBefore = className;
+    if (!isSaved) {
+      if (window.confirm('Bạn chưa lưu báo bài, bạn có chắc muốn thoát?')) {
+      } else {
+        setSelectedDate(dateBefore);
+        setClassName(classBefore);
+        return;
+      }
+    }
+
     if (className === '') {
       toast.error('Vui lòng chọn lớp báo bài');
       return;
     }
-
-    // if (data.length > 0) {
-    //   const confirm = window.confirm('Bạn có muốn tạo mới báo bài?');
-    //   if (!confirm) {
-    //     return;
-    //   }
-    // }
 
     const day = getDayOfWeek(selectedDate);
     getScheduleByDay(user.teacherId, day, getCurrentSchoolYear())
@@ -233,7 +238,9 @@ export default function TeachingReportDay() {
           <div>
             <DatePicker
               selected={selectedDate}
-              onChange={(date) => setSelectedDate(date)}
+              onChange={(date) => {
+                setSelectedDate(date);
+              }}
               dateFormat="dd/MM/yyyy"
               filterDate={isWeekday}
               className="w-44 rounded border ring-0 outline-0 focus:ring-0 focus:border"
@@ -250,6 +257,7 @@ export default function TeachingReportDay() {
               onChange={(e) => {
                 setClassName(e.target.value);
               }}
+              value={className}
               className="w-44 rounded border ring-0 outline-0 focus:ring-0 focus:border"
               defaultValue=""
             >
@@ -265,7 +273,9 @@ export default function TeachingReportDay() {
 
         <div className="flex gap-2 py-2">
           <button
-            onClick={handleCreateFromTimetableDay}
+            onClick={() => {
+              handleCreateFromTimetableDay();
+            }}
             className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
           >
             Tạo báo bài
@@ -313,6 +323,7 @@ export default function TeachingReportDay() {
                         <td className="border border-gray-400 px-4 py-2">
                           <textarea
                             onChange={(e) => {
+                              setIsSaved(false);
                               const newData = { ...data };
                               if (newData[date] && newData[date][subIndex]) {
                                 newData[date][subIndex].content = e.target.value;
@@ -328,6 +339,7 @@ export default function TeachingReportDay() {
                         <td className="border border-gray-400 px-4 py-2">
                           <textarea
                             onChange={(e) => {
+                              setIsSaved(false);
                               const newData = { ...data };
                               if (newData[date] && newData[date][subIndex]) {
                                 newData[date][subIndex].note = e.target.value;

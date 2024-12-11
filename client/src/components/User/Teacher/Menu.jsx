@@ -112,13 +112,26 @@ export default function Menu({ children, active }) {
                     </span>
                   </Link>
                 </li>
+                {user.className !== '' && (
+                  <li
+                    className={` ${active === 'tkb-schedule' ? 'bg-gray-300' : 'bg-white'} px-5 py-2 my-2 md:px-2 md:text-sm lg:text-lg lg:px-4 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
+                  >
+                    <Link to="/teacher/tkb-schedule">
+                      <span className="w-full flex justify-start items-center">
+                        <i style={{ color: '#d55557' }} className="fa-regular fa-calendar mr-2"></i>
+                        TKB Lớp {user.className}
+                      </span>
+                    </Link>
+                  </li>
+                )}
+
                 <li
                   className={` ${active === 'notification' ? 'bg-gray-300' : 'bg-white'} px-5 py-2 my-2 md:px-2 md:text-sm lg:text-lg lg:px-4 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
                 >
                   <Link to="/teacher/notification">
                     <span className="w-full flex justify-start items-center">
                       <i style={{ color: '#d55557' }} class="fa-solid fa-bell mr-2"></i>
-                      Quản Lý thông báo
+                      Quản lý thông báo
                     </span>
                   </Link>
                 </li>
@@ -152,7 +165,7 @@ export default function Menu({ children, active }) {
                   <Link to="/teacher/teaching-report">
                     <span className="w-full flex justify-start items-center">
                       <i style={{ color: '#d55557' }} class="fa-solid fa-briefcase mr-2"></i>
-                      Quản Lý Báo bài
+                      Quản lý báo bài
                     </span>
                   </Link>
                 </li>

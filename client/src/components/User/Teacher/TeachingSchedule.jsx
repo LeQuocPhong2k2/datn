@@ -7,7 +7,7 @@ import { UserContext } from '../../../UserContext';
 import Menu from './Menu';
 
 import { checkHomeRoomTeacher } from '../../../api/Class';
-import { getScheduleOfHomroomTeacher, getScheduleOfTeacher } from '../../../api/Schedules';
+import { getScheduleOfTeacher } from '../../../api/Schedules';
 
 export default function TeachingSchedule() {
   const { user } = useContext(UserContext);
@@ -38,20 +38,9 @@ export default function TeachingSchedule() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const phoneTeacher = sessionStorage.getItem('phoneNumberTeacher');
-        checkHomeRoomTeacher(phoneTeacher, getCurrentSchoolYear(), user.className)
-          .then((res) => {
-            setRole(true);
-            getScheduleOfTeacher(user.teacherId, getCurrentSchoolYear()).then((response) => {
-              setListSchedule(response.schedules);
-            });
-          })
-          .catch((error) => {
-            setRole(false);
-            getScheduleOfTeacher(user.teacherId, getCurrentSchoolYear()).then((response) => {
-              setListSchedule(response.schedules);
-            });
-          });
+        getScheduleOfTeacher(user.teacherId, getCurrentSchoolYear()).then((response) => {
+          setListSchedule(response.schedules);
+        });
       } catch (error) {
         console.error('Get schedule of teacher error:', error);
       }
@@ -101,34 +90,32 @@ export default function TeachingSchedule() {
             break;
         }
 
-        if (role) {
-          const schedule = listSchedule.find((item) => item.day === strDay && item.period === period.toString());
-          let strTeacher = '';
-          if (schedule) {
-            strTeacher = `Gv.${schedule.teacherName}`;
-            if (user.userName === schedule.teacherName) {
-              strTeacher = '';
-            }
+        const schedule = listSchedule.find((item) => item.day === strDay && item.period === period.toString());
+
+        let strTeacher = '';
+        let type = '';
+        if (schedule) {
+          strTeacher = `Gv.${schedule.teacherName}`;
+          type = 'Orther teacher';
+          if (user.userName === schedule.teacherName) {
+            strTeacher = '';
+            type = 'Homeroom class';
           }
-          row.push(
-            schedule
-              ? {
-                  subject: removeNumberFromString(schedule.subject),
-                  teacherName: strTeacher,
-                }
-              : ''
-          );
-        } else {
-          const schedule = listSchedule.find((item) => item.day === strDay && item.period === period.toString());
-          row.push(
-            schedule
-              ? {
-                  subject: removeNumberFromString(schedule.subject),
-                  teacherName: `Lớp: ${schedule.className}`,
-                }
-              : ''
-          );
+
+          if (user.className !== schedule.className) {
+            strTeacher = `Lớp: ${schedule.className}`;
+            type = 'Orther class';
+          }
         }
+        row.push(
+          schedule
+            ? {
+                subject: removeNumberFromString(schedule.subject),
+                teacherName: strTeacher,
+                type: type,
+              }
+            : ''
+        );
       }
       tableData.push(row);
     }
@@ -182,19 +169,50 @@ export default function TeachingSchedule() {
                 {tableData.map((row, index) => (
                   <tr key={index}>
                     <th className="border border-gray-400 bg-gray-100 min-w-16">{index + 1}</th>
-                    {row.map((subject, idx) => (
-                      <td key={idx} className="border border-gray-300 text-left px-2">
-                        <div className="grid grid-rows-2 items-start justify-start">
-                          <p className="font-semibold">{subject.subject}</p>
-                          <p className="text-base text-gray-600"> {subject.teacherName}</p>
-                        </div>
-                      </td>
-                    ))}
+                    {row.map((subject, idx) => {
+                      let bgcolor = '';
+                      let color = 'text-gray-100';
+                      if (subject.type === 'Homeroom class') {
+                        bgcolor = 'bg-white';
+                      }
+                      if (subject.type === 'Orther class') {
+                        bgcolor = 'bg-sky-400';
+                      }
+                      if (subject.type === 'Orther teacher') {
+                        bgcolor = 'bg-yellow-400';
+                      }
+
+                      if (user.className === '' && subject.type === 'Orther class') {
+                        bgcolor = 'bg-white';
+                        color = 'text-gray-600';
+                      }
+
+                      return (
+                        <td key={idx} className={`border border-gray-300 text-left px-2 ${bgcolor}`}>
+                          <div className="grid grid-rows-2 items-start justify-start">
+                            <p className="font-semibold">{subject.subject}</p>
+                            <p className={`text-base ${color} `}> {subject.teacherName}</p>
+                          </div>
+                        </td>
+                      );
+                    })}
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+          {user.className !== '' && (
+            <div className="px-4 py-2 grid grid-flow-row gap-2">
+              <div className="flex items-center justify-start gap-2">
+                <div className="h-5 w-5 bg-white border border-black"></div>
+                <p className="text-base text-gray-600">Màu trắng: Lớp chủ nhiệm </p>
+              </div>
+              <div className="flex items-center justify-start gap-2">
+                <div className="h-5 w-5 bg-sky-400"></div>
+                <p className="text-base text-gray-600">Màu xanh: Lớp khác </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </Menu>
