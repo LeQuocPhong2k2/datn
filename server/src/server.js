@@ -14,7 +14,8 @@ const connectDB = require('./config/db/db.js')
 // sử dụng cors để cho phép truy cập từ các nguồn khác
 app.use(
   cors({
-    origin: 'https://iuhschool.id.vn/',
+    // origin: 'https://iuhschool.id.vn/',
+    origin: '*',
 
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
