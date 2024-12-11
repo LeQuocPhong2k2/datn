@@ -2,6 +2,7 @@ const Notification = require('../models/Notification')
 const socket = require('../../socket')
 const socketInit = require('../../socket')
 const AWS = require('aws-sdk')
+console.log('S3 bucket', process.env.S3_BUCKET)
 
 // Cấu hình AWS S3
 const s3 = new AWS.S3({
