@@ -20,8 +20,6 @@ import Menu from './Menu';
 
 export default function InputScore() {
   const { user } = useContext(UserContext);
-  const recordsPerPage = 10;
-  const [currentPage, setCurrentPage] = useState(1);
   const [subjectOfSchedule, setSubjectOfSchedule] = useState([]);
   const [activeEditSubject, setActiveEditSubject] = useState('');
   const [activeImport, setActiveImport] = useState(false);
@@ -262,7 +260,7 @@ export default function InputScore() {
     const schoolYear = getCurrentSchoolYear();
     setActiveEdit((prev) => (prev === rowIndex ? '-1' : rowIndex));
 
-    let rowData = rowIndex - 1;
+    let rowData = rowIndex;
 
     setDataRow({
       ...dataRow,
@@ -432,13 +430,6 @@ export default function InputScore() {
     setTranscript(transcriptBk);
   };
 
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
-  };
-
-  const totalPages = Math.ceil(transcript.length / recordsPerPage);
-  const currentRecords = transcript.slice((currentPage - 1) * recordsPerPage, currentPage * recordsPerPage);
-
   return (
     <>
       <Menu active="input-score">
@@ -461,7 +452,6 @@ export default function InputScore() {
                   onChange={(e) => {
                     setClassName(e.target.value);
                     setSubjectCode('');
-                    setCurrentPage(1);
                   }}
                   className="w-full p-2 border rounded"
                   style={{ zIndex: 10 }}
@@ -485,7 +475,6 @@ export default function InputScore() {
                   className="w-full p-2 border rounded"
                   onChange={(e) => {
                     setSubjectCode(e.target.value);
-                    setCurrentPage(1);
                   }}
                   defaultValue={''}
                 >
@@ -547,19 +536,6 @@ export default function InputScore() {
                       </div>
                     )}
                   </div>
-                </div>
-              </div>
-              <div className="col-span-2 w-full flex items-end justify-end">
-                <div className="flex justify-center mt-4">
-                  {Array.from({ length: totalPages }, (_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => handlePageChange(i + 1)}
-                      className={`px-4 py-2 mx-1 border rounded ${currentPage === i + 1 ? 'bg-blue-500 text-white' : 'bg-white text-blue-500'}`}
-                    >
-                      {i + 1}
-                    </button>
-                  ))}
                 </div>
               </div>
             </div>
@@ -810,17 +786,16 @@ export default function InputScore() {
                   </tr>
                 </thead>
                 <tbody>
-                  {currentRecords.map((student, index) => {
-                    let rowIndex = (currentPage - 1) * recordsPerPage + index + 1;
+                  {transcript.map((student, index) => {
                     return (
                       <>
-                        <tr className="h-16 odd:bg-white even:bg-yellow-50" key={rowIndex}>
-                          <td className="border px-4 py-2 text-center">{rowIndex}</td>
+                        <tr className="h-16 odd:bg-white even:bg-yellow-50" key={index}>
+                          <td className="border px-4 py-2 text-center">{index}</td>
                           <td className="border px-4 py-2 text-center">{student.studentCode}</td>
                           <td className="border px-4 py-2">{student.userName}</td>
                           <td className="border px-4 py-2">{student.dateOfBirth}</td>
                           <td className="border px-4 py-2 text-center">
-                            {activeEdit === rowIndex ? (
+                            {activeEdit === index ? (
                               <input
                                 value={dataRow.gk1}
                                 onChange={(e) => handleOnChangeEdit(e)}
@@ -835,7 +810,7 @@ export default function InputScore() {
                             )}
                           </td>
                           <td className="border px-4 py-2 text-center">
-                            {activeEdit === rowIndex ? (
+                            {activeEdit === index ? (
                               <input
                                 value={dataRow.ck1}
                                 onChange={(e) => handleOnChangeEdit(e)}
@@ -853,7 +828,7 @@ export default function InputScore() {
                             <span>{student.hk1Tb}</span>
                           </td>
                           <td className="border px-4 py-2 text-center">
-                            {activeEdit === rowIndex ? (
+                            {activeEdit === index ? (
                               <input
                                 value={dataRow.gk2}
                                 onChange={(e) => handleOnChangeEdit(e)}
@@ -868,7 +843,7 @@ export default function InputScore() {
                             )}
                           </td>
                           <td className="border px-4 py-2 text-center">
-                            {activeEdit === rowIndex ? (
+                            {activeEdit === index ? (
                               <input
                                 value={dataRow.ck2}
                                 onChange={(e) => handleOnChangeEdit(e)}
@@ -889,7 +864,7 @@ export default function InputScore() {
                             <span>{student.allYear}</span>
                           </td>
                           <td className="border px-4 py-2 text-left">
-                            {/* {activeEdit === rowIndex ? (
+                            {/* {activeEdit === index ? (
                           <input
                             value={dataRow.remarks}
                             onChange={(e) => handleOnChangeEdit(e)}
@@ -902,7 +877,7 @@ export default function InputScore() {
                         )} */}
                           </td>
                           <td className="border px-4 py-2 text-center  text-xl">
-                            {activeEdit === rowIndex ? (
+                            {activeEdit === index ? (
                               <div
                                 onClick={() => handleSave()}
                                 className="cursor-pointer flex items-center justify-center hover:text-blue-700"
@@ -911,7 +886,7 @@ export default function InputScore() {
                               </div>
                             ) : (
                               <div className="flex items-center justify-center hover:text-blue-700">
-                                <button onClick={() => handleActiveEdit(rowIndex)} disabled={activeEditSubject}>
+                                <button onClick={() => handleActiveEdit(index)} disabled={activeEditSubject}>
                                   <RiEdit2Fill
                                     className={
                                       activeEditSubject
@@ -930,7 +905,7 @@ export default function InputScore() {
                             >
                               <GrRefresh
                                 className={
-                                  activeEdit === rowIndex
+                                  activeEdit === index
                                     ? 'cursor-pointer hover:text-blue-700 text-blue-500'
                                     : 'cursor-not-allowed text-gray-500 opacity-50'
                                 }
