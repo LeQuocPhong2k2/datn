@@ -125,7 +125,7 @@ export default function Menu({ children, active }) {
                   </li>
                 )}
 
-                <li
+                {/* <li
                   className={` ${active === 'notification' ? 'bg-gray-300' : 'bg-white'} px-5 py-2 my-2 md:px-2 md:text-sm lg:text-lg lg:px-4 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
                 >
                   <Link to="/teacher/notification">
@@ -134,18 +134,30 @@ export default function Menu({ children, active }) {
                       Quản lý thông báo
                     </span>
                   </Link>
-                </li>
+                </li> */}
                 {user.className !== '' && (
-                  <li
-                    className={` ${active === 'student-attendance' ? 'bg-gray-300' : 'bg-white'} px-5 py-2 my-2 md:px-2 md:text-sm lg:text-lg lg:px-4 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
-                  >
-                    <Link to="/teacher/student-attendance">
-                      <span className="w-full flex justify-start items-center">
-                        <i style={{ color: '#d55557' }} className="fas fa-calendar-alt mr-2"></i>
-                        Quản lý điểm danh
-                      </span>
-                    </Link>
-                  </li>
+                  <>
+                    <li
+                      className={` ${active === 'notification' ? 'bg-gray-300' : 'bg-white'} px-5 py-2 my-2 md:px-2 md:text-sm lg:text-lg lg:px-4 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
+                    >
+                      <Link to="/teacher/notification">
+                        <span className="w-full flex justify-start items-center">
+                          <i style={{ color: '#d55557' }} class="fa-solid fa-bell mr-2"></i>
+                          Quản lý thông báo
+                        </span>
+                      </Link>
+                    </li>
+                    <li
+                      className={` ${active === 'student-attendance' ? 'bg-gray-300' : 'bg-white'} px-5 py-2 my-2 md:px-2 md:text-sm lg:text-lg lg:px-4 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
+                    >
+                      <Link to="/teacher/student-attendance">
+                        <span className="w-full flex justify-start items-center">
+                          <i style={{ color: '#d55557' }} className="fas fa-calendar-alt mr-2"></i>
+                          Quản lý điểm danh
+                        </span>
+                      </Link>
+                    </li>
+                  </>
                 )}
 
                 <li
