@@ -420,7 +420,7 @@ const StudyResult = ({ studentInfor }) => {
                 <tbody>
                   {[
                     { category: 'Xếp loại', value: danhHieu },
-                    { category: 'TBM Cả năm', value: avgScore },
+                    { category: 'TBM Cả năm', value: stats.averageScore },
                     { category: 'Hạnh kiểm', value: 'Tốt' },
                   ].map((row, index) => (
                     <tr key={index}>
