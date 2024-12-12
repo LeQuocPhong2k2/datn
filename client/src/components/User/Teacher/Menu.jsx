@@ -160,16 +160,18 @@ export default function Menu({ children, active }) {
                   </>
                 )}
 
-                <li
-                  className={` ${active === 'leave-request' ? 'bg-gray-300' : 'bg-white'} px-5 py-2 my-2 md:px-2 md:text-sm lg:text-lg lg:px-4 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
-                >
-                  <Link to="/teacher/leave-request">
-                    <span className="w-full flex justify-start items-center">
-                      <i style={{ color: '#d55557' }} class="fa-solid fa-envelope-open-text mr-2"></i>
-                      Đơn xin nghỉ học
-                    </span>
-                  </Link>
-                </li>
+                {user.className !== '' && (
+                  <li
+                    className={` ${active === 'leave-request' ? 'bg-gray-300' : 'bg-white'} px-5 py-2 my-2 md:px-2 md:text-sm lg:text-lg lg:px-4 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
+                  >
+                    <Link to="/teacher/leave-request">
+                      <span className="w-full flex justify-start items-center">
+                        <i style={{ color: '#d55557' }} class="fa-solid fa-envelope-open-text mr-2"></i>
+                        Đơn xin nghỉ học
+                      </span>
+                    </Link>
+                  </li>
+                )}
 
                 <li
                   className={` ${active === 'teaching-report' ? 'bg-gray-300' : 'bg-white'} px-5 py-2 my-2 md:px-2 md:text-sm lg:text-lg lg:px-4 text-lg text-black font-semibold rounded-full hover:bg-gray-300 cursor-pointer`}
@@ -403,7 +405,9 @@ export default function Menu({ children, active }) {
               </div>
             )}
           </header>
-          <div className="overflow-y-auto flex-1 h-full">{children}</div>
+          <div className={`${active === 'input-score' ? 'overflow-y-scroll' : 'overflow-y-auto'} flex-1 h-full`}>
+            {children}
+          </div>
         </div>
       </div>
     </>

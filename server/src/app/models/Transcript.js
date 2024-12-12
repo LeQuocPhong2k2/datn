@@ -10,7 +10,9 @@ const TranscriptSchema = new Schema(
     className: String,
     schoolYear: String,
     subjectCode: String,
-    hk1Gk: Number,
+    hk1Gk: {
+      type: String,
+    },
     hk1Ck: {
       type: String,
     },

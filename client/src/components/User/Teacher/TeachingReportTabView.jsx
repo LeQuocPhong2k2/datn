@@ -7,6 +7,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import toast from 'react-hot-toast';
 import { UserContext } from '../../../UserContext';
+import Swal from 'sweetalert2';
 
 import { getClassTeacherBySchoolYear } from '../../../api/Schedules';
 import { getSubjectByGrade } from '../../../api/Subject';
@@ -92,82 +93,163 @@ export default function TeachingPlans() {
 
   const handleSearch = () => {
     if (status === 'changed') {
-      const confirm = window.confirm('Bạn có thay đổi chưa lưu. Bạn có muốn tiếp tục mà không lưu không?');
-      if (!confirm) {
-        return;
-      }
-    }
-    let dateToStart = '';
-    let dateToEnd = '';
-    if (dateStart && !isNaN(new Date(dateStart).getTime())) {
-      dateToStart = format(new Date(dateStart), 'dd/MM/yyyy');
-    }
-    if (dateEnd && !isNaN(new Date(dateEnd).getTime())) {
-      dateToEnd = format(new Date(dateEnd), 'dd/MM/yyyy');
-    }
-    getReportDetailByDayOrClassOrSubject(
-      getCurrentSchoolYear(),
-      className,
-      dateToStart,
-      dateToEnd,
-      subjectName,
-      user.teacherId
-    )
-      .then((data) => {
-        if (data.teachingReports.length === 0) {
-          toast.error('Không tìm thấy báo bài!');
-          setDataManyDay({});
-          setDataManyBk({});
-          return;
-        }
+      Swal.fire({
+        title: 'Thay đổi chưa lưu. Bạn có muốn tiếp tục?',
+        icon: 'warning',
+        showCancelButton: true,
+        howCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Tiếp tục',
+        cancelButtonText: 'Hủy',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          let dateToStart = '';
+          let dateToEnd = '';
+          if (dateStart && !isNaN(new Date(dateStart).getTime())) {
+            dateToStart = format(new Date(dateStart), 'dd/MM/yyyy');
+          }
+          if (dateEnd && !isNaN(new Date(dateEnd).getTime())) {
+            dateToEnd = format(new Date(dateEnd), 'dd/MM/yyyy');
+          }
+          getReportDetailByDayOrClassOrSubject(
+            getCurrentSchoolYear(),
+            className,
+            dateToStart,
+            dateToEnd,
+            subjectName,
+            user.teacherId
+          )
+            .then((data) => {
+              if (data.teachingReports.length === 0) {
+                toast.error('Không tìm thấy báo bài!');
+                setDataManyDay({});
+                setDataManyBk({});
+                return;
+              }
 
-        let dataMany = {};
-        data.teachingReports.forEach((report) => {
-          report.reports.forEach((subject) => {
-            if (dataMany[report._id.date]) {
-              dataMany[report._id.date].push({
-                subjectName: subject.subjectName,
-                content: subject.content,
-                note: subject.note,
-                teacherName: subject.teacherName,
-                detele: 0,
+              let dataMany = {};
+              data.teachingReports.forEach((report) => {
+                report.reports.forEach((subject) => {
+                  if (dataMany[report._id.date]) {
+                    dataMany[report._id.date].push({
+                      subjectName: subject.subjectName,
+                      content: subject.content,
+                      note: subject.note,
+                      teacherName: subject.teacherName,
+                      detele: 0,
+                    });
+                  } else {
+                    dataMany[report._id.date] = [
+                      {
+                        subjectName: subject.subjectName,
+                        content: subject.content,
+                        note: subject.note,
+                        teacherName: subject.teacherName,
+                        detele: 0,
+                      },
+                    ];
+                  }
+                });
               });
-            } else {
-              dataMany[report._id.date] = [
-                {
+
+              dataMany = Object.keys(dataMany)
+                .sort((a, b) => {
+                  const dateA = parse(a, 'dd/MM/yyyy', new Date());
+                  const dateB = parse(b, 'dd/MM/yyyy', new Date());
+                  return dateA - dateB;
+                })
+                .reduce((acc, key) => {
+                  acc[key] = dataMany[key].sort((a, b) => a.subjectName.localeCompare(b.subjectName));
+                  return acc;
+                }, {});
+
+              setDataManyDay(dataMany);
+              setDataManyBk(dataMany);
+            })
+            .catch((error) => {
+              console.error(
+                'Get report detail by day or class or subject error:',
+                error.response ? error.response.data : error.message
+              );
+              throw error;
+            });
+          setStatus('idle');
+        }
+      });
+    } else {
+      let dateToStart = '';
+      let dateToEnd = '';
+      if (dateStart && !isNaN(new Date(dateStart).getTime())) {
+        dateToStart = format(new Date(dateStart), 'dd/MM/yyyy');
+      }
+      if (dateEnd && !isNaN(new Date(dateEnd).getTime())) {
+        dateToEnd = format(new Date(dateEnd), 'dd/MM/yyyy');
+      }
+      getReportDetailByDayOrClassOrSubject(
+        getCurrentSchoolYear(),
+        className,
+        dateToStart,
+        dateToEnd,
+        subjectName,
+        user.teacherId
+      )
+        .then((data) => {
+          if (data.teachingReports.length === 0) {
+            toast.error('Không tìm thấy báo bài!');
+            setDataManyDay({});
+            setDataManyBk({});
+            return;
+          }
+
+          let dataMany = {};
+          data.teachingReports.forEach((report) => {
+            report.reports.forEach((subject) => {
+              if (dataMany[report._id.date]) {
+                dataMany[report._id.date].push({
                   subjectName: subject.subjectName,
                   content: subject.content,
                   note: subject.note,
                   teacherName: subject.teacherName,
                   detele: 0,
-                },
-              ];
-            }
+                });
+              } else {
+                dataMany[report._id.date] = [
+                  {
+                    subjectName: subject.subjectName,
+                    content: subject.content,
+                    note: subject.note,
+                    teacherName: subject.teacherName,
+                    detele: 0,
+                  },
+                ];
+              }
+            });
           });
+
+          dataMany = Object.keys(dataMany)
+            .sort((a, b) => {
+              const dateA = parse(a, 'dd/MM/yyyy', new Date());
+              const dateB = parse(b, 'dd/MM/yyyy', new Date());
+              return dateA - dateB;
+            })
+            .reduce((acc, key) => {
+              acc[key] = dataMany[key].sort((a, b) => a.subjectName.localeCompare(b.subjectName));
+              return acc;
+            }, {});
+
+          setDataManyDay(dataMany);
+          setDataManyBk(dataMany);
+        })
+        .catch((error) => {
+          console.error(
+            'Get report detail by day or class or subject error:',
+            error.response ? error.response.data : error.message
+          );
+          throw error;
         });
-
-        dataMany = Object.keys(dataMany)
-          .sort((a, b) => {
-            const dateA = parse(a, 'dd/MM/yyyy', new Date());
-            const dateB = parse(b, 'dd/MM/yyyy', new Date());
-            return dateA - dateB;
-          })
-          .reduce((acc, key) => {
-            acc[key] = dataMany[key].sort((a, b) => a.subjectName.localeCompare(b.subjectName));
-            return acc;
-          }, {});
-
-        setDataManyDay(dataMany);
-        setDataManyBk(dataMany);
-      })
-      .catch((error) => {
-        console.error(
-          'Get report detail by day or class or subject error:',
-          error.response ? error.response.data : error.message
-        );
-        throw error;
-      });
-    setStatus('idle');
+      setStatus('idle');
+    }
   };
 
   const handlePreviousPage = () => {
@@ -207,19 +289,26 @@ export default function TeachingPlans() {
   };
 
   const handleDeleteSubject = (date, subIndex) => {
-    const confirm = window.confirm('Bạn có chắc chắn muốn xóa môn học này không?');
-    if (!confirm) {
-      return;
-    }
-    const newTimetable = JSON.parse(JSON.stringify(dataManyDay));
-    newTimetable[date][subIndex]['delete'] = 1;
-    setDataManyDay(newTimetable);
-    setActiveIndex({
-      date: '',
-      subIndex: '',
+    Swal.fire({
+      title: 'Bạn có chắc chắn muốn xóa môn học này không?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Xóa',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const newTimetable = JSON.parse(JSON.stringify(dataManyDay));
+        newTimetable[date][subIndex]['delete'] = 1;
+        setDataManyDay(newTimetable);
+        setActiveIndex({
+          date: '',
+          subIndex: '',
+        });
+        setStatus('changed');
+        toast.success('Đã xóa môn học thành công!');
+      }
     });
-    setStatus('changed');
-    toast.success('Đã xóa môn học thành công!');
   };
 
   const handleNavigateAway = (e) => {

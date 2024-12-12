@@ -131,10 +131,42 @@ async function getStudentStatistics(studentCode, className, schoolYear) {
   }
 }
 
+async function checkImportTranscript(dataRow) {
+  try {
+    const response = await axios.post(
+      API_URL + '/transcripts/checkImportTranscript',
+      {
+        mshs: dataRow.mshs,
+        className: dataRow.className,
+        schoolYear: dataRow.schoolYear,
+        subjectCode: dataRow.subjectCode,
+        gk1: dataRow.hk1Gk,
+        ck1: dataRow.hk1Ck,
+        tbhk1: dataRow.hk1Tb,
+        gk2: dataRow.hk2Gk,
+        ck2: dataRow.hk2Ck,
+        tbhk2: dataRow.hk2Tb,
+        tbcn: dataRow.allYear,
+        remarks: dataRow.remarks,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response;
+  } catch (error) {
+    console.error('Check import transcript error:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+}
+
 export {
   getTranscriptBySubjectAndClassAndSchoolYear,
   updateTranscript,
   getTranscriptByStudentCodeAndClassAndSchoolYear,
   getClassStatistics,
   getStudentStatistics,
+  checkImportTranscript,
 };

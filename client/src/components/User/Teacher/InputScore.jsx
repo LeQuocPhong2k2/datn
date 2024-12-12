@@ -3,16 +3,19 @@ import 'flowbite';
 import { useEffect, useState, useContext } from 'react';
 import { UserContext } from '../../../UserContext';
 import { Toaster, toast } from 'react-hot-toast';
+import Swal from 'sweetalert2';
 
-import { RiEdit2Fill } from 'react-icons/ri';
-import { RiSave3Fill } from 'react-icons/ri';
-import { GrRefresh } from 'react-icons/gr';
 import { CiImport } from 'react-icons/ci';
+import { FiEdit } from 'react-icons/fi';
 
 import * as XLSX from 'xlsx';
 
 import { getSubjectByGrade } from '../../../api/Subject';
-import { getTranscriptBySubjectAndClassAndSchoolYear, updateTranscript } from '../../../api/Transcripts';
+import {
+  getTranscriptBySubjectAndClassAndSchoolYear,
+  updateTranscript,
+  checkImportTranscript,
+} from '../../../api/Transcripts';
 import { getClassTeacherBySchoolYear, getSubjectOfTeacher } from '../../../api/Schedules';
 import { checkHomeRoomTeacher } from '../../../api/Class';
 
@@ -34,25 +37,17 @@ export default function InputScore() {
   const [transcript, setTranscript] = useState([]);
   const [transcriptBk, setTranscriptBk] = useState([]);
   const [transcriptFileUpload, setTranscriptFileUpload] = useState([]);
-  const [activeEdit, setActiveEdit] = useState('-1');
   const [className, setClassName] = useState('');
-  const [dataRow, setDataRow] = useState({
-    stt: 1,
-    mshs: 1,
-    className: '',
-    schoolYear: '',
-    subjectCode: '',
-    gk1: 1,
-    ck1: 1,
-    tbhk1: 1,
-    gk2: 1,
-    ck2: 1,
-    tbhk2: 1,
-    tbcn: 1,
-    remarks: '',
-  });
 
+  const [processing, setProcessing] = useState(false);
+  const [isSaved, setIsSaved] = useState(true);
+  const [isEditingGK1, setIsEditingGK1] = useState(false);
+  const [isEditingCK1, setIsEditingCK1] = useState(false);
+  const [isEditingGK2, setIsEditingGK2] = useState(false);
+  const [isEditingCK2, setIsEditingCK2] = useState(false);
+  const [activeShowImport, setActiveShowImport] = useState(false);
   const [listClassNames, setListClassNames] = useState([]);
+  const [listStudentImportFailed, setListStudentImportFailed] = useState([]);
 
   const getCurrentSchoolYear = () => {
     const now = new Date();
@@ -144,6 +139,7 @@ export default function InputScore() {
    */
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
+    setTranscriptFileUpload([]);
 
     if (!file) {
       return;
@@ -163,7 +159,7 @@ export default function InputScore() {
     reader.readAsArrayBuffer(file);
   };
 
-  const handleImportTranscript = async () => {
+  const handleCheckImportTranscript = async () => {
     if (className === '') {
       toast.error('Please select a classroom');
       return;
@@ -192,121 +188,144 @@ export default function InputScore() {
     let nsuccess = 0;
     setImportProgress(0);
     setActiveImport(true);
+    setListStudentImportFailed([]);
+    let transcriptCheck = [];
+    let mshsImportFile = [];
     const totalFile = transcriptFileUpload.length;
     for (let index = 0; index < totalFile; index++) {
       const transcriptImport = transcriptFileUpload[index];
+      const dataRow = {};
       dataRow.stt = index;
       dataRow.mshs = transcriptImport['Mã số học sinh'];
       dataRow.className = className;
       dataRow.schoolYear = getCurrentSchoolYear();
       dataRow.subjectCode = subjectCode;
+      dataRow.userName = transcript[index].userName;
+      dataRow.dateOfBirth = transcript[index].dateOfBirth;
+      dataRow.studentCode = transcript[index].studentCode;
       if (selectedSemesterNumber === 'Gk' && selectedSemester === '1') {
-        dataRow.gk1 = transcriptImport['Điểm'];
-        dataRow.ck1 = transcript[index].hk1Ck;
-        dataRow.tbhk1 = transcript[index].hk1Tb;
-        dataRow.gk2 = transcript[index].hk2Gk;
-        dataRow.ck2 = transcript[index].hk2Ck;
-        dataRow.tbhk2 = transcript[index].hk2Tb;
-        dataRow.tbcn = transcript[index].allYear;
+        dataRow.hk1Gk = transcriptImport['Điểm'];
+        dataRow.hk1Ck = transcript[index].hk1Ck;
+        dataRow.hk1Tb = transcript[index].hk1Tb;
+        dataRow.hk2Gk = transcript[index].hk2Gk;
+        dataRow.hk2Ck = transcript[index].hk2Ck;
+        dataRow.hk2Tb = transcript[index].hk2Tb;
+        dataRow.allYear = transcript[index].allYear;
         dataRow.remarks = transcript[index].remarks;
       }
       if (selectedSemesterNumber === 'Ck' && selectedSemester === '1') {
-        dataRow.gk1 = transcript[index].hk1Gk;
-        dataRow.ck1 = transcriptImport['Điểm'];
+        dataRow.hk1Gk = transcript[index].hk1Gk;
+        dataRow.hk1Ck = transcriptImport['Điểm'];
         dataRow.tbhk1 = transcript[index].hk1Tb;
-        dataRow.gk2 = transcript[index].hk2Gk;
-        dataRow.ck2 = transcript[index].hk2Ck;
-        dataRow.tbhk2 = transcript[index].hk2Tb;
-        dataRow.tbcn = transcript[index].allYear;
+        dataRow.hk2Gk = transcript[index].hk2Gk;
+        dataRow.hk2Ck = transcript[index].hk2Ck;
+        dataRow.hk2Tb = transcript[index].hk2Tb;
+        dataRow.allYear = transcript[index].allYear;
         dataRow.remarks = transcript[index].remarks;
       }
       if (selectedSemesterNumber === 'Gk' && selectedSemester === '2') {
-        dataRow.gk1 = transcript[index].hk1Gk;
-        dataRow.ck1 = transcript[index].hk1Ck;
-        dataRow.tbhk1 = transcript[index].hk1Tb;
-        dataRow.gk2 = transcriptImport['Điểm'];
-        dataRow.ck2 = transcript[index].hk2Ck;
-        dataRow.tbhk2 = transcript[index].hk2Tb;
-        dataRow.tbcn = transcript[index].allYear;
+        dataRow.hk1Gk = transcript[index].hk1Gk;
+        dataRow.hk1Ck = transcript[index].hk1Ck;
+        dataRow.hk1Tb = transcript[index].hk1Tb;
+        dataRow.hk2Gk = transcriptImport['Điểm'];
+        dataRow.hk2Ck = transcript[index].hk2Ck;
+        dataRow.hk2Tb = transcript[index].hk2Tb;
+        dataRow.allYear = transcript[index].allYear;
         dataRow.remarks = transcript[index].remarks;
       }
       if (selectedSemesterNumber === 'Ck' && selectedSemester === '2') {
-        dataRow.gk1 = transcript[index].hk1Gk;
-        dataRow.ck1 = transcript[index].hk1Ck;
-        dataRow.tbhk1 = transcript[index].hk1Tb;
-        dataRow.gk2 = transcript[index].hk2Gk;
-        dataRow.ck2 = transcriptImport['Điểm'];
-        dataRow.tbhk2 = transcript[index].hk2Tb;
-        dataRow.tbcn = transcript[index].allYear;
+        dataRow.hk1Gk = transcript[index].hk1Gk;
+        dataRow.hk1Ck = transcript[index].hk1Ck;
+        dataRow.hk1Tb = transcript[index].hk1Tb;
+        dataRow.hk2Gk = transcript[index].hk2Gk;
+        dataRow.hk2Ck = transcriptImport['Điểm'];
+        dataRow.hk2Tb = transcript[index].hk2Tb;
+        dataRow.allYear = transcript[index].allYear;
         dataRow.remarks = transcript[index].remarks;
       }
+      transcriptCheck.push(dataRow);
 
       try {
-        await updateTranscript(dataRow);
+        await checkImportTranscript(dataRow);
         nsuccess++;
       } catch (error) {
         nfailed++;
+        mshsImportFile.push(dataRow.mshs);
+        console.log('Error import transcript dataRow.mshs:', dataRow.mshs);
         console.error(error);
       }
       setSuccess(nsuccess);
       setFailed(nfailed);
       setImportProgress(Math.round(((index + 1) / totalFile) * 100));
     }
-    refreshTranscript();
+    setListStudentImportFailed(mshsImportFile);
     setTranscriptFileUpload([]);
-  };
-
-  const handleActiveEdit = (rowIndex) => {
-    const schoolYear = getCurrentSchoolYear();
-    setActiveEdit((prev) => (prev === rowIndex ? '-1' : rowIndex));
-
-    let rowData = rowIndex;
-
-    setDataRow({
-      ...dataRow,
-      stt: rowData,
-      mshs: transcript[rowData].studentCode,
-      className: className,
-      schoolYear: schoolYear,
-      subjectCode: subjectCode,
-      gk1: transcript[rowData].hk1Gk,
-      ck1: transcript[rowData].hk1Ck,
-      tbhk1: transcript[rowData].hk1Tb,
-      gk2: transcript[rowData].hk2Gk,
-      ck2: transcript[rowData].hk2Ck,
-      tbhk2: transcript[rowData].hk2Tb,
-      tbcn: transcript[rowData].allYear,
-      remarks: transcript[rowData].remarks,
-    });
+    document.getElementById('inputFile').value = '';
+    setIsSaved(false);
+    setTranscript(transcriptCheck);
   };
 
   const handleCancelEdit = () => {
-    setActiveEdit('-1');
+    setTranscript(transcriptBk);
+    setIsSaved(true);
+    setIsEditingGK1(false);
+    setIsEditingCK1(false);
+    setIsEditingGK2(false);
+    setIsEditingCK2(false);
   };
 
-  const handleOnChangeEdit = (e) => {
-    const { name, value } = e.target;
-    setDataRow({ ...dataRow, [name]: value });
-  };
-
-  const handleCheckValidate = () => {
-    if (parseInt(dataRow.gk1) < 0 || parseInt(dataRow.gk1) > 10) {
-      toast.error('Điểm không hợp lệ');
-      return false;
-    }
-    return true;
+  const handleOnChangeEdit = (e, typeScore, index) => {
+    const newTranscript = JSON.parse(JSON.stringify(transcript));
+    newTranscript[index][typeScore] = e.target.value;
+    setTranscript(newTranscript);
+    setIsSaved(false);
   };
 
   const handleSave = async () => {
-    if (!handleCheckValidate()) return;
     try {
-      await updateTranscript(dataRow);
-      toast.success('Cập nhật điểm thành công');
+      for (let i = 0; i < transcript.length; i++) {
+        const dataRow = {
+          stt: i,
+          mshs: transcript[i].studentCode,
+          className: className,
+          schoolYear: getCurrentSchoolYear(),
+          subjectCode: subjectCode,
+          gk1: transcript[i].hk1Gk,
+          ck1: transcript[i].hk1Ck,
+          tbhk1: transcript[i].hk1Tb,
+          gk2: transcript[i].hk2Gk,
+          ck2: transcript[i].hk2Ck,
+          tbhk2: transcript[i].hk2Tb,
+          tbcn: transcript[i].allYear,
+          remarks: transcript[i].remarks,
+        };
+
+        if (
+          (isNaN(dataRow.gk1) && dataRow.gk1 !== '') ||
+          (isNaN(dataRow.ck1) && dataRow.ck1 !== '') ||
+          (isNaN(dataRow.gk2) && dataRow.gk2 !== '') ||
+          (isNaN(dataRow.ck2) && dataRow.ck2 !== '')
+        ) {
+          Swal.fire({
+            title: 'Vui lòng cập nhật điếm số hợp lệ!',
+            icon: 'warning',
+            showCancelButton: false,
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'OK',
+          });
+          setProcessing(false);
+          return;
+        }
+
+        await updateTranscript(dataRow);
+        setProcessing(true);
+      }
       const schoolYear = getCurrentSchoolYear();
       const grade = className[0];
       getTranscriptBySubjectAndClassAndSchoolYear(subjectCode, className, schoolYear, grade)
         .then((res) => {
           setTranscript(res.data);
+          setTranscriptBk(res.data);
         })
         .catch((error) => {
           setTranscript([]);
@@ -315,13 +334,23 @@ export default function InputScore() {
             error.response ? error.response.data : error.message
           );
         });
+      setProcessing(false);
+      setIsEditingGK1(false);
+      setIsEditingCK1(false);
+      setIsEditingGK2(false);
+      setIsEditingCK2(false);
+      setIsSaved(true);
+      setListStudentImportFailed([]);
+      toast.success('Cập nhật điểm thành công');
     } catch (error) {
+      setProcessing(false);
       toast.error('Cập nhật điểm thất bại');
       const schoolYear = getCurrentSchoolYear();
       const grade = className[0];
       getTranscriptBySubjectAndClassAndSchoolYear(subjectCode, className, schoolYear, grade)
         .then((res) => {
           setTranscript(res.data);
+          setTranscriptBk(res.data);
         })
         .catch((error) => {
           setTranscript([]);
@@ -331,24 +360,6 @@ export default function InputScore() {
           );
         });
     }
-    setActiveEdit('-1');
-  };
-
-  const refreshTranscript = () => {
-    document.getElementById('inputFile').value = '';
-    const schoolYear = getCurrentSchoolYear();
-    const grade = className[0];
-    getTranscriptBySubjectAndClassAndSchoolYear(subjectCode, className, schoolYear, grade)
-      .then((res) => {
-        setTranscript(res.data);
-      })
-      .catch((error) => {
-        setTranscript([]);
-        console.error(
-          'Get student list by class and academic year error:',
-          error.response ? error.response.data : error.message
-        );
-      });
   };
 
   const sorting = (colName) => {
@@ -430,6 +441,87 @@ export default function InputScore() {
     setTranscript(transcriptBk);
   };
 
+  const handleOnchangeClass = (e) => {
+    const classsBefore = className;
+    const newClassName = e.target.value;
+
+    if (!isSaved) {
+      Swal.fire({
+        title: 'Chưa lưu điểm, bạn có muốn chuyển lớp?',
+        // text: 'Dữ liệu điểm sẽ không được lưu lại',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'OK',
+        cancelButtonText: 'Hủy',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          setClassName(newClassName);
+          setActiveShowImport(false);
+          setSubjectCode('');
+          setIsSaved(true);
+          setIsEditingGK1(false);
+          setIsEditingCK1(false);
+          setIsEditingGK2(false);
+          setIsEditingCK2(false);
+          setListStudentImportFailed([]);
+        } else {
+          setClassName(classsBefore);
+        }
+      });
+    } else {
+      setClassName(e.target.value);
+      setSubjectCode('');
+      setTranscript([]);
+      setTranscriptBk([]);
+      setIsSaved(true);
+      setIsEditingGK1(false);
+      setIsEditingCK1(false);
+      setIsEditingGK2(false);
+      setIsEditingCK2(false);
+    }
+  };
+
+  const handleOnchangeSubject = (e) => {
+    const subjectBefore = subjectCode;
+    const newSubject = e.target.value;
+    if (!isSaved) {
+      Swal.fire({
+        title: 'Chưa lưu điểm, bạn có muốn chuyển môn học?',
+        // text: 'Dữ liệu điểm sẽ không được lưu lại',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'OK',
+        cancelButtonText: 'Hủy',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          setSubjectCode(newSubject);
+          setActiveShowImport(false);
+          setIsSaved(true);
+          setIsEditingGK1(false);
+          setIsEditingCK1(false);
+          setIsEditingGK2(false);
+          setIsEditingCK2(false);
+          setListStudentImportFailed([]);
+        } else {
+          setSubjectCode(subjectBefore);
+        }
+      });
+    } else {
+      setSubjectCode(newSubject);
+      setTranscript([]);
+      setTranscriptBk([]);
+      setIsSaved(true);
+      setIsEditingGK1(false);
+      setIsEditingCK1(false);
+      setIsEditingGK2(false);
+      setIsEditingCK2(false);
+    }
+  };
+
   return (
     <>
       <Menu active="input-score">
@@ -442,16 +534,16 @@ export default function InputScore() {
                 QUẢN LÝ ĐIẾM SỐ
               </h2>
             </div>
-            <div className="px-4 w-full grid grid-cols-4 gap-4 mb-6">
-              <div>
+
+            <div className="px-4 py-2 flex flex-wrap gap-4">
+              <div className="w-60">
                 <label className="block mb-2">
                   Lớp<span className="text-red-500">*</span>
                 </label>
                 <select
                   value={className}
                   onChange={(e) => {
-                    setClassName(e.target.value);
-                    setSubjectCode('');
+                    handleOnchangeClass(e);
                   }}
                   className="w-full p-2 border rounded"
                   style={{ zIndex: 10 }}
@@ -465,7 +557,7 @@ export default function InputScore() {
                   ))}
                 </select>
               </div>
-              <div>
+              <div className="w-60">
                 <label className="block mb-2">
                   Môn học<span className="text-red-500">*</span>
                 </label>
@@ -474,7 +566,7 @@ export default function InputScore() {
                   value={subjectCode}
                   className="w-full p-2 border rounded"
                   onChange={(e) => {
-                    setSubjectCode(e.target.value);
+                    handleOnchangeSubject(e);
                   }}
                   defaultValue={''}
                 >
@@ -487,58 +579,113 @@ export default function InputScore() {
                   {subjectList.length === 0 && <option>Chưa có môn học</option>}
                 </select>
               </div>
-              <div>
-                <label className="block mb-2">
-                  Học kỳ<span className="text-red-500">*</span>
-                </label>
-                <div className="flex items-center space-x-4">
-                  <select
-                    value={selectedSemester}
-                    onChange={(e) => setSelectedSemester(e.target.value)}
-                    className="w-full p-2 border rounded"
-                    defaultValue={''}
+              {!isSaved && (
+                <div className="w-96 flex items-end gap-2">
+                  <button
+                    onClick={handleSave}
+                    className="h-10 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 "
                   >
-                    <option value={''}></option>
-                    <option value={'1'}>Học kỳ 1</option>
-                    <option value={'2'}>Học kỳ 2</option>
-                  </select>
-                  <select
-                    value={selectedSemesterNumber}
-                    onChange={(e) => setSelectedSemesterNumber(e.target.value)}
-                    className="w-full p-2 border rounded"
-                    defaultValue={''}
+                    Lưu thay đổi
+                  </button>
+                  <button
+                    onClick={handleCancelEdit}
+                    className="h-10 bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 "
                   >
-                    <option value={''}></option>
-                    <option value={'Gk'}>Giữa kỳ</option>
-                    <option value={'Ck'}>Cuối kỳ</option>
-                  </select>
+                    Hủy bỏ thay đổi
+                  </button>
+                  {processing && (
+                    <div role="status" className="flex items-center h-10">
+                      <svg
+                        aria-hidden="true"
+                        class="w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
+                        viewBox="0 0 100 101"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                          fill="currentColor"
+                        />
+                        <path
+                          d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                          fill="currentFill"
+                        />
+                      </svg>
+                      <span class="sr-only">Loading...</span>
+                    </div>
+                  )}
                 </div>
-              </div>
-              <div className="col-span-2 w-full grid grid-cols-3 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-3 gap-4">
-                <div className="col-span-2 grid grid-cols-2 items-end justify-start gap-4">
+              )}
+            </div>
+
+            <div className="px-4 py-4 flex items-center justify-start gap-1">
+              <input
+                type="checkbox"
+                checked={activeShowImport}
+                onChange={(e) => {
+                  setActiveShowImport(e.target.checked);
+                }}
+              />
+              <p className="">Nhập điểm từ file Excel</p>
+
+              <a href="/template/Diem_XXX_MonHoc_LopHoc.xlsx" className="text-blue-500" download>
+                File mẫu
+              </a>
+            </div>
+
+            {activeShowImport && (
+              <div className="px-4 pb-5 flex flex-wrap gap-4">
+                <div className="flex flex-wrap items-end justify-start gap-4">
+                  <div>
+                    <label className="block mb-2">
+                      Học kỳ<span className="text-red-500">*</span>
+                    </label>
+                    <div className="flex items-center space-x-4">
+                      <select
+                        value={selectedSemester}
+                        onChange={(e) => setSelectedSemester(e.target.value)}
+                        className="w-60 p-2 border rounded"
+                        defaultValue={''}
+                      >
+                        <option value={''}></option>
+                        <option value={'1'}>Học kỳ 1</option>
+                        <option value={'2'}>Học kỳ 2</option>
+                      </select>
+                      <select
+                        value={selectedSemesterNumber}
+                        onChange={(e) => setSelectedSemesterNumber(e.target.value)}
+                        className="w-60 p-2 border rounded"
+                        defaultValue={''}
+                      >
+                        <option value={''}></option>
+                        <option value={'Gk'}>Giữa kỳ</option>
+                        <option value={'Ck'}>Cuối kỳ</option>
+                      </select>
+                    </div>
+                  </div>
                   <div className="">
-                    <label className="block mb-2">Nhập điểm từ file Excel</label>
                     <input id="inputFile" type="file" onChange={handleFileUpload} className="w-full border rounded" />
                   </div>
-                  <div className="flex items-end justify-start gap-2">
-                    <button
-                      onClick={handleImportTranscript}
-                      type="button"
-                      className="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded text-sm px-5 py-2.5 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
-                    >
-                      <CiImport className="text-xl font-medium" />
-                    </button>
-                    {activeImport && (
-                      <div className="grid grid-flow-col gap-5 w-96 min-w-96">
-                        <span>Tiến trình: {importProgress}%</span>
-                        <span>Thành công: {success}</span>
-                        <span>Thất bại: {failed}</span>
-                      </div>
-                    )}
-                  </div>
+                  <button
+                    onClick={handleCheckImportTranscript}
+                    type="button"
+                    className="w-16 focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded text-sm px-5 py-2.5 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
+                  >
+                    <CiImport className="text-xl font-medium" />
+                  </button>
+                </div>
+                <div className="flex items-end justify-start gap-2">
+                  {activeImport && (
+                    <div className="grid grid-flow-col gap-5 w-96 min-w-96">
+                      <span>Tiến trình: {importProgress}%</span>
+                      <span>Thành công: {success}</span>
+                      <span>Thất bại: {failed}</span>
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
+            )}
+
             <div className="px-4 overflow-x-auto">
               <table className="min-w-full border mb-5" style={{ userSelect: 'none', width: '100%' }}>
                 <thead className=" bg-gray-100">
@@ -546,7 +693,7 @@ export default function InputScore() {
                     <th className="border px-4 py-2 w-10 min-w-10" rowSpan={2}>
                       STT
                     </th>
-                    <th onClick={() => sorting('studentCode')} className="border px-4 py-2 w-24 min-w-24" rowSpan={2}>
+                    <th onClick={() => sorting('studentCode')} className="border px-4 py-2 w-28 min-w-28" rowSpan={2}>
                       <span class="flex items-center">
                         MSHS
                         <svg
@@ -647,14 +794,15 @@ export default function InputScore() {
                     <th className="border px-4 py-2 w-28 min-w-28 text-left" rowSpan={2}>
                       Xếp loại
                     </th>
-                    <th className="border px-4 py-2 w-14 min-w-14" rowSpan={2}></th>
-                    <th className="border px-4 py-2 w-14 min-w-14" rowSpan={2}></th>
+                    {/* <th className="border px-4 py-2 w-14 min-w-14" rowSpan={2}></th>
+                    <th className="border px-4 py-2 w-14 min-w-14" rowSpan={2}></th> */}
                   </tr>
                   <tr>
-                    <th onClick={() => sorting('hk1Gk')} className="border px-4 py-2 w-28 min-w-28">
+                    <th className="border px-4 py-2 w-28 min-w-28">
                       <span class="flex items-center">
                         GK
                         <svg
+                          onClick={() => sorting('hk1Gk')}
                           className="cursor-pointer w-4 h-4 ms-1"
                           aria-hidden="true"
                           xmlns="http://www.w3.org/2000/svg"
@@ -671,12 +819,26 @@ export default function InputScore() {
                             d="m8 15 4 4 4-4m0-6-4-4-4 4"
                           />
                         </svg>
+                        {!activeEditSubject && (
+                          <div
+                            onClick={() => {
+                              setIsEditingGK1(!isEditingGK1);
+                              setIsEditingCK1(false);
+                              setIsEditingGK2(false);
+                              setIsEditingCK2(false);
+                            }}
+                            className="cursor-pointer text-lg pl-4 hover:text-blue-500"
+                          >
+                            <FiEdit />
+                          </div>
+                        )}
                       </span>
                     </th>
-                    <th onClick={() => sorting('hk1Ck')} className="border px-4 py-2 w-28 min-w-28">
+                    <th className="border px-4 py-2 w-28 min-w-28">
                       <span class="flex items-center">
                         CK
                         <svg
+                          onClick={() => sorting('hk1Ck')}
                           className="cursor-pointer w-4 h-4 ms-1"
                           aria-hidden="true"
                           xmlns="http://www.w3.org/2000/svg"
@@ -693,6 +855,19 @@ export default function InputScore() {
                             d="m8 15 4 4 4-4m0-6-4-4-4 4"
                           />
                         </svg>
+                        {!activeEditSubject && (
+                          <div
+                            onClick={() => {
+                              setIsEditingCK1(!isEditingCK1);
+                              setIsEditingGK1(false);
+                              setIsEditingGK2(false);
+                              setIsEditingCK2(false);
+                            }}
+                            className="cursor-pointer text-lg pl-4 hover:text-blue-500"
+                          >
+                            <FiEdit />
+                          </div>
+                        )}
                       </span>
                     </th>
                     <th onClick={() => sorting('hk1Tb')} className="border px-4 py-2 w-28 min-w-28">
@@ -717,10 +892,11 @@ export default function InputScore() {
                         </svg>
                       </span>
                     </th>
-                    <th onClick={() => sorting('hk2Gk')} className="border px-4 py-2 w-28 min-w-28">
+                    <th className="border px-4 py-2 w-28 min-w-28">
                       <span class="flex items-center">
                         GK
                         <svg
+                          onClick={() => sorting('hk2Gk')}
                           className="cursor-pointer w-4 h-4 ms-1"
                           aria-hidden="true"
                           xmlns="http://www.w3.org/2000/svg"
@@ -737,12 +913,26 @@ export default function InputScore() {
                             d="m8 15 4 4 4-4m0-6-4-4-4 4"
                           />
                         </svg>
+                        {!activeEditSubject && (
+                          <div
+                            onClick={() => {
+                              setIsEditingGK2(!isEditingGK2);
+                              setIsEditingCK1(false);
+                              setIsEditingGK1(false);
+                              setIsEditingCK2(false);
+                            }}
+                            className="cursor-pointer text-lg pl-4 hover:text-blue-500"
+                          >
+                            <FiEdit />
+                          </div>
+                        )}
                       </span>
                     </th>
-                    <th onClick={() => sorting('hk2Ck')} className="border px-4 py-2 w-28 min-w-28">
+                    <th className="border px-4 py-2 w-28 min-w-28">
                       <span class="flex items-center">
                         CK
                         <svg
+                          onClick={() => sorting('hk2Ck')}
                           className="cursor-pointer w-4 h-4 ms-1"
                           aria-hidden="true"
                           xmlns="http://www.w3.org/2000/svg"
@@ -759,6 +949,19 @@ export default function InputScore() {
                             d="m8 15 4 4 4-4m0-6-4-4-4 4"
                           />
                         </svg>
+                        {!activeEditSubject && (
+                          <div
+                            onClick={() => {
+                              setIsEditingCK2(!isEditingCK2);
+                              setIsEditingGK2(false);
+                              setIsEditingCK1(false);
+                              setIsEditingGK1(false);
+                            }}
+                            className="cursor-pointer text-lg pl-4 hover:text-blue-500"
+                          >
+                            <FiEdit />
+                          </div>
+                        )}
                       </span>
                     </th>
                     <th onClick={() => sorting('hk2Tb')} className="border px-4 py-2 w-28 min-w-28">
@@ -787,18 +990,24 @@ export default function InputScore() {
                 </thead>
                 <tbody>
                   {transcript.map((student, index) => {
+                    let borderCheck = 'odd:bg-white even:bg-yellow-50';
+                    const check = listStudentImportFailed.find((item) => item === student.studentCode);
+                    if (check) {
+                      borderCheck = 'bg-red-500';
+                    }
+
                     return (
                       <>
-                        <tr className="h-16 odd:bg-white even:bg-yellow-50" key={index}>
+                        <tr className={`h-16  ${borderCheck}`} key={index}>
                           <td className="border px-4 py-2 text-center">{index}</td>
                           <td className="border px-4 py-2 text-center">{student.studentCode}</td>
                           <td className="border px-4 py-2">{student.userName}</td>
                           <td className="border px-4 py-2">{student.dateOfBirth}</td>
                           <td className="border px-4 py-2 text-center">
-                            {activeEdit === index ? (
+                            {isEditingGK1 ? (
                               <input
-                                value={dataRow.gk1}
-                                onChange={(e) => handleOnChangeEdit(e)}
+                                value={student.hk1Gk}
+                                onChange={(e) => handleOnChangeEdit(e, 'hk1Gk', index)}
                                 type="number"
                                 min={0}
                                 max={10}
@@ -810,10 +1019,10 @@ export default function InputScore() {
                             )}
                           </td>
                           <td className="border px-4 py-2 text-center">
-                            {activeEdit === index ? (
+                            {isEditingCK1 ? (
                               <input
-                                value={dataRow.ck1}
-                                onChange={(e) => handleOnChangeEdit(e)}
+                                value={student.hk1Ck}
+                                onChange={(e) => handleOnChangeEdit(e, 'hk1Ck', index)}
                                 type="number"
                                 min={0}
                                 max={10}
@@ -828,10 +1037,10 @@ export default function InputScore() {
                             <span>{student.hk1Tb}</span>
                           </td>
                           <td className="border px-4 py-2 text-center">
-                            {activeEdit === index ? (
+                            {isEditingGK2 ? (
                               <input
-                                value={dataRow.gk2}
-                                onChange={(e) => handleOnChangeEdit(e)}
+                                value={student.hk2Gk}
+                                onChange={(e) => handleOnChangeEdit(e, 'hk2Gk', index)}
                                 type="number"
                                 min={0}
                                 max={10}
@@ -843,10 +1052,10 @@ export default function InputScore() {
                             )}
                           </td>
                           <td className="border px-4 py-2 text-center">
-                            {activeEdit === index ? (
+                            {isEditingCK2 ? (
                               <input
-                                value={dataRow.ck2}
-                                onChange={(e) => handleOnChangeEdit(e)}
+                                value={student.hk2Ck}
+                                onChange={(e) => handleOnChangeEdit(e, 'hk2Ck', index)}
                                 type="number"
                                 min={0}
                                 max={10}
@@ -876,7 +1085,7 @@ export default function InputScore() {
                           <span>{student.remarks}</span>
                         )} */}
                           </td>
-                          <td className="border px-4 py-2 text-center  text-xl">
+                          {/* <td className="border px-4 py-2 text-center  text-xl">
                             {activeEdit === index ? (
                               <div
                                 onClick={() => handleSave()}
@@ -911,7 +1120,7 @@ export default function InputScore() {
                                 }
                               />
                             </div>
-                          </td>
+                          </td> */}
                         </tr>
                       </>
                     );
