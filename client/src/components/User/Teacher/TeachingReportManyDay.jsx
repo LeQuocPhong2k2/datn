@@ -7,11 +7,13 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { UserContext } from '../../../UserContext';
 
+import Swal from 'sweetalert2';
 import toast from 'react-hot-toast';
 import { getClassTeacherBySchoolYear, getScheduleByWeekDays } from '../../../api/Schedules';
 import { checkBaoBaiisExsit, saveTeachingReport } from '../../../api/TeachingReport';
 
 export default function TeachingReportManyDay() {
+  const [isSaved, setIsSaved] = useState(true);
   const { user } = useContext(UserContext);
   const [listClassNames, setListClassNames] = useState([]);
   const [dataManyDay, setDataManyDay] = useState({});
@@ -75,68 +77,144 @@ export default function TeachingReportManyDay() {
       toast.error('Vui lòng chọn lớp báo bài');
       return;
     }
-    // if (dataManyDay && Object.keys(dataManyDay).length > 0) {
-    //   const confirm = window.confirm('Bạn có muốn tạo mới báo bài? Những thay đổi trước đó sẽ bị mất!');
-    //   if (!confirm) {
-    //     return;
-    //   }
-    // }
-    let weekDays = [];
-    weekDays = getWeekdaysTimetableManyDay(dateStart, dateEnd);
-    getScheduleByWeekDays(user.teacherId, weekDays, getCurrentSchoolYear())
-      .then((data) => {
-        let dataMany = {};
-        data.schedules.forEach((schedule) => {
-          schedule.arrSubject.forEach((subject) => {
-            if (subject.className === className) {
-              let currentDate = new Date(dateStart);
-              currentDate.setHours(0, 0, 0, 0);
-              const endDate = new Date(dateEnd);
-              endDate.setHours(0, 0, 0, 0);
-              while (currentDate <= endDate) {
-                const dayName = getDayName(currentDate);
-                if (dayName === schedule.day) {
-                  if (dataMany[format(currentDate, 'dd/MM/yyyy')]) {
-                    dataMany[format(currentDate, 'dd/MM/yyyy')].push({
-                      subjectName: subject.subjectName,
-                      content: '',
-                      note: '',
-                    });
-                  } else {
-                    dataMany[format(currentDate, 'dd/MM/yyyy')] = [
-                      {
+    const dateStartBefore = dateStart;
+    const dateEndBefore = dateEnd;
+    const classBefore = className;
+
+    if (!isSaved) {
+      Swal.fire({
+        title: 'Bạn chưa lưu báo bài',
+        text: 'Bạn có muốn tạo báo bài mới không?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Tạo mới',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          let weekDays = [];
+          weekDays = getWeekdaysTimetableManyDay(dateStart, dateEnd);
+          getScheduleByWeekDays(user.teacherId, weekDays, getCurrentSchoolYear())
+            .then((data) => {
+              let dataMany = {};
+              data.schedules.forEach((schedule) => {
+                schedule.arrSubject.forEach((subject) => {
+                  if (subject.className === className) {
+                    let currentDate = new Date(dateStart);
+                    currentDate.setHours(0, 0, 0, 0);
+                    const endDate = new Date(dateEnd);
+                    endDate.setHours(0, 0, 0, 0);
+                    while (currentDate <= endDate) {
+                      const dayName = getDayName(currentDate);
+                      if (dayName === schedule.day) {
+                        if (dataMany[format(currentDate, 'dd/MM/yyyy')]) {
+                          dataMany[format(currentDate, 'dd/MM/yyyy')].push({
+                            subjectName: subject.subjectName,
+                            content: '',
+                            note: '',
+                          });
+                        } else {
+                          dataMany[format(currentDate, 'dd/MM/yyyy')] = [
+                            {
+                              subjectName: subject.subjectName,
+                              content: '',
+                              note: '',
+                            },
+                          ];
+                        }
+                      }
+                      currentDate.setDate(currentDate.getDate() + 1);
+                    }
+                  }
+                });
+              });
+
+              dataMany = Object.keys(dataMany)
+                .sort((a, b) => {
+                  const dateA = parse(a, 'dd/MM/yyyy', new Date());
+                  const dateB = parse(b, 'dd/MM/yyyy', new Date());
+                  return dateA - dateB;
+                })
+                .reduce((acc, key) => {
+                  acc[key] = dataMany[key].sort((a, b) => a.subjectName.localeCompare(b.subjectName));
+                  return acc;
+                }, {});
+
+              setDataManyDay(dataMany);
+            })
+            .catch((error) => {
+              console.error(
+                'Get class by day and teacher error:',
+                error.response ? error.response.data : error.message
+              );
+              throw error;
+            });
+
+          toast.success('Tạo báo bài thành công');
+        } else {
+          setClassName(classBefore);
+          setDateStart(dateStartBefore);
+          setDateEnd(dateEndBefore);
+        }
+      });
+    } else {
+      let weekDays = [];
+      weekDays = getWeekdaysTimetableManyDay(dateStart, dateEnd);
+      getScheduleByWeekDays(user.teacherId, weekDays, getCurrentSchoolYear())
+        .then((data) => {
+          let dataMany = {};
+          data.schedules.forEach((schedule) => {
+            schedule.arrSubject.forEach((subject) => {
+              if (subject.className === className) {
+                let currentDate = new Date(dateStart);
+                currentDate.setHours(0, 0, 0, 0);
+                const endDate = new Date(dateEnd);
+                endDate.setHours(0, 0, 0, 0);
+                while (currentDate <= endDate) {
+                  const dayName = getDayName(currentDate);
+                  if (dayName === schedule.day) {
+                    if (dataMany[format(currentDate, 'dd/MM/yyyy')]) {
+                      dataMany[format(currentDate, 'dd/MM/yyyy')].push({
                         subjectName: subject.subjectName,
                         content: '',
                         note: '',
-                      },
-                    ];
+                      });
+                    } else {
+                      dataMany[format(currentDate, 'dd/MM/yyyy')] = [
+                        {
+                          subjectName: subject.subjectName,
+                          content: '',
+                          note: '',
+                        },
+                      ];
+                    }
                   }
+                  currentDate.setDate(currentDate.getDate() + 1);
                 }
-                currentDate.setDate(currentDate.getDate() + 1);
               }
-            }
+            });
           });
+
+          dataMany = Object.keys(dataMany)
+            .sort((a, b) => {
+              const dateA = parse(a, 'dd/MM/yyyy', new Date());
+              const dateB = parse(b, 'dd/MM/yyyy', new Date());
+              return dateA - dateB;
+            })
+            .reduce((acc, key) => {
+              acc[key] = dataMany[key].sort((a, b) => a.subjectName.localeCompare(b.subjectName));
+              return acc;
+            }, {});
+
+          setDataManyDay(dataMany);
+        })
+        .catch((error) => {
+          console.error('Get class by day and teacher error:', error.response ? error.response.data : error.message);
+          throw error;
         });
 
-        dataMany = Object.keys(dataMany)
-          .sort((a, b) => {
-            const dateA = parse(a, 'dd/MM/yyyy', new Date());
-            const dateB = parse(b, 'dd/MM/yyyy', new Date());
-            return dateA - dateB;
-          })
-          .reduce((acc, key) => {
-            acc[key] = dataMany[key].sort((a, b) => a.subjectName.localeCompare(b.subjectName));
-            return acc;
-          }, {});
-
-        setDataManyDay(dataMany);
-      })
-      .catch((error) => {
-        console.error('Get class by day and teacher error:', error.response ? error.response.data : error.message);
-        throw error;
-      });
-
-    toast.success('Tạo báo bài thành công');
+      toast.success('Tạo báo bài thành công');
+    }
   };
 
   function getWeekdaysTimetableManyDay(startDate, endDate) {
@@ -195,25 +273,50 @@ export default function TeachingReportManyDay() {
     // Kiểm tra báo bài đã tồn tại
     const isExist = await handleCheckIsEist(); // Sử dụng await
     if (!isExist) {
-      const wConfim = window.confirm('Báo bài đã tồn tại, bạn có muốn tạo mới không?');
-      if (!wConfim) {
-        return;
-      }
-    }
-
-    const academicYear = getCurrentSchoolYear();
-    const classReport = className;
-    const teachCreate = user.teacherId;
-    saveTeachingReport(academicYear, classReport, teachCreate, dataManyDay)
-      .then((data) => {
-        toast.success('Lưu báo bài thành công');
-        setDataManyDay({});
-      })
-      .catch((error) => {
-        console.error('Save teaching report error:', error.response ? error.response.data : error.message);
-        toast.error('Lưu báo bài thất bại');
-        throw error;
+      Swal.fire({
+        title: 'Báo bài đã tồn tại',
+        text: 'Bạn có muốn tạo mới không?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Tạo mới',
+      }).then((result) => {
+        if (!result.isConfirmed) {
+          return;
+        } else {
+          const academicYear = getCurrentSchoolYear();
+          const classReport = className;
+          const teachCreate = user.teacherId;
+          saveTeachingReport(academicYear, classReport, teachCreate, dataManyDay)
+            .then((data) => {
+              toast.success('Lưu báo bài thành công');
+              setDataManyDay({});
+              setIsSaved(true);
+            })
+            .catch((error) => {
+              console.error('Save teaching report error:', error.response ? error.response.data : error.message);
+              toast.error('Lưu báo bài thất bại');
+              throw error;
+            });
+        }
       });
+    } else {
+      const academicYear = getCurrentSchoolYear();
+      const classReport = className;
+      const teachCreate = user.teacherId;
+      saveTeachingReport(academicYear, classReport, teachCreate, dataManyDay)
+        .then((data) => {
+          toast.success('Lưu báo bài thành công');
+          setDataManyDay({});
+          setIsSaved(true);
+        })
+        .catch((error) => {
+          console.error('Save teaching report error:', error.response ? error.response.data : error.message);
+          toast.error('Lưu báo bài thất bại');
+          throw error;
+        });
+    }
   };
 
   const handleCheckIsEist = async () => {
@@ -382,6 +485,7 @@ export default function TeachingReportManyDay() {
                             const newTimetable = { ...dataManyDay };
                             newTimetable[date][subIndex].content = e.target.value;
                             setDataManyDay(newTimetable);
+                            setIsSaved(false);
                           }}
                           value={subject.content}
                           className="w-full h-16 rounded border border-gray-400 px-2 py-2"
@@ -393,6 +497,7 @@ export default function TeachingReportManyDay() {
                             const newTimetable = { ...dataManyDay };
                             newTimetable[date][subIndex].note = e.target.value;
                             setDataManyDay(newTimetable);
+                            setIsSaved(false);
                           }}
                           value={subject.note}
                           className="w-full h-16 rounded border border-gray-400 px-2 py-2"

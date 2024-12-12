@@ -7,6 +7,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { UserContext } from '../../../UserContext';
 
+import Swal from 'sweetalert2';
 import toast from 'react-hot-toast';
 import { getClassTeacherBySchoolYear, getScheduleByDay } from '../../../api/Schedules';
 import { checkBaoBaiisExsit, saveTeachingReport } from '../../../api/TeachingReport';
@@ -74,81 +75,161 @@ export default function TeachingReportDay() {
     const dateBefore = selectedDate;
     const classBefore = className;
     if (!isSaved) {
-      if (window.confirm('Bạn chưa lưu báo bài, bạn có chắc muốn thoát?')) {
-      } else {
-        setSelectedDate(dateBefore);
-        setClassName(classBefore);
-        return;
-      }
-    }
+      Swal.fire({
+        title: 'Bạn chưa lưu báo bài',
+        text: 'Bạn có muốn tạo báo bài mới không?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Tạo mới',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          if (className === '') {
+            toast.error('Vui lòng chọn lớp báo bài');
+            return;
+          }
 
-    if (className === '') {
-      toast.error('Vui lòng chọn lớp báo bài');
-      return;
-    }
+          const day = getDayOfWeek(selectedDate);
+          getScheduleByDay(user.teacherId, day, getCurrentSchoolYear())
+            .then((data) => {
+              setData([]);
+              let newTimetable = {};
 
-    const day = getDayOfWeek(selectedDate);
-    getScheduleByDay(user.teacherId, day, getCurrentSchoolYear())
-      .then((data) => {
-        setData([]);
-        let newTimetable = {};
+              if (data.schedules.length === 0) {
+                toast.error('Không tìm thấy lịch giảng dạy');
+                return;
+              }
 
-        if (data.schedules.length === 0) {
-          toast.error('Không tìm thấy lịch giảng dạy');
+              data.schedules[0].arrSubject.forEach((elm) => {
+                if (elm.className === className) {
+                  const date = format(selectedDate, 'dd/MM/yyyy');
+                  if (newTimetable[date]) {
+                    newTimetable[date].push({
+                      subjectName: elm.subjectName,
+                      content: '',
+                      note: '',
+                    });
+                  } else {
+                    newTimetable[date] = [
+                      {
+                        subjectName: elm.subjectName,
+                        content: '',
+                        note: '',
+                      },
+                    ];
+                  }
+                }
+              });
+
+              newTimetable = Object.keys(newTimetable)
+                .sort((a, b) => {
+                  const dateA = parse(a, 'dd/MM/yyyy', new Date());
+                  const dateB = parse(b, 'dd/MM/yyyy', new Date());
+                  return dateA - dateB;
+                })
+                .reduce((acc, key) => {
+                  acc[key] = newTimetable[key].sort((a, b) => a.subjectName.localeCompare(b.subjectName));
+                  return acc;
+                }, {});
+
+              // nếu không có dữ liệu thì thông báo
+              if (Object.keys(newTimetable).length === 0) {
+                toast('Không tìm thấy báo bài.', {
+                  icon: 'ℹ️', // Biểu tượng thông tin
+                  style: {
+                    background: '#blue',
+                    color: '#black',
+                  },
+                });
+                return;
+              }
+
+              setData(newTimetable);
+              toast.success('Tạo báo bài thành công');
+            })
+            .catch((error) => {
+              console.error(
+                'Get class by day and teacher error:',
+                error.response ? error.response.data : error.message
+              );
+              throw error;
+            });
+        } else {
+          setSelectedDate(dateBefore);
+          setClassName(classBefore);
           return;
         }
+      });
+    } else {
+      if (className === '') {
+        toast.error('Vui lòng chọn lớp báo bài');
+        return;
+      }
 
-        data.schedules[0].arrSubject.forEach((elm) => {
-          if (elm.className === className) {
-            const date = format(selectedDate, 'dd/MM/yyyy');
-            if (newTimetable[date]) {
-              newTimetable[date].push({
-                subjectName: elm.subjectName,
-                content: '',
-                note: '',
-              });
-            } else {
-              newTimetable[date] = [
-                {
+      const day = getDayOfWeek(selectedDate);
+      getScheduleByDay(user.teacherId, day, getCurrentSchoolYear())
+        .then((data) => {
+          setData([]);
+          let newTimetable = {};
+
+          if (data.schedules.length === 0) {
+            toast.error('Không tìm thấy lịch giảng dạy');
+            return;
+          }
+
+          data.schedules[0].arrSubject.forEach((elm) => {
+            if (elm.className === className) {
+              const date = format(selectedDate, 'dd/MM/yyyy');
+              if (newTimetable[date]) {
+                newTimetable[date].push({
                   subjectName: elm.subjectName,
                   content: '',
                   note: '',
-                },
-              ];
+                });
+              } else {
+                newTimetable[date] = [
+                  {
+                    subjectName: elm.subjectName,
+                    content: '',
+                    note: '',
+                  },
+                ];
+              }
             }
-          }
-        });
-
-        newTimetable = Object.keys(newTimetable)
-          .sort((a, b) => {
-            const dateA = parse(a, 'dd/MM/yyyy', new Date());
-            const dateB = parse(b, 'dd/MM/yyyy', new Date());
-            return dateA - dateB;
-          })
-          .reduce((acc, key) => {
-            acc[key] = newTimetable[key].sort((a, b) => a.subjectName.localeCompare(b.subjectName));
-            return acc;
-          }, {});
-
-        // nếu không có dữ liệu thì thông báo
-        if (Object.keys(newTimetable).length === 0) {
-          toast('Không tìm thấy báo bài.', {
-            icon: 'ℹ️', // Biểu tượng thông tin
-            style: {
-              background: '#blue',
-              color: '#black',
-            },
           });
-          return;
-        }
 
-        setData(newTimetable);
-        toast.success('Tạo báo bài thành công');
-      })
-      .catch((error) => {
-        console.error('Get class by day and teacher error:', error.response ? error.response.data : error.message);
-        throw error;
-      });
+          newTimetable = Object.keys(newTimetable)
+            .sort((a, b) => {
+              const dateA = parse(a, 'dd/MM/yyyy', new Date());
+              const dateB = parse(b, 'dd/MM/yyyy', new Date());
+              return dateA - dateB;
+            })
+            .reduce((acc, key) => {
+              acc[key] = newTimetable[key].sort((a, b) => a.subjectName.localeCompare(b.subjectName));
+              return acc;
+            }, {});
+
+          // nếu không có dữ liệu thì thông báo
+          if (Object.keys(newTimetable).length === 0) {
+            toast('Không tìm thấy báo bài.', {
+              icon: 'ℹ️', // Biểu tượng thông tin
+              style: {
+                background: '#blue',
+                color: '#black',
+              },
+            });
+            return;
+          }
+
+          setData(newTimetable);
+          toast.success('Tạo báo bài thành công');
+        })
+        .catch((error) => {
+          console.error('Get class by day and teacher error:', error.response ? error.response.data : error.message);
+          throw error;
+        });
+    }
   };
 
   const datesToShow = Object.keys(data);
@@ -181,26 +262,52 @@ export default function TeachingReportDay() {
     // Kiểm tra báo bài đã tồn tại
     const isExist = await handleCheckIsEist(); // Sử dụng await
     if (!isExist) {
-      const wConfim = window.confirm('Báo bài đã tồn tại, bạn có muốn tạo mới không?');
-      if (!wConfim) {
-        return;
-      }
-    }
+      Swal.fire({
+        title: 'Báo bài đã tồn tại',
+        text: 'Bạn có muốn tạo mới không?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Tạo mới',
+      }).then((result) => {
+        if (!result.isConfirmed) {
+          return;
+        } else {
+          // Tiến hành lưu báo bài
+          const academicYear = getCurrentSchoolYear();
+          const classReport = className;
+          const teachCreate = user.teacherId;
 
-    // Tiến hành lưu báo bài
-    const academicYear = getCurrentSchoolYear();
-    const classReport = className;
-    const teachCreate = user.teacherId;
-
-    saveTeachingReport(academicYear, classReport, teachCreate, data)
-      .then((data) => {
-        toast.success(data.message);
-        setData({});
-      })
-      .catch((error) => {
-        console.error('Save teaching report error:', error.response ? error.response.data : error.message);
-        throw error;
+          saveTeachingReport(academicYear, classReport, teachCreate, data)
+            .then((data) => {
+              toast.success(data.message);
+              setData({});
+              setIsSaved(true);
+            })
+            .catch((error) => {
+              console.error('Save teaching report error:', error.response ? error.response.data : error.message);
+              throw error;
+            });
+        }
       });
+    } else {
+      // Tiến hành lưu báo bài
+      const academicYear = getCurrentSchoolYear();
+      const classReport = className;
+      const teachCreate = user.teacherId;
+
+      saveTeachingReport(academicYear, classReport, teachCreate, data)
+        .then((data) => {
+          toast.success(data.message);
+          setData({});
+          setIsSaved(true);
+        })
+        .catch((error) => {
+          console.error('Save teaching report error:', error.response ? error.response.data : error.message);
+          throw error;
+        });
+    }
   };
 
   const handleCheckIsEist = async () => {
