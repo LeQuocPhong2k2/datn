@@ -281,45 +281,55 @@ export default function InputScore() {
     setIsSaved(false);
   };
 
+  const handleCheckDiemSo = () => {
+    for (let i = 0; i < transcript.length; i++) {
+      if (
+        (isNaN(transcript[i].hk1Gk) && transcript[i].hk1Gk !== '') ||
+        (isNaN(transcript[i].hk1Ck) && transcript[i].hk1Ck !== '') ||
+        (isNaN(transcript[i].hk2Gk) && transcript[i].hk2Gk !== '') ||
+        (isNaN(transcript[i].hk2Ck) && transcript[i].hk2Ck !== '')
+      ) {
+        return false;
+      }
+    }
+    return true;
+  };
+
   const handleSave = async () => {
     try {
-      for (let i = 0; i < transcript.length; i++) {
+      if (!handleCheckDiemSo()) {
+        Swal.fire({
+          title: 'Vui lòng cập nhật điếm số hợp lệ!',
+          icon: 'warning',
+          showCancelButton: false,
+          confirmButtonColor: '#3085d6',
+          confirmButtonText: 'OK',
+        });
+        setProcessing(false);
+        return;
+      }
+
+      const promises = transcript.map((item, index) => {
         const dataRow = {
-          stt: i,
-          mshs: transcript[i].studentCode,
+          stt: index,
+          mshs: item.studentCode,
           className: className,
           schoolYear: getCurrentSchoolYear(),
           subjectCode: subjectCode,
-          gk1: transcript[i].hk1Gk,
-          ck1: transcript[i].hk1Ck,
-          tbhk1: transcript[i].hk1Tb,
-          gk2: transcript[i].hk2Gk,
-          ck2: transcript[i].hk2Ck,
-          tbhk2: transcript[i].hk2Tb,
-          tbcn: transcript[i].allYear,
-          remarks: transcript[i].remarks,
+          gk1: item.hk1Gk,
+          ck1: item.hk1Ck,
+          tbhk1: item.hk1Tb,
+          gk2: item.hk2Gk,
+          ck2: item.hk2Ck,
+          tbhk2: item.hk2Tb,
+          tbcn: item.allYear,
+          remarks: item.remarks,
         };
+        return updateTranscript(dataRow);
+      });
+      setProcessing(true);
+      await Promise.all(promises);
 
-        if (
-          (isNaN(dataRow.gk1) && dataRow.gk1 !== '') ||
-          (isNaN(dataRow.ck1) && dataRow.ck1 !== '') ||
-          (isNaN(dataRow.gk2) && dataRow.gk2 !== '') ||
-          (isNaN(dataRow.ck2) && dataRow.ck2 !== '')
-        ) {
-          Swal.fire({
-            title: 'Vui lòng cập nhật điếm số hợp lệ!',
-            icon: 'warning',
-            showCancelButton: false,
-            confirmButtonColor: '#3085d6',
-            confirmButtonText: 'OK',
-          });
-          setProcessing(false);
-          return;
-        }
-
-        await updateTranscript(dataRow);
-        setProcessing(true);
-      }
       const schoolYear = getCurrentSchoolYear();
       const grade = className[0];
       getTranscriptBySubjectAndClassAndSchoolYear(subjectCode, className, schoolYear, grade)
@@ -334,32 +344,45 @@ export default function InputScore() {
             error.response ? error.response.data : error.message
           );
         });
-      setProcessing(false);
-      setIsEditingGK1(false);
-      setIsEditingCK1(false);
-      setIsEditingGK2(false);
-      setIsEditingCK2(false);
-      setIsSaved(true);
-      setListStudentImportFailed([]);
+      resetEditingState();
       toast.success('Cập nhật điểm thành công');
     } catch (error) {
-      setProcessing(false);
-      toast.error('Cập nhật điểm thất bại');
-      const schoolYear = getCurrentSchoolYear();
-      const grade = className[0];
-      getTranscriptBySubjectAndClassAndSchoolYear(subjectCode, className, schoolYear, grade)
-        .then((res) => {
-          setTranscript(res.data);
-          setTranscriptBk(res.data);
-        })
-        .catch((error) => {
-          setTranscript([]);
-          console.error(
-            'Get student list by class and academic year error:',
-            error.response ? error.response.data : error.message
-          );
-        });
+      handleSaveError(error);
     }
+  };
+  const resetEditingState = () => {
+    setIsEditingGK1(false);
+    setIsEditingCK1(false);
+    setIsEditingGK2(false);
+    setIsEditingCK2(false);
+    setIsSaved(true);
+    setListStudentImportFailed([]);
+    setProcessing(false);
+  };
+  const refreshTranscriptData = async () => {
+    const schoolYear = getCurrentSchoolYear();
+    const grade = className[0];
+
+    try {
+      const res = await getTranscriptBySubjectAndClassAndSchoolYear(subjectCode, className, schoolYear, grade);
+      setTranscript(res.data);
+      setTranscriptBk(res.data);
+    } catch (error) {
+      setTranscript([]);
+      console.error(
+        'Get student list by class and academic year error:',
+        error.response ? error.response.data : error.message
+      );
+    }
+  };
+
+  const handleSaveError = async (error) => {
+    console.error('Error saving transcripts:', error);
+    setProcessing(false);
+    toast.error('Cập nhật điểm thất bại');
+
+    // Refresh transcript data even if save fails
+    await refreshTranscriptData();
   };
 
   const sorting = (colName) => {
