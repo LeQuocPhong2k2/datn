@@ -44,3 +44,6 @@ client/.next/
 client/.next
 
 # ... existing code ...
+
+# thêm file .env vào gitignore
+.env

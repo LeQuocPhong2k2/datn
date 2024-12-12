@@ -128,6 +128,10 @@ const TranscriptController = {
         return res.status(400).json({ message: "Điểm không hợp lệ" });
       }
 
+      if ((isNaN(gk1) && gk1 !== "") || (isNaN(ck1) && ck1 !== "") || (isNaN(gk2) && gk2 !== "") || (isNaN(ck2) && ck2 !== "")) {
+        return res.status(400).json({ message: "Điểm không hợp lệ" });
+      }
+
       const transcriptUpdate = await Transcript.findOne({
         studentCode: mshs,
         className: className,
@@ -228,7 +232,7 @@ const TranscriptController = {
         return res.status(200).json(transcriptUpdate);
       } else {
         // await transcript.save();
-        return res.status(200).json(transcript);
+        return res.status(200).json(transcriptUpdate);
       }
     } catch (error) {
       return res.status(500).json({ error: error.message });
@@ -289,7 +293,7 @@ const TranscriptController = {
           allYear,
           subjectName,
         });
-        acc[studentCode].totalScore += parseFloat(allYear); // Convert allYear to number before adding
+        acc[studentCode].totalScore += parseFloat(allYear || 0); // Convert allYear to number before adding
         acc[studentCode].subjectCount += 1;
         return acc;
       }, {});
@@ -301,7 +305,7 @@ const TranscriptController = {
         subjects: student.subjects,
         subjectCount: student.subjectCount,
         totalScore: student.totalScore,
-        average: Math.round((student.totalScore / student.subjectCount) * 100) / 100,
+        average: student.subjectCount > 0 ? Math.round((student.totalScore / student.subjectCount) * 100) / 100 : null,
       }));
 
       return res.status(200).json({ studentDetails: studentDetailsArray });
