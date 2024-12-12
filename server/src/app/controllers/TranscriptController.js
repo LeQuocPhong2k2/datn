@@ -124,6 +124,10 @@ const TranscriptController = {
         return res.status(400).json({ message: "Điểm không hợp lệ" });
       }
 
+      if ((isNaN(gk1) && gk1 !== "") || (isNaN(ck1) && ck1 !== "") || (isNaN(gk2) && gk2 !== "") || (isNaN(ck2) && ck2 !== "")) {
+        return res.status(400).json({ message: "Điểm không hợp lệ" });
+      }
+
       const transcriptUpdate = await Transcript.findOne({
         studentCode: mshs,
         className: className,
@@ -533,21 +537,21 @@ const TranscriptController = {
         })),
         statistics: {
           totalSubjects: transcripts.length,
-          averageScore: Math.round((transcripts.reduce((sum, t) => sum + t.allYear, 0) / transcripts.length) * 100) / 100,
+          averageScore: Math.round((transcripts.reduce((sum, t) => sum + parseFloat(t.allYear || 0), 0) / transcripts.length) * 100) / 100,
           scoreRanges: {
-            excellent: transcripts.filter((t) => t.allYear >= 9).length,
-            good: transcripts.filter((t) => t.allYear >= 7 && t.allYear < 9).length,
-            average: transcripts.filter((t) => t.allYear >= 5 && t.allYear < 7).length,
-            belowAverage: transcripts.filter((t) => t.allYear < 5).length,
+            excellent: transcripts.filter((t) => parseFloat(t.allYear) >= 9).length,
+            good: transcripts.filter((t) => parseFloat(t.allYear) >= 7 && parseFloat(t.allYear) < 9).length,
+            average: transcripts.filter((t) => parseFloat(t.allYear) >= 5 && parseFloat(t.allYear) < 7).length,
+            belowAverage: transcripts.filter((t) => parseFloat(t.allYear) < 5).length,
           },
           subjectPerformance: {
-            improved: transcripts.filter((t) => t.hk2Tb > t.hk1Tb).length,
-            declined: transcripts.filter((t) => t.hk2Tb < t.hk1Tb).length,
-            stable: transcripts.filter((t) => t.hk2Tb === t.hk1Tb).length,
+            improved: transcripts.filter((t) => parseFloat(t.hk2Tb) > parseFloat(t.hk1Tb)).length,
+            declined: transcripts.filter((t) => parseFloat(t.hk2Tb) < parseFloat(t.hk1Tb)).length,
+            stable: transcripts.filter((t) => parseFloat(t.hk2Tb) === parseFloat(t.hk1Tb)).length,
           },
           semesterComparison: {
-            hk1Average: Math.round((transcripts.reduce((sum, t) => sum + t.hk1Tb, 0) / transcripts.length) * 100) / 100,
-            hk2Average: Math.round((transcripts.reduce((sum, t) => sum + t.hk2Tb, 0) / transcripts.length) * 100) / 100,
+            hk1Average: Math.round((transcripts.reduce((sum, t) => sum + parseFloat(t.hk1Tb || 0), 0) / transcripts.length) * 100) / 100,
+            hk2Average: Math.round((transcripts.reduce((sum, t) => sum + parseFloat(t.hk2Tb || 0), 0) / transcripts.length) * 100) / 100,
           },
         },
       };

@@ -15,6 +15,7 @@ const connectDB = require('./config/db/db.js')
 app.use(
   cors({
     origin: 'https://iuhschool.id.vn',
+    // origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   })
