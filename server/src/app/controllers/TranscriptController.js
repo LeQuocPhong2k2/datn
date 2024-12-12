@@ -341,7 +341,7 @@ const TranscriptController = {
           allYear,
           subjectName,
         })
-        acc[studentCode].totalScore += parseFloat(allYear) // Convert allYear to number before adding
+        acc[studentCode].totalScore += parseFloat(allYear || 0) // Convert allYear to number before adding
         acc[studentCode].subjectCount += 1
         return acc
       }, {})
@@ -355,7 +355,10 @@ const TranscriptController = {
           subjectCount: student.subjectCount,
           totalScore: student.totalScore,
           average:
-            Math.round((student.totalScore / student.subjectCount) * 100) / 100,
+            student.subjectCount > 0
+              ? Math.round((student.totalScore / student.subjectCount) * 100) /
+                100
+              : null,
         })
       )
 
