@@ -82,21 +82,25 @@ const StudyResult = ({ studentInfor }) => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    handleDanhHieu(stats.averageScore);
+  }, [stats]);
+
   function removeNumberFromString(str) {
     // Sử dụng regular expression để thay thế các số bằng chuỗi rỗng
     return str.replace(/\d+/g, '').trim();
   }
 
-  const handleDanhHieu = (avgScore) => {
-    if (avgScore >= 9) {
+  const handleDanhHieu = (averageScore) => {
+    if (averageScore >= 9) {
       setDanhHieu('Xuất sắc');
-    } else if (avgScore >= 7) {
-      setDanhHieu('Hoàn thành tốt');
-    } else if (avgScore >= 5) {
-      setDanhHieu('Hoàn thành');
-    } else {
-      setDanhHieu('Chưa hoàn thành');
-    }
+    } else if (averageScore >= 7) {
+      setDanhHieu('Hoàn Thành Tốt');
+    } else if (averageScore >= 5) {
+      setDanhHieu('Hoàn Thành');
+    } else if (averageScore < 5) {
+      setDanhHieu('Chưa Hoàn Thành');
+    } else setDanhHieu('Chưa Xếp Loại');
   };
 
   const generateChartData = (stats) => {
@@ -159,7 +163,7 @@ const StudyResult = ({ studentInfor }) => {
     // Sheet 3: So sánh học kỳ
     const semesterComparison = [
       { 'Học kỳ': 'Học kỳ I', 'Điểm TB': stats.semesterComparison.hk1Average },
-      { 'Học kỳ': 'Học k��� II', 'Điểm TB': stats.semesterComparison.hk2Average },
+      { 'Học kỳ': 'Học kỳ II', 'Điểm TB': stats.semesterComparison.hk2Average },
       { 'Học kỳ': 'Cả năm', 'Điểm TB': stats.averageScore },
     ];
     const worksheetComparison = XLSX.utils.json_to_sheet(semesterComparison);
@@ -410,7 +414,7 @@ const StudyResult = ({ studentInfor }) => {
                     <th className="summary-cell" style={{ textAlign: 'left' }}>
                       Danh mục
                     </th>
-                    <th className="summary-cell">Học kỳ I</th>
+                    <th className="summary-cell">Tổng kết</th>
                   </tr>
                 </thead>
                 <tbody>
