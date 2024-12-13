@@ -17,5 +17,6 @@ router.post("/getClassTeacherBySchoolYear", ScheduleController.getClassTeacherBy
 router.post("/getSubjectOfTeacher", ScheduleController.getSubjectOfTeacher);
 router.post("/getScheduleOfHomroomTeacher", ScheduleController.getScheduleOfHomroomTeacher);
 router.post("/getSchedulesByClassOfHomroomTeacher", ScheduleController.getSchedulesByClassOfHomroomTeacher);
+router.post("/getTeacherBySubjectAndClass", ScheduleController.getTeacherBySubjectAndClass);
 
 module.exports = router;

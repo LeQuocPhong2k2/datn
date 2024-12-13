@@ -124,14 +124,6 @@ const TranscriptController = {
         return res.status(400).json({ message: "Điểm không hợp lệ" });
       }
 
-      if ((isNaN(gk1) && gk1 !== "") || (isNaN(ck1) && ck1 !== "") || (isNaN(gk2) && gk2 !== "") || (isNaN(ck2) && ck2 !== "")) {
-        return res.status(400).json({ message: "Điểm không hợp lệ" });
-      }
-
-      if ((isNaN(gk1) && gk1 !== "") || (isNaN(ck1) && ck1 !== "") || (isNaN(gk2) && gk2 !== "") || (isNaN(ck2) && ck2 !== "")) {
-        return res.status(400).json({ message: "Điểm không hợp lệ" });
-      }
-
       const transcriptUpdate = await Transcript.findOne({
         studentCode: mshs,
         className: className,
@@ -154,11 +146,11 @@ const TranscriptController = {
         transcriptUpdate.dateOfBirth = student.dateOfBirth;
         transcriptUpdate.hk1Gk = gk1;
         transcriptUpdate.hk1Ck = ck1;
-        transcriptUpdate.hk1Tb = !isNaN(tbhk1Avg) ? tbhk1Avg : "";
+        transcriptUpdate.hk1Tb = !isNaN(tbhk1Avg) ? parseFloat(tbhk1Avg).toFixed(1) : "";
         transcriptUpdate.hk2Gk = gk2;
         transcriptUpdate.hk2Ck = ck2;
-        transcriptUpdate.hk2Tb = !isNaN(tbhk2Avg) ? tbhk2Avg : "";
-        transcriptUpdate.allYear = !isNaN(tbcnAvg) ? tbcnAvg : "";
+        transcriptUpdate.hk2Tb = !isNaN(tbhk2Avg) ? parseFloat(tbhk2Avg).toFixed(1) : "";
+        transcriptUpdate.allYear = !isNaN(tbcnAvg) ? parseFloat(tbcnAvg).toFixed(1) : "";
         transcriptUpdate.remarks = remarks;
 
         await transcriptUpdate.save();
@@ -183,11 +175,11 @@ const TranscriptController = {
           subjectCode: subjectCode,
           hk1Gk: gk1,
           hk1Ck: ck1,
-          hk1Tb: !isNaN(tbhk1Avg) ? tbhk1Avg : "",
+          hk1Tb: !isNaN(tbhk1Avg) ? parseFloat(tbhk1Avg).toFixed(1) : "",
           hk2Gk: gk2,
           hk2Ck: ck2,
-          hk2Tb: !isNaN(tbhk2Avg) ? tbhk2Avg : "",
-          allYear: !isNaN(tbcnAvg) ? tbcnAvg : "",
+          hk2Tb: !isNaN(tbhk2Avg) ? parseFloat(tbhk2Avg).toFixed(1) : "",
+          allYear: !isNaN(tbcnAvg) ? parseFloat(tbcnAvg).toFixed(1) : "",
           remarks: remarks,
         });
 
@@ -200,7 +192,7 @@ const TranscriptController = {
   },
 
   async checkImportTranscript(req, res) {
-    const { mshs, className, schoolYear, subjectCode, gk1, ck1, tbhk1, gk2, ck2, tbhk2, tbcn, remarks } = req.body;
+    const { mshs, className, schoolYear, subjectCode, gk1, ck1, tbhk1, gk2, ck2, tbhk2, tbcn, remarks, typeScore } = req.body;
 
     try {
       const student = await Student.findOne({ studentCode: mshs });
@@ -215,9 +207,28 @@ const TranscriptController = {
         return res.status(403).json({ message: "Không tìm thấy học sinh trong lớp này" });
       }
 
-      if ((isNaN(gk1) && gk1 !== "") || (isNaN(ck1) && ck1 !== "") || isNaN(gk2) || isNaN(ck2)) {
-        console.log(gk1, ck1, gk2, ck2);
-        return res.status(400).json({ message: "Điểm không hợp lệ" });
+      if (typeScore === "Gk1") {
+        if (gk1 === null || gk1 === undefined || (isNaN(gk1) && gk1 !== "")) {
+          return res.status(400).json({ message: "Điểm không hợp lệ" });
+        }
+      }
+
+      if (typeScore === "Ck1") {
+        if (ck1 === null || ck1 === undefined || (isNaN(ck1) && ck1 !== "")) {
+          return res.status(400).json({ message: "Điểm không hợp lệ" });
+        }
+      }
+
+      if (typeScore === "Gk2") {
+        if (gk2 === null || gk2 === undefined || (isNaN(gk2) && gk2 !== "")) {
+          return res.status(400).json({ message: "Điểm không hợp lệ" });
+        }
+      }
+
+      if (typeScore === "Ck2") {
+        if (ck2 === null || ck2 === undefined || (isNaN(ck2) && ck2 !== "")) {
+          return res.status(400).json({ message: "Điểm không hợp lệ" });
+        }
       }
 
       const transcriptUpdate = await Transcript.findOne({

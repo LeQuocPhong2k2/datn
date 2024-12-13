@@ -148,6 +148,7 @@ async function checkImportTranscript(dataRow) {
         tbhk2: dataRow.hk2Tb,
         tbcn: dataRow.allYear,
         remarks: dataRow.remarks,
+        typeScore: dataRow.typeScore,
       },
       {
         headers: {

@@ -582,6 +582,27 @@ const ScheduleController = {
       return res.status(500).json({ error: error.message });
     }
   },
+
+  async getTeacherBySubjectAndClass(req, res) {
+    const { subjectCode, className, schoolYear } = req.body;
+
+    try {
+      const subject = await Subject.findOne({ subjectCode: subjectCode });
+      const schedule = await Schedule.findOne({
+        schoolYear: schoolYear,
+        className: className,
+        subject: subject._id,
+      }).populate("scheduleTeacher");
+
+      if (schedule) {
+        return res.status(200).json({ teacher: schedule.scheduleTeacher });
+      }
+
+      return res.status(404).json({ message: "Teacher not found" });
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  },
 };
 
 function handleCheckConflictSchedule(listSchedule, Schedule) {

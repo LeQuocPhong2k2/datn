@@ -272,6 +272,24 @@ async function getSchedulesByClassOfHomroomTeacher(teacherId, className, schoolY
   }
 }
 
+async function getTeacherBySubjectAndClass(subjectCode, className, schoolYear) {
+  try {
+    const response = await axios.post(
+      API_URL + '/schedules/getTeacherBySubjectAndClass',
+      { subjectCode, className, schoolYear },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Get teacher by subject and class error:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+}
+
 export {
   createSchedule,
   getSchedulesByClass,
@@ -286,4 +304,5 @@ export {
   getSubjectOfTeacher,
   getScheduleOfHomroomTeacher,
   getSchedulesByClassOfHomroomTeacher,
+  getTeacherBySubjectAndClass,
 };

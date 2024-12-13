@@ -16,7 +16,7 @@ import {
   updateTranscript,
   checkImportTranscript,
 } from '../../../api/Transcripts';
-import { getClassTeacherBySchoolYear, getSubjectOfTeacher } from '../../../api/Schedules';
+import { getClassTeacherBySchoolYear, getSubjectOfTeacher, getTeacherBySubjectAndClass } from '../../../api/Schedules';
 import { checkHomeRoomTeacher } from '../../../api/Class';
 
 import Menu from './Menu';
@@ -24,7 +24,7 @@ import Menu from './Menu';
 export default function InputScore() {
   const { user } = useContext(UserContext);
   const [subjectOfSchedule, setSubjectOfSchedule] = useState([]);
-  const [activeEditSubject, setActiveEditSubject] = useState('');
+  const [activeEditSubject, setActiveEditSubject] = useState(true);
   const [activeImport, setActiveImport] = useState(false);
   const [success, setSuccess] = useState(0);
   const [failed, setFailed] = useState(0);
@@ -38,6 +38,7 @@ export default function InputScore() {
   const [transcriptBk, setTranscriptBk] = useState([]);
   const [transcriptFileUpload, setTranscriptFileUpload] = useState([]);
   const [className, setClassName] = useState('');
+  const [teacherBM, setTeacherBM] = useState('');
 
   const [processing, setProcessing] = useState(false);
   const [isSaved, setIsSaved] = useState(true);
@@ -103,21 +104,27 @@ export default function InputScore() {
   }, [className, user.teacherId]);
 
   useEffect(() => {
-    const schoolYear = getCurrentSchoolYear();
-    const grade = className[0];
-    getTranscriptBySubjectAndClassAndSchoolYear(subjectCode, className, schoolYear, grade)
-      .then((res) => {
-        setTranscript(res.data);
-        setTranscriptBk(res.data);
-      })
-      .catch((error) => {
+    const fetchData = async () => {
+      try {
+        const schoolYear = getCurrentSchoolYear();
+        const grade = className[0];
+
+        const [transcriptRes, teacherRes] = await Promise.all([
+          getTranscriptBySubjectAndClassAndSchoolYear(subjectCode, className, schoolYear, grade),
+          getTeacherBySubjectAndClass(subjectCode, className, schoolYear),
+        ]);
+
+        setTranscript(transcriptRes.data);
+        setTranscriptBk(transcriptRes.data);
+        setTeacherBM(teacherRes.teacher);
+      } catch (error) {
         setTranscript([]);
         setTranscriptBk([]);
-        console.error(
-          'Get student list by class and academic year error:',
-          error.response ? error.response.data : error.message
-        );
-      });
+        console.error('Error fetching data:', error.response ? error.response.data : error.message);
+      }
+    };
+
+    fetchData();
   }, [subjectCode, className]);
 
   useEffect(() => {
@@ -192,56 +199,62 @@ export default function InputScore() {
     let transcriptCheck = [];
     let mshsImportFile = [];
     const totalFile = transcriptFileUpload.length;
-    for (let index = 0; index < totalFile; index++) {
-      const transcriptImport = transcriptFileUpload[index];
+
+    const promises = transcriptFileUpload.map(async (transcriptImport, index) => {
       const dataRow = {};
       dataRow.stt = index;
       dataRow.mshs = transcriptImport['Mã số học sinh'];
       dataRow.className = className;
       dataRow.schoolYear = getCurrentSchoolYear();
       dataRow.subjectCode = subjectCode;
-      dataRow.userName = transcript[index].userName;
-      dataRow.dateOfBirth = transcript[index].dateOfBirth;
-      dataRow.studentCode = transcript[index].studentCode;
+      const studentTranscript = transcript.find((item) => item.studentCode === dataRow.mshs);
+      dataRow.userName = studentTranscript.userName;
+      dataRow.dateOfBirth = studentTranscript.dateOfBirth;
+      dataRow.studentCode = studentTranscript.studentCode;
+
       if (selectedSemesterNumber === 'Gk' && selectedSemester === '1') {
         dataRow.hk1Gk = transcriptImport['Điểm'];
-        dataRow.hk1Ck = transcript[index].hk1Ck;
-        dataRow.hk1Tb = transcript[index].hk1Tb;
-        dataRow.hk2Gk = transcript[index].hk2Gk;
-        dataRow.hk2Ck = transcript[index].hk2Ck;
-        dataRow.hk2Tb = transcript[index].hk2Tb;
-        dataRow.allYear = transcript[index].allYear;
-        dataRow.remarks = transcript[index].remarks;
+        dataRow.hk1Ck = studentTranscript.hk1Ck;
+        dataRow.hk1Tb = studentTranscript.hk1Tb;
+        dataRow.hk2Gk = studentTranscript.hk2Gk;
+        dataRow.hk2Ck = studentTranscript.hk2Ck;
+        dataRow.hk2Tb = studentTranscript.hk2Tb;
+        dataRow.allYear = studentTranscript.allYear;
+        dataRow.remarks = studentTranscript.remarks;
+        dataRow.typeScore = 'Gk1';
       }
       if (selectedSemesterNumber === 'Ck' && selectedSemester === '1') {
-        dataRow.hk1Gk = transcript[index].hk1Gk;
+        dataRow.hk1Gk = studentTranscript.hk1Gk;
         dataRow.hk1Ck = transcriptImport['Điểm'];
-        dataRow.tbhk1 = transcript[index].hk1Tb;
-        dataRow.hk2Gk = transcript[index].hk2Gk;
-        dataRow.hk2Ck = transcript[index].hk2Ck;
-        dataRow.hk2Tb = transcript[index].hk2Tb;
-        dataRow.allYear = transcript[index].allYear;
-        dataRow.remarks = transcript[index].remarks;
+        dataRow.tbhk1 = studentTranscript.hk1Tb;
+        dataRow.hk2Gk = studentTranscript.hk2Gk;
+        dataRow.hk2Ck = studentTranscript.hk2Ck;
+        dataRow.hk2Tb = studentTranscript.hk2Tb;
+        dataRow.allYear = studentTranscript.allYear;
+        dataRow.remarks = studentTranscript.remarks;
+        dataRow.typeScore = 'Ck1';
       }
       if (selectedSemesterNumber === 'Gk' && selectedSemester === '2') {
-        dataRow.hk1Gk = transcript[index].hk1Gk;
-        dataRow.hk1Ck = transcript[index].hk1Ck;
-        dataRow.hk1Tb = transcript[index].hk1Tb;
+        dataRow.hk1Gk = studentTranscript.hk1Gk;
+        dataRow.hk1Ck = studentTranscript.hk1Ck;
+        dataRow.hk1Tb = studentTranscript.hk1Tb;
         dataRow.hk2Gk = transcriptImport['Điểm'];
-        dataRow.hk2Ck = transcript[index].hk2Ck;
-        dataRow.hk2Tb = transcript[index].hk2Tb;
-        dataRow.allYear = transcript[index].allYear;
-        dataRow.remarks = transcript[index].remarks;
+        dataRow.hk2Ck = studentTranscript.hk2Ck;
+        dataRow.hk2Tb = studentTranscript.hk2Tb;
+        dataRow.allYear = studentTranscript.allYear;
+        dataRow.remarks = studentTranscript.remarks;
+        dataRow.typeScore = 'Gk2';
       }
       if (selectedSemesterNumber === 'Ck' && selectedSemester === '2') {
-        dataRow.hk1Gk = transcript[index].hk1Gk;
-        dataRow.hk1Ck = transcript[index].hk1Ck;
-        dataRow.hk1Tb = transcript[index].hk1Tb;
-        dataRow.hk2Gk = transcript[index].hk2Gk;
+        dataRow.hk1Gk = studentTranscript.hk1Gk;
+        dataRow.hk1Ck = studentTranscript.hk1Ck;
+        dataRow.hk1Tb = studentTranscript.hk1Tb;
+        dataRow.hk2Gk = studentTranscript.hk2Gk;
         dataRow.hk2Ck = transcriptImport['Điểm'];
-        dataRow.hk2Tb = transcript[index].hk2Tb;
-        dataRow.allYear = transcript[index].allYear;
-        dataRow.remarks = transcript[index].remarks;
+        dataRow.hk2Tb = studentTranscript.hk2Tb;
+        dataRow.allYear = studentTranscript.allYear;
+        dataRow.remarks = studentTranscript.remarks;
+        dataRow.typeScore = 'Ck2';
       }
       transcriptCheck.push(dataRow);
 
@@ -251,18 +264,20 @@ export default function InputScore() {
       } catch (error) {
         nfailed++;
         mshsImportFile.push(dataRow.mshs);
-        console.log('Error import transcript dataRow.mshs:', dataRow.mshs);
-        console.error(error);
       }
-      setSuccess(nsuccess);
-      setFailed(nfailed);
       setImportProgress(Math.round(((index + 1) / totalFile) * 100));
-    }
+    });
+
+    await Promise.all(promises);
+
+    setImportProgress(100);
+    setSuccess(nsuccess);
+    setFailed(nfailed);
     setListStudentImportFailed(mshsImportFile);
+    setTranscript(transcriptCheck);
     setTranscriptFileUpload([]);
     document.getElementById('inputFile').value = '';
     setIsSaved(false);
-    setTranscript(transcriptCheck);
   };
 
   const handleCancelEdit = () => {
@@ -602,6 +617,17 @@ export default function InputScore() {
                   {subjectList.length === 0 && <option>Chưa có môn học</option>}
                 </select>
               </div>
+              {teacherBM && teacherBM.userName !== user.userName && (
+                <div className="w-60">
+                  <label className="block mb-2">Giáo viên bộ môn</label>
+                  <input
+                    type="text"
+                    value={teacherBM.userName}
+                    className="w-full p-2 border-none rounded bg-gray-100"
+                  />
+                </div>
+              )}
+
               {!isSaved && (
                 <div className="w-96 flex items-end gap-2">
                   <button
@@ -641,20 +667,22 @@ export default function InputScore() {
               )}
             </div>
 
-            <div className="px-4 py-4 flex items-center justify-start gap-1">
-              <input
-                type="checkbox"
-                checked={activeShowImport}
-                onChange={(e) => {
-                  setActiveShowImport(e.target.checked);
-                }}
-              />
-              <p className="">Nhập điểm từ file Excel</p>
+            {!activeEditSubject && (
+              <div className="px-4 py-4 flex items-center justify-start gap-1">
+                <input
+                  type="checkbox"
+                  checked={activeShowImport}
+                  onChange={(e) => {
+                    setActiveShowImport(e.target.checked);
+                  }}
+                />
+                <p className="">Nhập điểm từ file Excel</p>
 
-              <a href="/template/Diem_XXX_MonHoc_LopHoc.xlsx" className="text-blue-500" download>
-                File mẫu
-              </a>
-            </div>
+                <a href="/template/Diem_XXX_MonHoc_LopHoc.xlsx" className="text-blue-500" download>
+                  File mẫu
+                </a>
+              </div>
+            )}
 
             {activeShowImport && (
               <div className="px-4 pb-5 flex flex-wrap gap-4">
@@ -1022,7 +1050,7 @@ export default function InputScore() {
                     return (
                       <>
                         <tr className={`h-16  ${borderCheck}`} key={index}>
-                          <td className="border px-4 py-2 text-center">{index}</td>
+                          <td className="border px-4 py-2 text-center">{index + 1}</td>
                           <td className="border px-4 py-2 text-center">{student.studentCode}</td>
                           <td className="border px-4 py-2">{student.userName}</td>
                           <td className="border px-4 py-2">{student.dateOfBirth}</td>
