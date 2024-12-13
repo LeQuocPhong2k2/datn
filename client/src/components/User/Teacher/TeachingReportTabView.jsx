@@ -104,6 +104,10 @@ export default function TeachingPlans() {
         cancelButtonText: 'Hủy',
       }).then((result) => {
         if (result.isConfirmed) {
+          if (className === '') {
+            toast.error('Vui lòng chọn lớp');
+          }
+
           let dateToStart = '';
           let dateToEnd = '';
           if (dateStart && !isNaN(new Date(dateStart).getTime())) {
@@ -178,6 +182,9 @@ export default function TeachingPlans() {
         }
       });
     } else {
+      if (className === '') {
+        toast.error('Vui lòng chọn lớp');
+      }
       let dateToStart = '';
       let dateToEnd = '';
       if (dateStart && !isNaN(new Date(dateStart).getTime())) {
