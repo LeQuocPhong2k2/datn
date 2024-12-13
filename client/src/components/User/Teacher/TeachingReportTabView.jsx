@@ -106,6 +106,7 @@ export default function TeachingPlans() {
         if (result.isConfirmed) {
           if (className === '') {
             toast.error('Vui lòng chọn lớp');
+            return;
           }
 
           let dateToStart = '';
@@ -184,6 +185,7 @@ export default function TeachingPlans() {
     } else {
       if (className === '') {
         toast.error('Vui lòng chọn lớp');
+        return;
       }
       let dateToStart = '';
       let dateToEnd = '';
