@@ -30,7 +30,10 @@ const ViewReport = ({ studentInfor }) => {
     const ngayHienTai = new Date();
     const ngayBaoBai = new Date(ngayHienTai);
     const thuTrongTuan = ngayHienTai.getDay();
-    if (thuTrongTuan === 6) {
+    if (thuTrongTuan === 5) {
+      const daysToNextMonday = 3;
+      ngayBaoBai.setDate(ngayHienTai.getDate() + daysToNextMonday);
+    } else if (thuTrongTuan === 6) {
       const daysToNextMonday = 2;
       ngayBaoBai.setDate(ngayHienTai.getDate() + daysToNextMonday);
     } else if (thuTrongTuan === 0) {
