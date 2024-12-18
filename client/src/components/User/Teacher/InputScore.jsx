@@ -306,6 +306,22 @@ export default function InputScore() {
       ) {
         return false;
       }
+
+      if ((parseFloat(transcript[i].hk1Gk) < 0 || parseFloat(transcript[i].hk1Gk) > 10) && transcript[i].hk1Gk !== '') {
+        return false;
+      }
+
+      if ((parseFloat(transcript[i].hk1Ck) < 0 || parseFloat(transcript[i].hk1Ck) > 10) && transcript[i].hk1Ck !== '') {
+        return false;
+      }
+
+      if ((parseFloat(transcript[i].hk2Gk) < 0 || parseFloat(transcript[i].hk2Gk) > 10) && transcript[i].hk2Gk !== '') {
+        return false;
+      }
+
+      if ((parseFloat(transcript[i].hk2Ck) < 0 || parseFloat(transcript[i].hk2Ck) > 10) && transcript[i].hk2Ck !== '') {
+        return false;
+      }
     }
     return true;
   };

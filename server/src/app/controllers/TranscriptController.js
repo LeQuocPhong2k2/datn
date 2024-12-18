@@ -211,10 +211,26 @@ const TranscriptController = {
         if (gk1 === null || gk1 === undefined || (isNaN(gk1) && gk1 !== "")) {
           return res.status(400).json({ message: "Điểm không hợp lệ" });
         }
+
+        try {
+          if (parseFloat(gk1) < 0 || parseFloat(gk1) > 10) {
+            return res.status(400).json({ message: "Điểm không hợp lệ" });
+          }
+        } catch (error) {
+          return res.status(400).json({ message: "Điểm không hợp lệ" });
+        }
       }
 
       if (typeScore === "Ck1") {
         if (ck1 === null || ck1 === undefined || (isNaN(ck1) && ck1 !== "")) {
+          return res.status(400).json({ message: "Điểm không hợp lệ" });
+        }
+
+        try {
+          if (parseFloat(ck1) < 0 || parseFloat(ck1) > 10) {
+            return res.status(400).json({ message: "Điểm không hợp lệ" });
+          }
+        } catch (error) {
           return res.status(400).json({ message: "Điểm không hợp lệ" });
         }
       }
@@ -223,10 +239,24 @@ const TranscriptController = {
         if (gk2 === null || gk2 === undefined || (isNaN(gk2) && gk2 !== "")) {
           return res.status(400).json({ message: "Điểm không hợp lệ" });
         }
+        try {
+          if (parseFloat(gk2) < 0 || parseFloat(gk2) > 10) {
+            return res.status(400).json({ message: "Điểm không hợp lệ" });
+          }
+        } catch (error) {
+          return res.status(400).json({ message: "Điểm không hợp lệ" });
+        }
       }
 
       if (typeScore === "Ck2") {
         if (ck2 === null || ck2 === undefined || (isNaN(ck2) && ck2 !== "")) {
+          return res.status(400).json({ message: "Điểm không hợp lệ" });
+        }
+        try {
+          if (parseFloat(ck2) < 0 || parseFloat(ck2) > 10) {
+            return res.status(400).json({ message: "Điểm không hợp lệ" });
+          }
+        } catch (error) {
           return res.status(400).json({ message: "Điểm không hợp lệ" });
         }
       }
