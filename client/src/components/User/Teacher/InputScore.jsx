@@ -1075,9 +1075,8 @@ export default function InputScore() {
                               <input
                                 value={student.hk1Gk}
                                 onChange={(e) => handleOnChangeEdit(e, 'hk1Gk', index)}
-                                type="number"
-                                min={0}
-                                max={10}
+                                type="text"
+                                maxLength={4}
                                 name="gk1"
                                 className="w-16 p-1 border rounded text-center"
                               />
@@ -1090,9 +1089,8 @@ export default function InputScore() {
                               <input
                                 value={student.hk1Ck}
                                 onChange={(e) => handleOnChangeEdit(e, 'hk1Ck', index)}
-                                type="number"
-                                min={0}
-                                max={10}
+                                type="text"
+                                maxLength={4}
                                 name="ck1"
                                 className="w-16 p-1 border rounded text-center"
                               />
@@ -1108,9 +1106,8 @@ export default function InputScore() {
                               <input
                                 value={student.hk2Gk}
                                 onChange={(e) => handleOnChangeEdit(e, 'hk2Gk', index)}
-                                type="number"
-                                min={0}
-                                max={10}
+                                type="text"
+                                maxLength={4}
                                 name="gk2"
                                 className="w-16 p-1 border rounded text-center"
                               />
@@ -1123,9 +1120,8 @@ export default function InputScore() {
                               <input
                                 value={student.hk2Ck}
                                 onChange={(e) => handleOnChangeEdit(e, 'hk2Ck', index)}
-                                type="number"
-                                min={0}
-                                max={10}
+                                type="text"
+                                maxLength={4}
                                 name="ck2"
                                 className="w-16 p-1 border rounded text-center"
                               />

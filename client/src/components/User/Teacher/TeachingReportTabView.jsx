@@ -548,6 +548,7 @@ export default function TeachingPlans() {
                               </td>
                               <td className="border border-gray-400 px-4 py-2">
                                 <textarea
+                                  maxLength={255}
                                   disabled={activeIndex.date !== date || activeIndex.subIndex !== subIndex}
                                   onChange={(e) => handleInputChange(e, date, subIndex, 'content')}
                                   value={subject.content}
@@ -556,6 +557,7 @@ export default function TeachingPlans() {
                               </td>
                               <td className="border border-gray-400 px-4 py-2">
                                 <textarea
+                                  maxLength={255}
                                   disabled={activeIndex.date !== date || activeIndex.subIndex !== subIndex}
                                   onChange={(e) => {
                                     handleInputChange(e, date, subIndex, 'note');
