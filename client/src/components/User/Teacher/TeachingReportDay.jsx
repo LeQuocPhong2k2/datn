@@ -429,6 +429,7 @@ export default function TeachingReportDay() {
                         <td className="border border-gray-400 px-4 py-2">{subject.subjectName}</td>
                         <td className="border border-gray-400 px-4 py-2">
                           <textarea
+                            maxLength={255}
                             onChange={(e) => {
                               setIsSaved(false);
                               const newData = { ...data };
@@ -445,6 +446,7 @@ export default function TeachingReportDay() {
                         </td>
                         <td className="border border-gray-400 px-4 py-2">
                           <textarea
+                            maxLength={255}
                             onChange={(e) => {
                               setIsSaved(false);
                               const newData = { ...data };

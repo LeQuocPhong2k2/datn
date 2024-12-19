@@ -481,6 +481,7 @@ export default function TeachingReportManyDay() {
                       <td className="border border-gray-400 px-4 py-2">{subject.subjectName}</td>
                       <td className="border border-gray-400 px-4 py-2">
                         <textarea
+                          maxLength={255}
                           onChange={(e) => {
                             const newTimetable = { ...dataManyDay };
                             newTimetable[date][subIndex].content = e.target.value;
@@ -493,6 +494,7 @@ export default function TeachingReportManyDay() {
                       </td>
                       <td className="border border-gray-400 px-4 py-2">
                         <textarea
+                          maxLength={255}
                           onChange={(e) => {
                             const newTimetable = { ...dataManyDay };
                             newTimetable[date][subIndex].note = e.target.value;
